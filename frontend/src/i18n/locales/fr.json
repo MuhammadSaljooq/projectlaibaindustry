@@ -1,0 +1,56 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "loading": "Chargement...",
+    "noData": "Aucune donnée disponible",
+    "actions": "Actions",
+    "close": "Fermer",
+    "submit": "Soumettre",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "products": "Produits",
+    "categories": "Catégories",
+    "sales": "Ventes",
+    "reports": "Rapports",
+    "settings": "Paramètres"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "totalSales": "Ventes Totales",
+    "totalProfit": "Profit Total",
+    "inventoryValue": "Valeur de l'Inventaire",
+    "lowStockItems": "Articles à Stock Faible"
+  },
+  "currency": {
+    "code": "Code",
+    "name": "Nom",
+    "symbol": "Symbole",
+    "isDefault": "Par défaut",
+    "isActive": "Actif",
+    "decimalPlaces": "Décimales",
+    "addCurrency": "Ajouter une Devise",
+    "editCurrency": "Modifier la Devise",
+    "exchangeRate": "Taux de Change",
+    "fromCurrency": "Devise Source",
+    "toCurrency": "Devise Cible",
+    "rate": "Taux",
+    "effectiveDate": "Date Effective"
+  },
+  "language": {
+    "english": "Anglais",
+    "spanish": "Espagnol",
+    "french": "Français",
+    "arabic": "Arabe",
+    "urdu": "Ourdou"
+  }
+}
