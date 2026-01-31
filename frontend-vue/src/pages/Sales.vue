@@ -427,7 +427,7 @@
             <label class="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
             <input
               type="date"
-              v-model="searchFilters.startDate"
+              :value="searchFilters.startDate"
               @input="handleSearchChange('startDate', $event.target.value)"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
@@ -437,7 +437,7 @@
             <label class="block text-xs font-medium text-gray-700 mb-1">End Date</label>
             <input
               type="date"
-              v-model="searchFilters.endDate"
+              :value="searchFilters.endDate"
               @input="handleSearchChange('endDate', $event.target.value)"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
@@ -625,9 +625,17 @@ watch(rows, () => {
   }
 }, { deep: true })
 
-// Watch for calculations
+// Guard to prevent watcher loop when calculateTotals updates row fields
+let isCalculatingTotals = false
+
+// Watch for calculations (guard prevents re-entry when we mutate row.amount/vat/subtotal)
 watch([rows, () => headerData.discountAmount, () => headerData.discountType, () => headerData.applyTax, () => headerData.vatPercentage], () => {
-  calculateTotals()
+  if (isCalculatingTotals) return
+  isCalculatingTotals = true
+  nextTick(() => {
+    calculateTotals()
+    nextTick(() => { isCalculatingTotals = false })
+  })
 }, { deep: true })
 
 // Functions
@@ -666,14 +674,15 @@ const fetchSales = async (filters = {}) => {
 
 const handleSearchChange = (field, value) => {
   searchFilters[field] = value
-  
+
   if (searchTimeoutRef.value) {
     clearTimeout(searchTimeoutRef.value)
   }
-  
+
+  // Debounce fetch so changing date/filters doesn't block the UI
   searchTimeoutRef.value = setTimeout(() => {
     fetchSales(searchFilters)
-  }, 500)
+  }, 400)
 }
 
 const clearFilters = () => {
@@ -730,34 +739,33 @@ const calculateTotals = () => {
 
   const vatRate = headerData.applyTax ? parseFloat(headerData.vatPercentage || 15) : 0
 
-  const updatedRows = rows.value.map(row => {
+  // Mutate rows in place to avoid replacing the array (prevents watcher cascade / unresponsive UI)
+  rows.value.forEach(row => {
     if (row.productName && row.quantity && row.sellingPrice) {
       const qty = parseFloat(row.quantity) || 0
       const price = parseFloat(row.sellingPrice) || 0
       const amount = price * qty
-      
+
       const rowVat = (amount * vatRate) / 100
       const rowSubtotal = amount + rowVat
-      
+
       subtotal += amount
       totalVat += rowVat
-      
+
       if (row.costPrice) {
         const itemCost = parseFloat(row.costPrice) * qty
         totalProfit += (amount - itemCost)
       }
-      
-      return { 
-        ...row, 
-        amount: amount.toFixed(2),
-        vat: rowVat.toFixed(2),
-        subtotal: rowSubtotal.toFixed(2)
-      }
+
+      row.amount = amount.toFixed(2)
+      row.vat = rowVat.toFixed(2)
+      row.subtotal = rowSubtotal.toFixed(2)
+    } else {
+      row.amount = ''
+      row.vat = ''
+      row.subtotal = ''
     }
-    return { ...row, amount: '', vat: '', subtotal: '' }
   })
-  
-  rows.value = updatedRows
 
   let discount = 0
   if (headerData.discountType === 'percentage') {
