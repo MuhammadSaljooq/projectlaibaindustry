@@ -34,14 +34,10 @@ cat > "$DEPLOY_DIR/api/.htaccess" << 'EOF'
   RewriteRule ^(.*)$ index.php [L,QSA]
 </IfModule>
 
-# Security: Prevent direct access to config files
-<FilesMatch "\.(env|php)$">
+# Security: Prevent direct access to .env only (do not block .php)
+<FilesMatch "^\.env">
   <IfModule mod_authz_core.c>
     Require all denied
-  </IfModule>
-  <IfModule !mod_authz_core.c>
-    Order deny,allow
-    Deny from all
   </IfModule>
 </FilesMatch>
 EOF

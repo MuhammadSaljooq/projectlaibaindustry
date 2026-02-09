@@ -68,20 +68,21 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { LayoutDashboard, Package, FolderTree, ShoppingCart, Receipt, BarChart3, Settings, Menu, X } from 'lucide-vue-next'
+import { LayoutDashboard, Package, FolderTree, ShoppingCart, ShoppingBag, Receipt, CreditCard, BarChart3, FileSpreadsheet, Settings, Menu, X } from 'lucide-vue-next'
 
-const route = useRoute()
 const { t } = useI18n()
 const mobileMenuOpen = ref(false)
 
 const navItems = computed(() => [
   { path: '/', label: t('nav.dashboard'), icon: LayoutDashboard, key: 'dashboard' },
   { path: '/products', label: t('nav.products'), icon: Package, key: 'products' },
+  { path: '/inventory-sheet', label: t('nav.inventorySheet'), icon: FileSpreadsheet, key: 'inventorySheet' },
   { path: '/categories', label: t('nav.categories'), icon: FolderTree, key: 'categories' },
   { path: '/sales', label: t('nav.sales'), icon: ShoppingCart, key: 'sales' },
+  { path: '/purchase-entry', label: t('nav.purchaseEntry'), icon: ShoppingBag, key: 'purchaseEntry' },
   { path: '/receivables', label: t('nav.receivables') || 'Receivables', icon: Receipt, key: 'receivables' },
+  { path: '/payables', label: t('nav.payables'), icon: CreditCard, key: 'payables' },
   { path: '/reports', label: t('nav.reports'), icon: BarChart3, key: 'reports' },
   { path: '/settings', label: t('nav.settings'), icon: Settings, key: 'settings' },
 ])

@@ -32,3 +32,9 @@ if (APP_DEBUG) {
 
 // Set timezone
 date_default_timezone_set('UTC');
+
+// Performance and timeout settings
+ini_set('max_execution_time', '30'); // 30 second script timeout
+ini_set('max_input_time', '30'); // 30 second input timeout
+ini_set('default_socket_timeout', '10'); // 10 second socket timeout
+ini_set('memory_limit', '256M'); // Increase memory limit if needed

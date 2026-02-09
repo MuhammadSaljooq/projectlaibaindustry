@@ -23,7 +23,10 @@
     "products": "Products",
     "categories": "Categories",
     "sales": "Sales",
+    "purchaseEntry": "Purchase Entry",
     "receivables": "Receivables",
+    "payables": "Payables",
+    "inventorySheet": "Inventory Sheet",
     "reports": "Reports",
     "settings": "Settings"
   },

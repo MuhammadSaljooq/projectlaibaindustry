@@ -21,7 +21,10 @@
     "products": "Produits",
     "categories": "Catégories",
     "sales": "Ventes",
+    "purchaseEntry": "Entrée d'achat",
     "receivables": "Créances",
+    "payables": "Dettes",
+    "inventorySheet": "Feuille d'inventaire",
     "reports": "Rapports",
     "settings": "Paramètres"
   },

@@ -21,7 +21,10 @@
     "products": "مصنوعات",
     "categories": "اقسام",
     "sales": "فروخت",
+    "purchaseEntry": "خریداری انٹری",
     "receivables": "وصولی",
+    "payables": "قابل ادائیگی",
+    "inventorySheet": "انوینٹری شیٹ",
     "reports": "رپورٹس",
     "settings": "ترتیبات"
   },

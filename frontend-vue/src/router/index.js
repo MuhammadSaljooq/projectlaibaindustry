@@ -6,6 +6,9 @@ import Sales from '../pages/Sales.vue'
 import Receivables from '../pages/Receivables.vue'
 import Reports from '../pages/Reports.vue'
 import Settings from '../pages/Settings.vue'
+import InventorySheet from '../pages/InventorySheet.vue'
+import PurchaseEntry from '../pages/PurchaseEntry.vue'
+import Payables from '../pages/Payables.vue'
 
 const routes = [
   {
@@ -29,9 +32,24 @@ const routes = [
     component: Sales
   },
   {
+    path: '/purchase-entry',
+    name: 'PurchaseEntry',
+    component: PurchaseEntry
+  },
+  {
     path: '/receivables',
     name: 'Receivables',
     component: Receivables
+  },
+  {
+    path: '/payables',
+    name: 'Payables',
+    component: Payables
+  },
+  {
+    path: '/inventory-sheet',
+    name: 'InventorySheet',
+    component: InventorySheet
   },
   {
     path: '/reports',

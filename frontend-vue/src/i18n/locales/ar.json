@@ -21,7 +21,10 @@
     "products": "المنتجات",
     "categories": "الفئات",
     "sales": "المبيعات",
+    "purchaseEntry": "إدخال المشتريات",
     "receivables": "الذمم المدينة",
+    "payables": "الذمم الدائنة",
+    "inventorySheet": "ورقة المخزون",
     "reports": "التقارير",
     "settings": "الإعدادات"
   },

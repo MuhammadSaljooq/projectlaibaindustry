@@ -21,7 +21,10 @@
     "products": "Productos",
     "categories": "Categorías",
     "sales": "Ventas",
+    "purchaseEntry": "Entrada de compras",
     "receivables": "Cuentas por Cobrar",
+    "payables": "Cuentas por Pagar",
+    "inventorySheet": "Hoja de inventario",
     "reports": "Informes",
     "settings": "Configuración"
   },

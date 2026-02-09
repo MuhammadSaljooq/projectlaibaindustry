@@ -49,9 +49,13 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor
+// Response interceptor: unwrap PHP backend { data } so both Node and PHP backends work
 api.interceptors.response.use(
   (response) => {
+    const body = response.data
+    if (body && typeof body === 'object' && !Array.isArray(body) && 'data' in body && !('error' in body)) {
+      response.data = body.data
+    }
     return response
   },
   (error) => {
