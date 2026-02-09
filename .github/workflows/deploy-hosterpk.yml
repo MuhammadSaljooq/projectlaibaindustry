@@ -1,0 +1,38 @@
+# Auto-deploy to hoster.pk (or any cPanel/FTP host) on push to main
+name: Deploy to hoster.pk
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allow manual run from Actions tab
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend-vue/package-lock.json
+
+      - name: Build and prepare deploy package
+        run: |
+          chmod +x ./DEPLOY_TO_CPANEL.sh
+          ./DEPLOY_TO_CPANEL.sh
+
+      - name: Deploy to hoster.pk via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./cpanel-deploy/
+          # Change to e.g. / or /subfolder/ if your FTP user is limited to a subfolder
+          server-dir: /public_html/
+          dangerous-clean-slate: false
