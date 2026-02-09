@@ -102,6 +102,10 @@ For cPanel deployment, see **`DEPLOY_CPANEL.md`** for complete instructions.
 - ✅ Tax management
 - ✅ Category management
 
+## Deployment (automatic)
+
+Pushes to the `main` branch automatically deploy to **laibaindustrysialkot.com** (hoster.pk). See [DEPLOY_HOSTERPK.md](DEPLOY_HOSTERPK.md) for setup; after that, no manual upload is needed.
+
 ## License
 
 MIT

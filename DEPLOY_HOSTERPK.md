@@ -1,12 +1,15 @@
 # Auto-deploy to hoster.pk with GitHub
 
-This guide sets up **automatic deployment** from GitHub to **hoster.pk** (or any cPanel/FTP host). Every push to the `main` branch will build the app and upload it via FTP.
+**Deployments are automatic:** every push to the `main` branch builds the app and deploys it to your live site. No manual upload needed.
+
+This guide describes the one-time setup. After that, pushing to `main` is enough to update **laibaindustrysialkot.com**.
 
 ## How it works
 
 1. You push code to GitHub (e.g. `main` branch).
 2. GitHub Actions runs: builds the Vue frontend and prepares the cPanel package.
-3. The workflow uploads the built files to your hoster.pk account via FTP.
+3. The workflow uploads the built files to your hoster.pk account via FTP (to the paths that serve your site).
+4. The live site updates within a couple of minutes. Use a hard refresh (Ctrl+Shift+R / Cmd+Shift+R) if you don’t see changes.
 
 ## One-time setup
 
@@ -46,10 +49,11 @@ The workflow file is already in the repo:
 
 Commit and push to `main` (if you haven’t already). The first deployment will run automatically.
 
-## Deployments
+## Deployments (all automatic)
 
-- **Automatic:** Every push to `main` triggers a deploy.
-- **Manual:** In GitHub go to **Actions → Deploy to hoster.pk → Run workflow**.
+- **Every push to `main`** triggers a deploy and updates the live site.
+- To run a deploy without pushing: **Actions → Deploy to hoster.pk → Run workflow**.
+- If the site doesn’t update: use the **cpanel-deploy-zip** artifact from the latest run and follow **MANUAL_DEPLOY.md**.
 
 ## First-time server setup (hoster.pk)
 

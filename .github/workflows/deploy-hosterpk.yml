@@ -1,4 +1,4 @@
-# Auto-deploy to hoster.pk (or any cPanel/FTP host) on push to main
+# Auto-deploy to hoster.pk: every push to main updates the live site automatically.
 name: Deploy to hoster.pk
 
 on:
@@ -65,4 +65,4 @@ jobs:
         with:
           name: cpanel-deploy-zip
           path: cpanel-deploy/
-          retention-days: 5
+          retention-days: 14
