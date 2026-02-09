@@ -25,6 +25,9 @@ jobs:
         run: |
           chmod +x ./DEPLOY_TO_CPANEL.sh
           ./DEPLOY_TO_CPANEL.sh
+          echo "Deploy package contents:"
+          ls -la cpanel-deploy/
+          grep -o 'build-[0-9TZ-]*' cpanel-deploy/index.html || true
 
       - name: Deploy to hoster.pk via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -33,6 +36,6 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./cpanel-deploy/
-          server-dir: /
-          # Wipe old files then upload fresh so the site always shows latest
+          # Default /public_html/ (FTP root is usually home). Set secret FTP_SERVER_DIR to override (e.g. / for FTP root = public_html).
+          server-dir: ${{ secrets.FTP_SERVER_DIR || '/public_html/' }}
           dangerous-clean-slate: true

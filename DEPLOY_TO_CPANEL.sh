@@ -57,7 +57,17 @@ if [ -f "package.json" ]; then
   # Copy frontend build
   if [ -d "frontend-vue/dist" ]; then
     cp -r frontend-vue/dist/* "$DEPLOY_DIR/"
-    echo "✓ Frontend files copied"
+    BUILD_ID="build-$(date -u +%Y%m%d-%H%M%SZ)"
+    if [ -f "$DEPLOY_DIR/index.html" ]; then
+      python3 -c "
+import sys
+bid = sys.argv[1]
+path = sys.argv[2]
+with open(path) as f: c = f.read()
+with open(path, 'w') as f: f.write(c.replace('<head>', '<head>\n    <!-- ' + bid + ' -->', 1))
+" "$BUILD_ID" "$DEPLOY_DIR/index.html" 2>/dev/null || true
+    fi
+    echo "✓ Frontend files copied ($BUILD_ID)"
   else
     echo "⚠ Frontend dist folder not found"
   fi
