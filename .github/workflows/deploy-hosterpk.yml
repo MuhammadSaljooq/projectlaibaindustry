@@ -48,3 +48,21 @@ jobs:
           local-dir: ./cpanel-deploy/
           server-dir: /
           dangerous-clean-slate: true
+
+      - name: Deploy to hoster.pk (addon domain folder)
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./cpanel-deploy/
+          server-dir: /public_html/laibaindustrysialkot.com/
+          dangerous-clean-slate: true
+
+      - name: Upload deploy package (manual fallback)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpanel-deploy-zip
+          path: cpanel-deploy/
+          retention-days: 5
