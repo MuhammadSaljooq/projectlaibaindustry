@@ -3,7 +3,7 @@
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 echo "Starting PHP backend..."
 cd "$ROOT/backend-php"
-php -S localhost:8000 -t . > backend.log 2>&1 &
+php -S localhost:8000 -t . router.php > backend.log 2>&1 &
 BACKEND_PID=$!
 echo "Backend PID: $BACKEND_PID → http://localhost:8000"
 echo "Starting Vue frontend..."
