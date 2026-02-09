@@ -29,13 +29,22 @@ jobs:
           ls -la cpanel-deploy/
           grep -o 'build-[0-9TZ-]*' cpanel-deploy/index.html || true
 
-      - name: Deploy to hoster.pk via FTP
+      - name: Deploy to hoster.pk (public_html)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./cpanel-deploy/
-          # Default /public_html/ (FTP root is usually home). Set secret FTP_SERVER_DIR to override (e.g. / for FTP root = public_html).
-          server-dir: ${{ secrets.FTP_SERVER_DIR || '/public_html/' }}
+          server-dir: /public_html/
+          dangerous-clean-slate: true
+
+      - name: Deploy to hoster.pk (FTP root)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./cpanel-deploy/
+          server-dir: /
           dangerous-clean-slate: true
