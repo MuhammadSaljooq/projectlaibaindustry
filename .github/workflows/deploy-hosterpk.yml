@@ -33,6 +33,6 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./cpanel-deploy/
-          # Change to e.g. / or /subfolder/ if your FTP user is limited to a subfolder
-          server-dir: /public_html/
+          # FTP root is usually already public_html when account is set to that folder
+          server-dir: /
           dangerous-clean-slate: false
