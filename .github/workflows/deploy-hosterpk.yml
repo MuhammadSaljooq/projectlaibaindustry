@@ -33,6 +33,6 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./cpanel-deploy/
-          # Use /public_html/ when FTP root is home dir; use / when FTP root is already public_html
-          server-dir: /public_html/
-          dangerous-clean-slate: false
+          server-dir: /
+          # Wipe old files then upload fresh so the site always shows latest
+          dangerous-clean-slate: true
