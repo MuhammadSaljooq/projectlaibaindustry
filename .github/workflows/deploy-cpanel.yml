@@ -107,6 +107,7 @@ jobs:
           SSH_SERVER: ${{ secrets.SSH_SERVER }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
           if [[ -z "$SSH_SERVER" ]]; then
             echo "SSH_SERVER is empty."
@@ -128,21 +129,37 @@ jobs:
             exit 1
           fi
 
+          if [[ -n "$SSH_PORT" && ! "$SSH_PORT" =~ ^[0-9]+$ ]]; then
+            echo "SSH_PORT must be numeric when set."
+            exit 1
+          fi
+
       - name: Deploy to cPanel via SSH
         env:
           SSH_SERVER: ${{ secrets.SSH_SERVER }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
           set -e
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          PORT="${SSH_PORT:-22}"
 
-          ssh-keyscan -H "$SSH_SERVER" >> ~/.ssh/known_hosts
+          printf '%s' "$SSH_KEY" | sed 's/\\n/\
+/g' | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null 2>&1; then
+            echo "SSH_KEY is invalid or passphrase-protected. Use an unencrypted private key in GitHub Secrets."
+            exit 1
+          fi
+
+          ssh-keyscan -p "$PORT" -H "$SSH_SERVER" >> ~/.ssh/known_hosts
+
+          ssh -p "$PORT" -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes "$SSH_USER@$SSH_SERVER" "echo SSH authentication successful"
 
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/id_rsa -o IdentitiesOnly=yes" \
+            -e "ssh -p $PORT -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes" \
             ../deploy-package/ "$SSH_USER@$SSH_SERVER:/home2/laibaind/public_html/"
