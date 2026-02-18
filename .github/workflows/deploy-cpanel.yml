@@ -18,7 +18,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           tools: composer:v2
           extensions: mbstring, bcmath, ctype, fileinfo, json, openssl, pdo, pdo_mysql, tokenizer, xml
 
@@ -102,11 +102,27 @@ jobs:
           rsync -av ../deploy-package/public/ ../deploy-package/
           rm -rf ../deploy-package/public
 
+      - name: Validate FTP server secret format
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+        run: |
+          if [[ -z "$FTP_SERVER" ]]; then
+            echo "FTP_SERVER is empty."
+            exit 1
+          fi
+
+          if [[ "$FTP_SERVER" =~ ^(ftp|ftps|sftp):// ]]; then
+            echo "FTP_SERVER must be a hostname only (no protocol). Example: ftp.yourdomain.com"
+            exit 1
+          fi
+
       - name: Upload to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /public_html/
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftps' }}
+          port: ${{ secrets.FTP_PORT || 21 }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
           local-dir: ./deploy-package/
