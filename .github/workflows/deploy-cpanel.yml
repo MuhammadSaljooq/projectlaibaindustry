@@ -102,80 +102,27 @@ jobs:
           rsync -av ../deploy-package/public/ ../deploy-package/
           rm -rf ../deploy-package/public
 
-      - name: Validate SSH secrets
+      - name: Validate FTP server secret format
         env:
-          SSH_SERVER: ${{ secrets.SSH_SERVER }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          SSH_KEY_PWD: ${{ secrets.SSH_KEY_PWD }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
         run: |
-          if [[ -z "$SSH_SERVER" ]]; then
-            echo "SSH_SERVER is empty."
+          if [[ -z "$FTP_SERVER" ]]; then
+            echo "FTP_SERVER is empty."
             exit 1
           fi
 
-          if [[ -z "$SSH_USER" ]]; then
-            echo "SSH_USER is empty."
+          if [[ "$FTP_SERVER" =~ ^(ftp|ftps|sftp):// ]]; then
+            echo "FTP_SERVER must be a hostname only (no protocol). Example: ftp.yourdomain.com"
             exit 1
           fi
 
-          if [[ -z "$SSH_KEY" ]]; then
-            echo "SSH_KEY is empty."
-            exit 1
-          fi
-
-          if [[ -z "$SSH_KEY_PWD" ]]; then
-            echo "SSH_KEY_PWD is empty."
-            exit 1
-          fi
-
-          if [[ "$SSH_SERVER" =~ ^(ftp|ftps|sftp|ssh):// ]]; then
-            echo "SSH_SERVER must be a hostname only (no protocol). Example: your-server-hostname"
-            exit 1
-          fi
-
-          if [[ -n "$SSH_PORT" && ! "$SSH_PORT" =~ ^[0-9]+$ ]]; then
-            echo "SSH_PORT must be numeric when set."
-            exit 1
-          fi
-
-      - name: Deploy to cPanel via SSH
-        env:
-          SSH_SERVER: ${{ secrets.SSH_SERVER }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          SSH_KEY_PWD: ${{ secrets.SSH_KEY_PWD }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-        run: |
-          set -e
-
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          PORT="${SSH_PORT:-22}"
-
-          printf '%b' "$SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-
-          if ! ssh-keygen -y -f ~/.ssh/deploy_key -P "$SSH_KEY_PWD" >/dev/null 2>&1; then
-            echo "SSH_KEY is invalid or SSH_KEY_PWD is incorrect."
-            exit 1
-          fi
-
-          eval "$(ssh-agent -s)"
-          cat > /tmp/ssh_askpass.sh <<'EOF'
-          #!/usr/bin/env bash
-          echo "$SSH_KEY_PWD"
-          EOF
-          chmod 700 /tmp/ssh_askpass.sh
-          export SSH_ASKPASS=/tmp/ssh_askpass.sh
-          export DISPLAY=:0
-          setsid -w ssh-add ~/.ssh/deploy_key < /dev/null
-
-          ssh-keyscan -p "$PORT" -H "$SSH_SERVER" >> ~/.ssh/known_hosts
-
-          ssh -p "$PORT" -o IdentitiesOnly=yes -o BatchMode=yes "$SSH_USER@$SSH_SERVER" "echo SSH authentication successful"
-
-          rsync -az --delete \
-            -e "ssh -p $PORT -o IdentitiesOnly=yes -o BatchMode=yes" \
-            ../deploy-package/ "$SSH_USER@$SSH_SERVER:/home2/laibaind/public_html/"
+      - name: Upload to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftps' }}
+          port: ${{ secrets.FTP_PORT || 21 }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          local-dir: ./deploy-package/
