@@ -130,11 +130,13 @@ jobs:
           FTP_PROTOCOL: ${{ secrets.FTP_PROTOCOL }}
           FTP_PORT: ${{ secrets.FTP_PORT }}
           FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
+          FTP_TLS_SKIP_VERIFY: ${{ secrets.FTP_TLS_SKIP_VERIFY }}
         run: |
           set -e
 
-          PROTOCOL="${FTP_PROTOCOL:-ftps}"
+          PROTOCOL="${FTP_PROTOCOL:-ftp}"
           SERVER_DIR="${FTP_SERVER_DIR:-/}"
+          TLS_SKIP_VERIFY="${FTP_TLS_SKIP_VERIFY:-false}"
 
           case "$SERVER_DIR" in
             */) ;;
@@ -142,6 +144,7 @@ jobs:
           esac
 
           CURL_SSL_FLAG=()
+          CURL_TLS_VERIFY_FLAG=()
           URL_SCHEME="ftp"
 
           case "$PROTOCOL" in
@@ -164,7 +167,12 @@ jobs:
               ;;
           esac
 
-          curl --ftp-create-dirs --show-error --fail "${CURL_SSL_FLAG[@]}" \
+          if [[ "${TLS_SKIP_VERIFY,,}" == "true" ]]; then
+            echo "Warning: TLS certificate verification is disabled for FTP upload."
+            CURL_TLS_VERIFY_FLAG+=(--insecure)
+          fi
+
+          curl --ftp-create-dirs --show-error --fail "${CURL_SSL_FLAG[@]}" "${CURL_TLS_VERIFY_FLAG[@]}" \
             --user "$FTP_USERNAME:$FTP_PASSWORD" \
             --upload-file ../deploy-package.zip \
             "$URL_SCHEME://$FTP_SERVER:$PORT${SERVER_DIR}deploy-package.zip"
