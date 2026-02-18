@@ -134,7 +134,6 @@ jobs:
           set -e
 
           PROTOCOL="${FTP_PROTOCOL:-ftps}"
-          PORT="${FTP_PORT:-21}"
           SERVER_DIR="${FTP_SERVER_DIR:-/}"
 
           case "$SERVER_DIR" in
@@ -143,11 +142,29 @@ jobs:
           esac
 
           CURL_SSL_FLAG=()
-          if [[ "$PROTOCOL" == "ftps" ]]; then
-            CURL_SSL_FLAG+=(--ssl-reqd)
-          fi
+          URL_SCHEME="ftp"
+
+          case "$PROTOCOL" in
+            ftps)
+              PORT="${FTP_PORT:-21}"
+              CURL_SSL_FLAG+=(--ssl-reqd)
+              URL_SCHEME="ftp"
+              ;;
+            ftps-implicit)
+              PORT="${FTP_PORT:-990}"
+              URL_SCHEME="ftps"
+              ;;
+            ftp)
+              PORT="${FTP_PORT:-21}"
+              URL_SCHEME="ftp"
+              ;;
+            *)
+              echo "Unsupported FTP_PROTOCOL '$PROTOCOL'. Use ftp, ftps, or ftps-implicit."
+              exit 1
+              ;;
+          esac
 
           curl --ftp-create-dirs --show-error --fail "${CURL_SSL_FLAG[@]}" \
             --user "$FTP_USERNAME:$FTP_PASSWORD" \
             --upload-file ../deploy-package.zip \
-            "$PROTOCOL://$FTP_SERVER:$PORT${SERVER_DIR}deploy-package.zip"
+            "$URL_SCHEME://$FTP_SERVER:$PORT${SERVER_DIR}deploy-package.zip"
