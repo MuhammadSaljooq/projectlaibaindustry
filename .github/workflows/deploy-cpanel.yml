@@ -116,13 +116,38 @@ jobs:
             exit 1
           fi
 
-      - name: Upload to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ${{ secrets.FTP_PROTOCOL || 'ftps' }}
-          port: ${{ secrets.FTP_PORT || 21 }}
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
-          local-dir: ./deploy-package/
+      - name: Create deployment zip
+        run: |
+          set -e
+          cd ../deploy-package
+          zip -r ../deploy-package.zip .
+
+      - name: Upload deployment zip via FTP
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PROTOCOL: ${{ secrets.FTP_PROTOCOL }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
+        run: |
+          set -e
+
+          PROTOCOL="${FTP_PROTOCOL:-ftps}"
+          PORT="${FTP_PORT:-21}"
+          SERVER_DIR="${FTP_SERVER_DIR:-/}"
+
+          case "$SERVER_DIR" in
+            */) ;;
+            *) SERVER_DIR="$SERVER_DIR/" ;;
+          esac
+
+          CURL_SSL_FLAG=()
+          if [[ "$PROTOCOL" == "ftps" ]]; then
+            CURL_SSL_FLAG+=(--ssl-reqd)
+          fi
+
+          curl --ftp-create-dirs --show-error --fail "${CURL_SSL_FLAG[@]}" \
+            --user "$FTP_USERNAME:$FTP_PASSWORD" \
+            --upload-file ../deploy-package.zip \
+            "$PROTOCOL://$FTP_SERVER:$PORT${SERVER_DIR}deploy-package.zip"
