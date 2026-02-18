@@ -107,6 +107,7 @@ jobs:
           SSH_SERVER: ${{ secrets.SSH_SERVER }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KEY_PWD: ${{ secrets.SSH_KEY_PWD }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
           if [[ -z "$SSH_SERVER" ]]; then
@@ -121,6 +122,11 @@ jobs:
 
           if [[ -z "$SSH_KEY" ]]; then
             echo "SSH_KEY is empty."
+            exit 1
+          fi
+
+          if [[ -z "$SSH_KEY_PWD" ]]; then
+            echo "SSH_KEY_PWD is empty."
             exit 1
           fi
 
@@ -139,6 +145,7 @@ jobs:
           SSH_SERVER: ${{ secrets.SSH_SERVER }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KEY_PWD: ${{ secrets.SSH_KEY_PWD }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
           set -e
@@ -150,15 +157,25 @@ jobs:
           printf '%b' "$SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          if ! ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null 2>&1; then
-            echo "SSH_KEY is invalid or passphrase-protected. Use an unencrypted private key in GitHub Secrets."
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key -P "$SSH_KEY_PWD" >/dev/null 2>&1; then
+            echo "SSH_KEY is invalid or SSH_KEY_PWD is incorrect."
             exit 1
           fi
 
+          eval "$(ssh-agent -s)"
+          cat > /tmp/ssh_askpass.sh <<'EOF'
+          #!/usr/bin/env bash
+          echo "$SSH_KEY_PWD"
+          EOF
+          chmod 700 /tmp/ssh_askpass.sh
+          export SSH_ASKPASS=/tmp/ssh_askpass.sh
+          export DISPLAY=:0
+          setsid -w ssh-add ~/.ssh/deploy_key < /dev/null
+
           ssh-keyscan -p "$PORT" -H "$SSH_SERVER" >> ~/.ssh/known_hosts
 
-          ssh -p "$PORT" -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes "$SSH_USER@$SSH_SERVER" "echo SSH authentication successful"
+          ssh -p "$PORT" -o IdentitiesOnly=yes -o BatchMode=yes "$SSH_USER@$SSH_SERVER" "echo SSH authentication successful"
 
           rsync -az --delete \
-            -e "ssh -p $PORT -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes" \
+            -e "ssh -p $PORT -o IdentitiesOnly=yes -o BatchMode=yes" \
             ../deploy-package/ "$SSH_USER@$SSH_SERVER:/home2/laibaind/public_html/"
