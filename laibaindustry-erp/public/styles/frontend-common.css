@@ -1,0 +1,20 @@
+.material-symbols-outlined {
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+}
+
+.auth-hero-bg {
+    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuChXVXUYkrJtO3WOLCDgA0O113dgCPS04SN8O9XQxV6WUy1wFvfz1sfOHJqUfhNUQkaMD0tkTwzAUOuSDjsLxYkLKCgDWMTLZMg4OqyYTjmicsnlmJDFB1FxzB0sBM3L2xm_JkBUh2mxf2zdtG4k7D1PN--TB8ozxgYQ51H_nGb-jaP3UB2zPl_TrgoBDyEE-N4MW2LwR5HnOEfByqd3kaD6p7kLHFSdQjDIVJAxhXLejlalnJY-ad3gyxWVk1FGrmACmLE230JtZs');
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

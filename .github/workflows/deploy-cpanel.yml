@@ -1,0 +1,112 @@
+name: Deploy to Webserver
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: laibaindustry-erp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          extensions: mbstring, bcmath, ctype, fileinfo, json, openssl, pdo, pdo_mysql, tokenizer, xml
+
+      - name: Install production dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+      - name: Build deployment package
+        run: |
+          set -e
+          rm -rf ../deploy-package
+          mkdir -p ../deploy-package
+
+          rsync -av --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='node_modules/' \
+            --exclude='tests/' \
+            --exclude='.env' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            ./ ../deploy-package/
+
+          mkdir -p \
+            ../deploy-package/storage/framework/cache \
+            ../deploy-package/storage/framework/sessions \
+            ../deploy-package/storage/framework/views \
+            ../deploy-package/storage/logs \
+            ../deploy-package/bootstrap/cache
+
+      - name: Generate production .env from GitHub Secrets
+        env:
+          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_ENV: ${{ secrets.APP_ENV }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+          APP_DEBUG: ${{ secrets.APP_DEBUG }}
+          APP_URL: ${{ secrets.APP_URL }}
+
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DATABASE: ${{ secrets.SQL_DB }}
+          DB_USERNAME: ${{ secrets.SQL_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PWD }}
+
+          CACHE_STORE: ${{ secrets.CACHE_STORE }}
+          SESSION_DRIVER: ${{ secrets.SESSION_DRIVER }}
+          QUEUE_CONNECTION: ${{ secrets.QUEUE_CONNECTION }}
+        run: |
+          cat > ../deploy-package/.env <<EOF
+          APP_NAME="${APP_NAME:-Laravel}"
+          APP_ENV=${APP_ENV:-production}
+          APP_KEY=${APP_KEY}
+          APP_DEBUG=${APP_DEBUG:-false}
+          APP_URL=${APP_URL}
+
+          LOG_CHANNEL=stack
+          LOG_LEVEL=error
+
+          DB_CONNECTION=mysql
+          DB_HOST=${DB_HOST}
+          DB_PORT=${DB_PORT:-3306}
+          DB_DATABASE=${DB_DATABASE}
+          DB_USERNAME=${DB_USERNAME}
+          DB_PASSWORD=${DB_PASSWORD}
+
+          BROADCAST_CONNECTION=log
+          FILESYSTEM_DISK=local
+          CACHE_STORE=${CACHE_STORE:-file}
+          SESSION_DRIVER=${SESSION_DRIVER:-file}
+          QUEUE_CONNECTION=${QUEUE_CONNECTION:-sync}
+          EOF
+
+      - name: Make Laravel public index compatible with /public_html
+        run: |
+          cp ../deploy-package/public/.htaccess ../deploy-package/.htaccess
+          cp ../deploy-package/public/index.php ../deploy-package/index.php
+          sed -i "s|require __DIR__.'/../vendor/autoload.php';|require __DIR__.'/vendor/autoload.php';|" ../deploy-package/index.php
+          sed -i "s|require_once __DIR__.'/../bootstrap/app.php';|require_once __DIR__.'/bootstrap/app.php';|" ../deploy-package/index.php
+
+          rsync -av ../deploy-package/public/ ../deploy-package/
+          rm -rf ../deploy-package/public
+
+      - name: Upload to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /public_html/
+          local-dir: ./deploy-package/
