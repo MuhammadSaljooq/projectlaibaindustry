@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ExchangeRateController;
@@ -48,13 +50,9 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/inventory-dashboard', function () {
-        return view('inventory-dashboard');
-    })->name('inventory.dashboard');
+    Route::get('/inventory-dashboard', [ProductController::class, 'index'])->name('inventory.dashboard');
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -69,5 +67,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('purchases', PurchaseController::class);
     Route::resource('purchase-items', PurchaseItemController::class);
     Route::resource('customers', CustomerController::class);
+    Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::resource('payables', PayableController::class);
+
+    Route::middleware('adminOrManager')->group(function () {
+        Route::resource('users', UserController::class);
+    });
 });

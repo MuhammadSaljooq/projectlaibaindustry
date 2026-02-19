@@ -1,4 +1,4 @@
-name: Deploy to Webserver
+name: Deploy to cPanel
 
 on:
   workflow_dispatch:
@@ -110,77 +110,12 @@ jobs:
           grep -q "require_once __DIR__.'/bootstrap/app.php';" ../deploy-package/index.php
           rm -rf ../deploy-package/public
 
-      - name: Validate FTP server secret format
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-        run: |
-          if [[ -z "$FTP_SERVER" ]]; then
-            echo "FTP_SERVER is empty."
-            exit 1
-          fi
-
-          if [[ "$FTP_SERVER" =~ ^(ftp|ftps|sftp):// ]]; then
-            echo "FTP_SERVER must be a hostname only (no protocol). Example: ftp.yourdomain.com"
-            exit 1
-          fi
-
-      - name: Create deployment zip
-        run: |
-          set -e
-          cd ../deploy-package
-          zip -r ../deploy-package.zip .
-
-      - name: Upload deployment zip via FTP
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PROTOCOL: ${{ secrets.FTP_PROTOCOL }}
-          FTP_PORT: ${{ secrets.FTP_PORT }}
-          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
-          FTP_TLS_SKIP_VERIFY: ${{ secrets.FTP_TLS_SKIP_VERIFY }}
-        run: |
-          set -e
-
-          PROTOCOL="${FTP_PROTOCOL:-ftp}"
-          SERVER_DIR="${FTP_SERVER_DIR:-/}"
-          TLS_SKIP_VERIFY="${FTP_TLS_SKIP_VERIFY:-false}"
-
-          case "$SERVER_DIR" in
-            */) ;;
-            *) SERVER_DIR="$SERVER_DIR/" ;;
-          esac
-
-          CURL_SSL_FLAG=()
-          CURL_TLS_VERIFY_FLAG=()
-          URL_SCHEME="ftp"
-
-          case "$PROTOCOL" in
-            ftps)
-              PORT="${FTP_PORT:-21}"
-              CURL_SSL_FLAG+=(--ssl-reqd)
-              URL_SCHEME="ftp"
-              ;;
-            ftps-implicit)
-              PORT="${FTP_PORT:-990}"
-              URL_SCHEME="ftps"
-              ;;
-            ftp)
-              PORT="${FTP_PORT:-21}"
-              URL_SCHEME="ftp"
-              ;;
-            *)
-              echo "Unsupported FTP_PROTOCOL '$PROTOCOL'. Use ftp, ftps, or ftps-implicit."
-              exit 1
-              ;;
-          esac
-
-          if [[ "${TLS_SKIP_VERIFY,,}" == "true" ]]; then
-            echo "Warning: TLS certificate verification is disabled for FTP upload."
-            CURL_TLS_VERIFY_FLAG+=(--insecure)
-          fi
-
-          curl --ftp-create-dirs --show-error --fail "${CURL_SSL_FLAG[@]}" "${CURL_TLS_VERIFY_FLAG[@]}" \
-            --user "$FTP_USERNAME:$FTP_PASSWORD" \
-            --upload-file ../deploy-package.zip \
-            "$URL_SCHEME://$FTP_SERVER:$PORT${SERVER_DIR}deploy-package.zip"
+      - name: Deploy to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: deploy-package/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
