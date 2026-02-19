@@ -96,10 +96,18 @@ jobs:
         run: |
           cp ../deploy-package/public/.htaccess ../deploy-package/.htaccess
           cp ../deploy-package/public/index.php ../deploy-package/index.php
+          sed -i "s|__DIR__.'/../storage/framework/maintenance.php'|__DIR__.'/storage/framework/maintenance.php'|" ../deploy-package/index.php
           sed -i "s|require __DIR__.'/../vendor/autoload.php';|require __DIR__.'/vendor/autoload.php';|" ../deploy-package/index.php
           sed -i "s|require_once __DIR__.'/../bootstrap/app.php';|require_once __DIR__.'/bootstrap/app.php';|" ../deploy-package/index.php
 
-          rsync -av ../deploy-package/public/ ../deploy-package/
+          rsync -av \
+            --exclude='index.php' \
+            --exclude='.htaccess' \
+            ../deploy-package/public/ ../deploy-package/
+
+          grep -q "__DIR__.'/storage/framework/maintenance.php'" ../deploy-package/index.php
+          grep -q "require __DIR__.'/vendor/autoload.php';" ../deploy-package/index.php
+          grep -q "require_once __DIR__.'/bootstrap/app.php';" ../deploy-package/index.php
           rm -rf ../deploy-package/public
 
       - name: Validate FTP server secret format
