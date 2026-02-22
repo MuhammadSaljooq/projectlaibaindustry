@@ -45,8 +45,8 @@
 <span class="text-sm font-medium">Users</span>
 </a>
 @endif
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors group" href="#">
-<span class="material-symbols-outlined text-[22px] group-hover:text-primary">settings</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ ($activeNav ?? '') === 'settings' ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }} transition-colors" href="{{ route('settings.index', absolute: false) }}">
+<span class="material-symbols-outlined text-[22px]">settings</span>
 <span class="text-sm font-medium">Settings</span>
 </a>
 </div>

@@ -88,10 +88,12 @@
 <div class="flex flex-wrap gap-2 shrink-0">
 <button type="submit" class="h-10 px-4 bg-primary hover:bg-blue-600 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors">Search</button>
 <a href="{{ route('inventory.dashboard') }}" class="h-10 px-4 inline-flex items-center justify-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 whitespace-nowrap">Clear</a>
+@if(auth()->user()->role !== 'viewer')
 <a href="{{ route('products.create') }}" class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors shadow-sm hover:shadow active:scale-95 shrink-0">
 <span class="material-symbols-outlined text-[20px] shrink-0">add</span>
 <span>Add New Item</span>
 </a>
+@endif
 </div>
 </form>
 <div class="overflow-x-auto w-full -mx-4 sm:mx-0">
@@ -137,6 +139,7 @@
 @endif
 </td>
 <td class="px-6 py-4 text-right">
+@if(auth()->user()->role !== 'viewer')
 <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
 <a href="{{ route('products.edit', $product) }}" class="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></a>
 <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline-flex" onsubmit="return confirm('Are you sure you want to delete this product?');">
@@ -145,13 +148,14 @@
 <button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
 </form>
 </div>
+@endif
 </td>
 </tr>
 @empty
 <tr>
 <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
 <span class="material-symbols-outlined text-4xl mb-2 block">inventory_2</span>
-No products yet. <a href="{{ route('products.create') }}" class="text-primary font-medium hover:underline">Add your first product</a>
+No products yet. @if(auth()->user()->role !== 'viewer')<a href="{{ route('products.create') }}" class="text-primary font-medium hover:underline">Add your first product</a>@else<span>No products recorded yet.</span>@endif
 </td>
 </tr>
 @endforelse

@@ -17,12 +17,23 @@ class SaleController extends Controller
 {
     public function index(): View
     {
-        $sales = Sale::query()
-            ->withCount('items')
-            ->orderByDesc('date')
-            ->paginate(15);
+        $items = SaleItem::query()
+            ->with(['sale', 'product'])
+            ->join('sales', 'sales_items.sale_id', '=', 'sales.id')
+            ->select('sales_items.*')
+            ->orderByDesc('sales.date')
+            ->orderBy('sales.id')
+            ->orderBy('sales_items.id')
+            ->paginate(25);
 
-        return view('sales.index', ['sales' => $sales]);
+        $totals = Sale::query()
+            ->selectRaw('COALESCE(SUM(subtotal), 0) as total_subtotal, COALESCE(SUM(tax_amount), 0) as total_vat, COALESCE(SUM(total_amount), 0) as total_sales')
+            ->first();
+
+        return view('sales.index', [
+            'items' => $items,
+            'totals' => $totals,
+        ]);
     }
 
     public function create(): View
@@ -133,9 +144,11 @@ class SaleController extends Controller
         }
     }
 
-    public function show(Sale $sale): RedirectResponse
+    public function show(Sale $sale): View
     {
-        return redirect()->route('sales.index');
+        $sale->load(['items.product', 'currency']);
+
+        return view('sales.show', ['sale' => $sale]);
     }
 
     public function edit(Sale $sale): RedirectResponse

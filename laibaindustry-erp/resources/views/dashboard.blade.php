@@ -142,14 +142,22 @@ $pathD .= ' L100 50 Z';
 </div>
 <div class="flex flex-col gap-1">
 @forelse($lowStockProducts ?? [] as $product)
+@if(auth()->user()->role !== 'viewer')
 <a class="group flex items-start gap-3 py-3 border-b border-[#f3f4f6] dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors" href="{{ route('products.edit', $product) }}">
+@else
+<div class="flex items-start gap-3 py-3 border-b border-[#f3f4f6] dark:border-slate-800 last:border-0">
+@endif
 <div class="flex flex-col flex-1">
-<span class="text-sm font-medium text-[#111418] dark:text-white group-hover:text-primary transition-colors">{{ $product->name }}</span>
+<span class="text-sm font-medium text-[#111418] dark:text-white {{ auth()->user()->role !== 'viewer' ? 'group-hover:text-primary transition-colors' : '' }}">{{ $product->name }}</span>
 <span class="text-xs font-bold {{ $product->stock_quantity <= 0 ? 'text-red-500' : 'text-orange-500' }} bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded w-fit mt-1">
 {{ $product->stock_quantity <= 0 ? 'Out of Stock' : 'Low Stock' }} ({{ $product->stock_quantity }} left)
 </span>
 </div>
+@if(auth()->user()->role !== 'viewer')
 </a>
+@else
+</div>
+@endif
 @empty
 <p class="text-sm text-[#637588] dark:text-slate-400 py-4">No low stock alerts.</p>
 @endforelse

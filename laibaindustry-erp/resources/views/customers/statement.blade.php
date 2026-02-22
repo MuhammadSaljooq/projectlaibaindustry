@@ -87,12 +87,14 @@ No invoices or receivables for this customer yet.
 </div>
 </div>
 
+@if(auth()->user()->role !== 'viewer')
 <div class="mt-4">
 <a class="h-10 px-4 inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0" href="{{ route('customers.edit', $customer) }}">
 <span class="material-symbols-outlined text-[20px] shrink-0">edit</span>
 <span>Edit Customer</span>
 </a>
 </div>
+@endif
 </div>
 <div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
 </div>

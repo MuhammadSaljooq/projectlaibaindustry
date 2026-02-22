@@ -62,7 +62,11 @@
 <td class="px-6 py-4 text-sm font-mono font-bold text-right {{ $remaining > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">${{ number_format($remaining, 2) }}</td>
 <td class="px-6 py-4">
 @if ($remaining > 0)
+@if(auth()->user()->role !== 'viewer')
 <a href="{{ route('receivables.edit', $r) }}" class="h-8 px-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors whitespace-nowrap">Record payment</a>
+@else
+<span class="text-xs text-slate-500 dark:text-slate-400">—</span>
+@endif
 @else
 <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Paid</span>
 @endif

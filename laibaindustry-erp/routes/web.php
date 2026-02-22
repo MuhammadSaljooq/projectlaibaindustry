@@ -14,6 +14,7 @@ use App\Http\Controllers\PurchaseItemController;
 use App\Http\Controllers\ReceivableController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleItemController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaxSettingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +50,7 @@ Route::middleware('guest')->group(function () {
     })->name('password.update');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/inventory-dashboard', [ProductController::class, 'index'])->name('inventory.dashboard');
@@ -69,6 +70,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::resource('payables', PayableController::class);
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
 
     Route::middleware('adminOrManager')->group(function () {
         Route::resource('users', UserController::class);

@@ -41,39 +41,87 @@
 </div>
 @endif
 
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subtotal</p>
+<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">${{ number_format($totals->total_subtotal ?? 0, 2) }}</p>
+</div>
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">VAT (15%)</p>
+<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">${{ number_format($totals->total_vat ?? 0, 2) }}</p>
+</div>
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Sales</p>
+<p class="text-2xl font-bold text-primary font-mono mt-1">${{ number_format($totals->total_sales ?? 0, 2) }}</p>
+</div>
+</div>
+
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
 <h3 class="text-base font-semibold text-slate-800 dark:text-white">Sales</h3>
+@if(auth()->user()->role !== 'viewer')
 <a class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors shadow-sm hover:shadow active:scale-[0.98] shrink-0" href="{{ route('sales.create') }}">
 <span class="material-symbols-outlined text-[20px] shrink-0">add</span>
 <span>New Sale</span>
 </a>
+@endif
 </div>
 
 <div class="overflow-x-auto w-full -mx-4 sm:mx-0">
-<table class="w-full text-left border-collapse min-w-[480px]">
+<table class="w-full text-left border-collapse min-w-[900px]">
 <thead>
 <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Invoice</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Items</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Total</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Date</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Customer code</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Customer name</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Invoice number</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Product name</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Price</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Qty</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Amount</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">VAT 15%</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Subtotal</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24"></th>
 </tr>
 </thead>
 <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-@forelse($sales as $sale)
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $sale->date->format('Y-m-d H:i') }}</td>
-<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{{ $sale->invoice_number ?: '-' }}</td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $sale->customer_name ?: $sale->customer_code ?: '-' }}</td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right">{{ $sale->items_count }}</td>
-<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white font-mono text-right">${{ number_format($sale->total_amount, 2) }}</td>
+@forelse($items as $item)
+@php
+$sale = $item->sale;
+$amount = $item->selling_price * $item->quantity;
+$vat = $item->tax_applied ?? 0;
+$subtotal = $amount + $vat;
+@endphp
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors {{ $sale ? 'cursor-pointer' : '' }}"
+    @if($sale) data-href="{{ route('sales.show', $sale) }}" role="button" tabindex="0" @endif
+    @if($sale) onclick="const href = this.dataset.href; if (href) window.location.href = href;" @endif
+    @if($sale) onkeydown="if (event.key === 'Enter' && this.dataset.href) window.location.href = this.dataset.href;" @endif>
+<td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ $sale ? $sale->date->format('Y-m-d H:i') : '-' }}</td>
+<td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $sale && $sale->customer_code ? $sale->customer_code : '-' }}</td>
+<td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $sale && $sale->customer_name ? $sale->customer_name : '-' }}</td>
+<td class="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">
+@if($sale)
+<a href="{{ route('sales.show', $sale) }}" class="text-primary hover:underline">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>
+@else
+-
+@endif
+</td>
+<td class="px-4 py-3 text-sm text-slate-900 dark:text-white">{{ $item->product ? $item->product->name : 'Product #' . $item->product_id }}</td>
+<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white">${{ number_format($item->selling_price, 2) }}</td>
+<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300">{{ number_format($item->quantity) }}</td>
+<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white">${{ number_format($amount, 2) }}</td>
+<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300">${{ number_format($vat, 2) }}</td>
+<td class="px-4 py-3 text-sm font-mono font-medium text-right text-slate-900 dark:text-white">${{ number_format($subtotal, 2) }}</td>
+<td class="px-4 py-3">
+@if($sale)
+<a href="{{ route('sales.show', $sale) }}" class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg px-2 py-1 transition-colors whitespace-nowrap">View</a>
+@endif
+</td>
 </tr>
 @empty
 <tr>
-<td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-No sales yet. <a href="{{ route('sales.create') }}" class="text-primary font-medium hover:underline">Create your first sale</a>
+<td colspan="11" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+No sales yet. @if(auth()->user()->role !== 'viewer')<a href="{{ route('sales.create') }}" class="text-primary font-medium hover:underline">Create your first sale</a>@else<span>No sales recorded yet.</span>@endif
 </td>
 </tr>
 @endforelse
@@ -83,26 +131,26 @@ No sales yet. <a href="{{ route('sales.create') }}" class="text-primary font-med
 
 <div class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
 <p class="text-sm text-slate-500 dark:text-slate-400">
-@if($sales->total() > 0)
-Showing <span class="font-medium text-slate-900 dark:text-white">{{ $sales->firstItem() }}</span> to <span class="font-medium text-slate-900 dark:text-white">{{ $sales->lastItem() }}</span> of <span class="font-medium text-slate-900 dark:text-white">{{ $sales->total() }}</span> results
+@if($items->total() > 0)
+Showing <span class="font-medium text-slate-900 dark:text-white">{{ $items->firstItem() }}</span> to <span class="font-medium text-slate-900 dark:text-white">{{ $items->lastItem() }}</span> of <span class="font-medium text-slate-900 dark:text-white">{{ $items->total() }}</span> line items
 @else
 No results
 @endif
 </p>
-@if($sales->hasPages())
+@if($items->hasPages())
 <nav class="flex items-center gap-1" aria-label="Pagination">
-@if (!$sales->onFirstPage())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $sales->previousPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
+@if (!$items->onFirstPage())
+<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $items->previousPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
 @endif
-@foreach ($sales->getUrlRange(max(1, $sales->currentPage() - 2), min($sales->lastPage(), $sales->currentPage() + 2)) ?: [1 => $sales->url(1)] as $page => $url)
-@if ($page == $sales->currentPage())
+@foreach ($items->getUrlRange(max(1, $items->currentPage() - 2), min($items->lastPage(), $items->currentPage() + 2)) ?: [1 => $items->url(1)] as $page => $url)
+@if ($page == $items->currentPage())
 <span class="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white">{{ $page }}</span>
 @else
 <a class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" href="{{ $url }}">{{ $page }}</a>
 @endif
 @endforeach
-@if ($sales->hasMorePages())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $sales->nextPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
+@if ($items->hasMorePages())
+<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $items->nextPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
 @endif
 </nav>
 @endif

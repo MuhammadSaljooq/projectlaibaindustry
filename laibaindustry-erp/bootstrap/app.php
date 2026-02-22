@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
             'adminOrManager' => \App\Http\Middleware\EnsureAdminOrManager::class,
+            'blockViewerWrite' => \App\Http\Middleware\BlockViewerWrite::class,
         ]);
 
         $middleware->trustProxies(at: '*');
