@@ -48,7 +48,7 @@
 </div>
 <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Outstanding</p>
-<p class="text-lg font-bold {{ $totalOutstanding > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">${{ number_format($totalOutstanding, 2) }}</p>
+<p class="text-lg font-bold {{ $totalOutstanding > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }} tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totalOutstanding, 2) }}</p>
 </div>
 </div>
 
@@ -71,9 +71,9 @@
 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $receivable->date->format('Y-m-d H:i') }}</td>
 <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{{ $receivable->invoice_number ?: '-' }}</td>
-<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white font-mono text-right">${{ number_format($receivable->amount, 2) }}</td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right">${{ number_format($receivable->received, 2) }}</td>
-<td class="px-6 py-4 text-sm font-mono text-right {{ $balance > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">${{ number_format($balance, 2) }}</td>
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white font-mono text-right whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($receivable->amount, 2) }}</span></td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($receivable->received, 2) }}</span></td>
+<td class="px-6 py-4 text-sm font-mono text-right {{ $balance > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }} whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($balance, 2) }}</span></td>
 </tr>
 @empty
 <tr>

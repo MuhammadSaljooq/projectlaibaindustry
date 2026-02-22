@@ -46,7 +46,7 @@
 </div>
 </div>
 
-@php $symbol = $sale->currency && $sale->currency->symbol ? $sale->currency->symbol : '$'; @endphp
+@php $symbol = $sale->currency && $sale->currency->symbol ? $sale->currency->symbol : ($currencySymbol ?? '$'); @endphp
 
 <div class="overflow-x-auto">
 <table class="w-full text-left border-collapse min-w-[520px]">
@@ -74,9 +74,9 @@ $lineTotal = ($item->selling_price * $item->quantity) + ($item->tax_applied ?? 0
 @endif
 </td>
 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right">{{ number_format($item->quantity) }}</td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right">{{ $symbol }}{{ number_format($item->selling_price, 2) }}</td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right">{{ $symbol }}{{ number_format($item->tax_applied ?? 0, 2) }}</td>
-<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white font-mono text-right">{{ $symbol }}{{ number_format($lineTotal, 2) }}</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right whitespace-nowrap"><span class="tabular-nums">{{ $symbol }} {{ number_format($item->selling_price, 2) }}</span></td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right whitespace-nowrap"><span class="tabular-nums">{{ $symbol }} {{ number_format($item->tax_applied ?? 0, 2) }}</span></td>
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white font-mono text-right whitespace-nowrap"><span class="tabular-nums">{{ $symbol }} {{ number_format($lineTotal, 2) }}</span></td>
 </tr>
 @endforeach
 </tbody>
@@ -87,31 +87,45 @@ $lineTotal = ($item->selling_price * $item->quantity) + ($item->tax_applied ?? 0
 <div class="max-w-xs ml-auto space-y-2">
 <div class="flex justify-between text-sm">
 <span class="text-slate-600 dark:text-slate-400">Subtotal</span>
-<span class="font-mono text-slate-900 dark:text-white">{{ $symbol }}{{ number_format($sale->subtotal, 2) }}</span>
+<span class="font-mono text-slate-900 dark:text-white tabular-nums">{{ $symbol }} {{ number_format($sale->subtotal, 2) }}</span>
 </div>
 <div class="flex justify-between text-sm">
 <span class="text-slate-600 dark:text-slate-400">Tax ({{ number_format($sale->tax_rate ?? 0, 0) }}%)</span>
-<span class="font-mono text-slate-900 dark:text-white">{{ $symbol }}{{ number_format($sale->tax_amount ?? 0, 2) }}</span>
+<span class="font-mono text-slate-900 dark:text-white tabular-nums">{{ $symbol }} {{ number_format($sale->tax_amount ?? 0, 2) }}</span>
 </div>
 @if((float)($sale->discount_amount ?? 0) > 0)
 <div class="flex justify-between text-sm">
 <span class="text-slate-600 dark:text-slate-400">Discount</span>
-<span class="font-mono text-slate-900 dark:text-white">-{{ $symbol }}{{ number_format($sale->discount_amount, 2) }}</span>
+<span class="font-mono text-slate-900 dark:text-white tabular-nums">−{{ $symbol }} {{ number_format($sale->discount_amount, 2) }}</span>
 </div>
 @endif
 <div class="flex justify-between text-base font-bold pt-2 border-t border-slate-200 dark:border-slate-600">
 <span class="text-slate-900 dark:text-white">Total</span>
-<span class="font-mono text-primary">{{ $symbol }}{{ number_format($sale->total_amount, 2) }}</span>
+<span class="font-mono text-primary tabular-nums">{{ $symbol }} {{ number_format($sale->total_amount, 2) }}</span>
 </div>
 </div>
 </div>
 </div>
 
-<div class="flex flex-wrap gap-3 mt-4">
-<a href="{{ route('sales.index') }}" class="inline-flex items-center gap-2 h-10 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-lg transition-colors">
+<div class="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+<a href="{{ route('sales.index') }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors shrink-0">
 <span class="material-symbols-outlined text-[20px]">list</span>
 All Sales
 </a>
+@if(auth()->user()->role !== 'viewer')
+<a href="{{ route('sales.edit', $sale) }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors shrink-0">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+Edit Sale
+</a>
+<form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline-flex items-center shrink-0" onsubmit="return confirm('Are you sure you want to delete this sale? Stock will be restored and the related receivable removed.');">
+@csrf
+@method('DELETE')
+<button type="submit" class="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 text-sm font-medium transition-colors border border-red-200 dark:border-red-800 shrink-0">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+Delete Sale
+</button>
+</form>
+@endif
 </div>
 <div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
 </div>

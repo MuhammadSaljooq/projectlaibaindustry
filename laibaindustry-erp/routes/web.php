@@ -71,6 +71,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::resource('payables', PayableController::class);
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
     Route::middleware('adminOrManager')->group(function () {
         Route::resource('users', UserController::class);

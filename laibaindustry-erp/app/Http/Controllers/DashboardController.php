@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Currency;
 use App\Models\Product;
 use App\Models\Receivable;
 use App\Models\Sale;
@@ -14,7 +15,7 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $currencySymbol = config('app.currency_symbol', '$');
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         $totalRevenue = Sale::sum('total_amount');
         $openInvoicesCount = Receivable::whereRaw('amount > received')->count();
@@ -57,7 +58,7 @@ class DashboardController extends Controller
                 'type' => 'sale',
                 'icon' => 'receipt_long',
                 'iconBg' => 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400',
-                'message' => "Sale #{$sale->invoice_number} for " . ($sale->customer_name ?: 'Walk-in') . ' - ' . $currencySymbol . number_format($sale->total_amount, 2),
+                'message' => "Sale #{$sale->invoice_number} for " . ($sale->customer_name ?: 'Walk-in') . ' - ' . $currencySymbol . ' ' . number_format($sale->total_amount, 2),
                 'time' => $sale->date->diffForHumans(),
             ]);
         }

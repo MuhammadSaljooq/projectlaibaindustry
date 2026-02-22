@@ -41,6 +41,8 @@
 <p class="text-sm text-slate-500 dark:text-slate-400">Language, currency, timezone, and VAT</p>
 </div>
 </div>
+<form method="POST" action="{{ route('settings.update') }}">
+@csrf
 <div class="p-5 sm:p-6">
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 max-w-2xl">
 <div class="flex flex-col gap-1.5">
@@ -65,12 +67,12 @@
 <div class="flex flex-col gap-1.5">
 <label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="currency">Currency</label>
 <select class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary min-w-0" id="currency" name="currency">
-<option value="SAR">SAR (Saudi Riyal)</option>
-<option value="USD">USD (US Dollar)</option>
-<option value="EUR">EUR (Euro)</option>
-<option value="GBP">GBP (British Pound)</option>
-<option value="PKR">PKR (Pakistani Rupee)</option>
-<option value="AED">AED (UAE Dirham)</option>
+<option value="SAR" {{ ($defaultCurrencyCode ?? 'USD') === 'SAR' ? 'selected' : '' }}>SAR (Saudi Riyal)</option>
+<option value="USD" {{ ($defaultCurrencyCode ?? 'USD') === 'USD' ? 'selected' : '' }}>USD (US Dollar)</option>
+<option value="EUR" {{ ($defaultCurrencyCode ?? 'USD') === 'EUR' ? 'selected' : '' }}>EUR (Euro)</option>
+<option value="GBP" {{ ($defaultCurrencyCode ?? 'USD') === 'GBP' ? 'selected' : '' }}>GBP (British Pound)</option>
+<option value="PKR" {{ ($defaultCurrencyCode ?? 'USD') === 'PKR' ? 'selected' : '' }}>PKR (Pakistani Rupee)</option>
+<option value="AED" {{ ($defaultCurrencyCode ?? 'USD') === 'AED' ? 'selected' : '' }}>AED (UAE Dirham)</option>
 </select>
 </div>
 <div class="flex flex-col gap-1.5">
@@ -78,7 +80,11 @@
 <input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary min-w-0" id="vat_percent" name="vat_percent" type="number" min="0" max="100" step="0.01" value="15" placeholder="e.g. 15">
 </div>
 </div>
+<div class="mt-6">
+<button type="submit" class="h-10 px-5 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors">Save settings</button>
 </div>
+</div>
+</form>
 </div>
 
 <div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>

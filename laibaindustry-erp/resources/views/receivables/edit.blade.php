@@ -38,11 +38,11 @@
 <dt class="text-slate-500 dark:text-slate-400">Customer</dt>
 <dd class="text-slate-900 dark:text-white font-medium">{{ $receivable->customer_name ?: $receivable->customer_code ?: '-' }}</dd>
 <dt class="text-slate-500 dark:text-slate-400">Total amount</dt>
-<dd class="text-slate-900 dark:text-white font-mono font-bold">${{ number_format($receivable->amount, 2) }}</dd>
+<dd class="text-slate-900 dark:text-white font-mono font-bold tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($receivable->amount, 2) }}</dd>
 <dt class="text-slate-500 dark:text-slate-400">Already received</dt>
-<dd class="text-slate-900 dark:text-white font-mono">${{ number_format($receivable->received, 2) }}</dd>
+<dd class="text-slate-900 dark:text-white font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($receivable->received, 2) }}</dd>
 <dt class="text-slate-500 dark:text-slate-400">Remaining</dt>
-<dd class="text-amber-600 dark:text-amber-400 font-mono font-bold text-lg">${{ number_format($remaining, 2) }}</dd>
+<dd class="text-amber-600 dark:text-amber-400 font-mono font-bold text-lg tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</dd>
 </dl>
 
 @if ($remaining > 0)

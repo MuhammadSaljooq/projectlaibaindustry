@@ -44,15 +44,15 @@
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subtotal</p>
-<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">${{ number_format($totals->total_subtotal ?? 0, 2) }}</p>
+<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_subtotal ?? 0, 2) }}</span></p>
 </div>
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">VAT (15%)</p>
-<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">${{ number_format($totals->total_vat ?? 0, 2) }}</p>
+<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_vat ?? 0, 2) }}</span></p>
 </div>
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Sales</p>
-<p class="text-2xl font-bold text-primary font-mono mt-1">${{ number_format($totals->total_sales ?? 0, 2) }}</p>
+<p class="text-2xl font-bold text-primary font-mono mt-1"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_sales ?? 0, 2) }}</span></p>
 </div>
 </div>
 
@@ -107,11 +107,11 @@ $subtotal = $amount + $vat;
 @endif
 </td>
 <td class="px-4 py-3 text-sm text-slate-900 dark:text-white">{{ $item->product ? $item->product->name : 'Product #' . $item->product_id }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white">${{ number_format($item->selling_price, 2) }}</td>
+<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($item->selling_price, 2) }}</span></td>
 <td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300">{{ number_format($item->quantity) }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white">${{ number_format($amount, 2) }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300">${{ number_format($vat, 2) }}</td>
-<td class="px-4 py-3 text-sm font-mono font-medium text-right text-slate-900 dark:text-white">${{ number_format($subtotal, 2) }}</td>
+<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($amount, 2) }}</span></td>
+<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300 whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($vat, 2) }}</span></td>
+<td class="px-4 py-3 text-sm font-mono font-medium text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($subtotal, 2) }}</span></td>
 <td class="px-4 py-3">
 @if($sale)
 <a href="{{ route('sales.show', $sale) }}" class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg px-2 py-1 transition-colors whitespace-nowrap">View</a>

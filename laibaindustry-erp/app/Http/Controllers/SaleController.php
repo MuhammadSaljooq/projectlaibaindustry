@@ -151,18 +151,152 @@ class SaleController extends Controller
         return view('sales.show', ['sale' => $sale]);
     }
 
-    public function edit(Sale $sale): RedirectResponse
+    public function edit(Sale $sale): View
     {
-        return redirect()->route('sales.index');
+        $sale->load('items.product');
+        $products = Product::query()->orderBy('name')->get();
+        $customers = Customer::query()->orderBy('customer_name')->get();
+
+        return view('sales.edit', [
+            'sale' => $sale,
+            'products' => $products,
+            'customers' => $customers,
+        ]);
     }
 
-    public function update(Request $request, Sale $sale): RedirectResponse
+    public function update(StoreSaleRequest $request, Sale $sale): RedirectResponse
     {
-        return redirect()->route('sales.index')->with('error', 'Sale editing is not available.');
+        $items = array_values(array_filter($request->items ?? [], fn ($i) => ! empty($i['product_id'] ?? null)));
+        if (empty($items)) {
+            return redirect()->back()->withInput()->with('error', 'Please add at least one product to the sale.');
+        }
+
+        $defaultCurrencyId = \App\Models\Currency::query()->where('is_default', true)->value('id');
+        $taxRate = (float) ($sale->tax_rate ?? 15.0);
+
+        try {
+            DB::beginTransaction();
+
+            $sale->load('items.product');
+            $oldTotal = (float) $sale->total_amount;
+            $oldInvoiceRef = $sale->invoice_number ?: "SALE-{$sale->id}";
+
+            // Restore stock for all current line items
+            foreach ($sale->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock_quantity', $item->quantity);
+                }
+            }
+
+            $subtotal = 0;
+            foreach ($items as $item) {
+                $qty = (int) ($item['quantity'] ?? 1);
+                $price = (float) ($item['selling_price'] ?? 0);
+                $subtotal += $price * $qty;
+            }
+            $taxAmount = $subtotal * ($taxRate / 100);
+            $totalAmount = $subtotal + $taxAmount;
+
+            $sale->update([
+                'date' => $request->date,
+                'customer_code' => $request->customer_code ?: null,
+                'customer_name' => $request->customer_name ?: null,
+                'invoice_number' => $request->invoice_number ?: null,
+                'subtotal' => round($subtotal, 2),
+                'tax_amount' => round($taxAmount, 2),
+                'total_amount' => round($totalAmount, 2),
+            ]);
+
+            $sale->items()->delete();
+
+            foreach ($items as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $qty = (int) ($item['quantity'] ?? 1);
+                $sellingPrice = (float) ($item['selling_price'] ?? 0);
+                $costPrice = (float) ($product->cost_price ?? 0);
+
+                if ($product->stock_quantity < $qty) {
+                    DB::rollBack();
+                    return redirect()->back()->withInput()->with('error', "Insufficient stock for '{$product->name}'. Available: {$product->stock_quantity}, required: {$qty}.");
+                }
+
+                $lineAmount = $sellingPrice * $qty;
+                $lineTax = $lineAmount * ($taxRate / 100);
+                $profit = ($sellingPrice - $costPrice) * $qty;
+
+                SaleItem::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $product->id,
+                    'quantity' => $qty,
+                    'cost_price' => $costPrice,
+                    'selling_price' => $sellingPrice,
+                    'profit' => round($profit, 2),
+                    'tax_applied' => round($lineTax, 2),
+                ]);
+
+                $product->decrement('stock_quantity', $qty);
+            }
+
+            // Update the receivable for this sale (match by old invoice ref and old total)
+            $received = (float) (Receivable::query()
+                ->where('invoice_number', $oldInvoiceRef)
+                ->where('amount', $oldTotal)
+                ->value('received') ?? 0);
+            $newInvoiceRef = $request->invoice_number ?: "SALE-{$sale->id}";
+
+            Receivable::query()
+                ->where('invoice_number', $oldInvoiceRef)
+                ->where('amount', $oldTotal)
+                ->update([
+                    'date' => $request->date,
+                    'invoice_number' => $newInvoiceRef,
+                    'customer_name' => $request->customer_name ?: 'Walk-in',
+                    'customer_code' => $request->customer_code ?: null,
+                    'amount' => max(round($totalAmount, 2), $received),
+                ]);
+
+            DB::commit();
+
+            return redirect()->route('sales.show', $sale)->with('success', 'Sale updated successfully.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('error', 'Failed to update sale: ' . $e->getMessage());
+        }
     }
 
     public function destroy(Sale $sale): RedirectResponse
     {
-        return redirect()->route('sales.index')->with('error', 'Sale deletion is not available.');
+        try {
+            DB::beginTransaction();
+
+            $sale->load('items.product');
+
+            foreach ($sale->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock_quantity', $item->quantity);
+                }
+            }
+
+            $invoiceRef = $sale->invoice_number ?: "SALE-{$sale->id}";
+            $q = Receivable::query()
+                ->where('invoice_number', $invoiceRef)
+                ->where('amount', $sale->total_amount);
+            if ($sale->customer_code !== null) {
+                $q->where('customer_code', $sale->customer_code);
+            } else {
+                $q->where('customer_name', $sale->customer_name ?: 'Walk-in');
+            }
+            $q->delete();
+
+            $sale->items()->delete();
+            $sale->delete();
+
+            DB::commit();
+
+            return redirect()->route('sales.index')->with('success', 'Sale deleted successfully.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->route('sales.index')->with('error', 'Failed to delete sale: ' . $e->getMessage());
+        }
     }
 }

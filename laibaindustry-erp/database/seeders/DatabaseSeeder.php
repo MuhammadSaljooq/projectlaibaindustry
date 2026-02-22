@@ -37,36 +37,12 @@ class DatabaseSeeder extends Seeder
         ], ['id'], ['default_rate', 'description', 'updated_at']);
 
         DB::table('currencies')->upsert([
-            [
-                'code' => 'USD',
-                'name' => 'US Dollar',
-                'symbol' => '$',
-                'is_default' => true,
-                'is_active' => true,
-                'decimal_places' => 2,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ],
-            [
-                'code' => 'EUR',
-                'name' => 'Euro',
-                'symbol' => '€',
-                'is_default' => false,
-                'is_active' => true,
-                'decimal_places' => 2,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ],
-            [
-                'code' => 'GBP',
-                'name' => 'British Pound',
-                'symbol' => '£',
-                'is_default' => false,
-                'is_active' => true,
-                'decimal_places' => 2,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ],
+            ['code' => 'SAR', 'name' => 'Saudi Riyal', 'symbol' => 'SAR', 'is_default' => false, 'is_active' => true, 'decimal_places' => 2, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['code' => 'USD', 'name' => 'US Dollar', 'symbol' => '$', 'is_default' => true, 'is_active' => true, 'decimal_places' => 2, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€', 'is_default' => false, 'is_active' => true, 'decimal_places' => 2, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['code' => 'GBP', 'name' => 'British Pound', 'symbol' => '£', 'is_default' => false, 'is_active' => true, 'decimal_places' => 2, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['code' => 'PKR', 'name' => 'Pakistani Rupee', 'symbol' => 'Rs', 'is_default' => false, 'is_active' => true, 'decimal_places' => 2, 'created_at' => $timestamp, 'updated_at' => $timestamp],
+            ['code' => 'AED', 'name' => 'UAE Dirham', 'symbol' => 'د.إ', 'is_default' => false, 'is_active' => true, 'decimal_places' => 2, 'created_at' => $timestamp, 'updated_at' => $timestamp],
         ], ['code'], ['name', 'symbol', 'is_default', 'is_active', 'decimal_places', 'updated_at']);
 
         DB::table('users')->upsert([

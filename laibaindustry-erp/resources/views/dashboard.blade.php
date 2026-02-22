@@ -39,7 +39,7 @@
 @endif
 </div>
 <p class="text-sm font-medium text-[#637588] dark:text-slate-400">Total Revenue</p>
-<h3 class="text-2xl font-bold text-[#111418] dark:text-white mt-1">{{ ($currencySymbol ?? '$') }}{{ number_format($totalRevenue ?? 0, 2) }}</h3>
+<h3 class="text-2xl font-bold text-[#111418] dark:text-white mt-1 tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totalRevenue ?? 0, 2) }}</h3>
 </div>
 <div class="rounded-xl border border-[#e5e7eb] dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md transition-shadow">
 <div class="flex items-center justify-between mb-4">
@@ -66,7 +66,7 @@
 </div>
 </div>
 <p class="text-sm font-medium text-[#637588] dark:text-slate-400">Net Profit</p>
-<h3 class="text-2xl font-bold text-[#111418] dark:text-white mt-1">{{ ($currencySymbol ?? '$') }}{{ number_format($netProfit ?? 0, 2) }}</h3>
+<h3 class="text-2xl font-bold text-[#111418] dark:text-white mt-1 tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($netProfit ?? 0, 2) }}</h3>
 </div>
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -77,7 +77,7 @@
 <p class="text-sm text-[#637588] dark:text-slate-400">Performance over last 6 months</p>
 </div>
 <div class="flex items-center gap-2">
-<span class="text-2xl font-bold text-[#111418] dark:text-white">{{ ($currencySymbol ?? '$') }}{{ number_format($salesOverviewTotal ?? 0, 2) }}</span>
+<span class="text-2xl font-bold text-[#111418] dark:text-white tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($salesOverviewTotal ?? 0, 2) }}</span>
 @if(isset($trend) && $trend !== null)
 <span class="text-sm font-medium {{ $trend >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} flex items-center {{ $trend >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20' }} px-2 py-1 rounded">
 <span class="material-symbols-outlined text-sm mr-1">{{ $trend >= 0 ? 'arrow_upward' : 'arrow_downward' }}</span>
@@ -110,9 +110,9 @@ $pathD .= ' L100 50 Z';
 @endphp
 <div class="absolute inset-0 flex flex-col justify-between text-xs text-[#637588] dark:text-slate-500">
 @for($i = 5; $i >= 1; $i--)
-<div class="flex w-full border-b border-dashed border-[#e5e7eb] dark:border-slate-800 pb-2"><span>{{ ($currencySymbol ?? '$') }}{{ number_format(($chartMax ?? 1) * ($i / 5), 0) }}</span></div>
+<div class="flex w-full border-b border-dashed border-[#e5e7eb] dark:border-slate-800 pb-2"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format(($chartMax ?? 1) * ($i / 5), 0) }}</span></div>
 @endfor
-<div class="flex w-full"><span>{{ ($currencySymbol ?? '$') }}0</span></div>
+<div class="flex w-full"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} 0</span></div>
 </div>
 <svg class="absolute inset-0 h-full w-full pt-6 pb-6" preserveAspectRatio="none" viewBox="0 0 100 50">
 <defs>

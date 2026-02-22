@@ -58,7 +58,7 @@
 <div class="flex justify-between items-start mb-4">
 <div>
 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Inventory Value</p>
-<h3 class="text-3xl font-bold text-slate-900 dark:text-white mt-1">${{ number_format($totalValue ?? 0, 2) }}</h3>
+<h3 class="text-3xl font-bold text-slate-900 dark:text-white mt-1 tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totalValue ?? 0, 2) }}</h3>
 </div>
 <div class="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg">
 <span class="material-symbols-outlined">attach_money</span>
@@ -128,7 +128,7 @@
 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300">{{ $product->category->name ?? '-' }}</span>
 </td>
 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono text-right">{{ $product->stock_quantity }}</td>
-<td class="px-6 py-4 text-sm text-slate-900 dark:text-white font-bold font-mono text-right">${{ number_format($product->selling_price ?? $product->cost_price ?? 0, 2) }}</td>
+<td class="px-6 py-4 text-sm text-slate-900 dark:text-white font-bold font-mono text-right whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($product->selling_price ?? $product->cost_price ?? 0, 2) }}</span></td>
 <td class="px-6 py-4 text-center">
 @if ($product->stock_quantity <= 0)
 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400 border border-slate-300 dark:border-slate-600"><span class="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5"></span>Out of Stock</span>

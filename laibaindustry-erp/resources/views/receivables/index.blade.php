@@ -57,9 +57,9 @@
 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $r->date->format('Y-m-d') }}</td>
 <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{{ $r->invoice_number ?: '-' }}</td>
 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $r->customer_name ?: $r->customer_code ?: '-' }}</td>
-<td class="px-6 py-4 text-sm font-mono text-right text-slate-900 dark:text-white">${{ number_format($r->amount, 2) }}</td>
-<td class="px-6 py-4 text-sm font-mono text-right text-slate-600 dark:text-slate-300">${{ number_format($r->received, 2) }}</td>
-<td class="px-6 py-4 text-sm font-mono font-bold text-right {{ $remaining > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">${{ number_format($remaining, 2) }}</td>
+<td class="px-6 py-4 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</span></td>
+<td class="px-6 py-4 text-sm font-mono text-right text-slate-600 dark:text-slate-300 whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($r->received, 2) }}</span></td>
+<td class="px-6 py-4 text-sm font-mono font-bold text-right {{ $remaining > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }} whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</span></td>
 <td class="px-6 py-4">
 @if ($remaining > 0)
 @if(auth()->user()->role !== 'viewer')
