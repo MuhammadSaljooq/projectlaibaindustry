@@ -21,8 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $default = Currency::query()->where('is_default', true)->first();
-        View::share('currencySymbol', $default?->symbol ?? '$');
-        View::share('currencyCode', $default?->code ?? 'USD');
+        try {
+            $default = Currency::query()->where('is_default', true)->first();
+            View::share('currencySymbol', $default?->symbol ?? '$');
+            View::share('currencyCode', $default?->code ?? 'USD');
+        } catch (\Throwable $e) {
+            View::share('currencySymbol', '$');
+            View::share('currencyCode', 'USD');
+        }
     }
 }
