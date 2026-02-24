@@ -6,7 +6,7 @@
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'receivables'])
 <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+<header class="h-16 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
@@ -28,7 +28,7 @@
 
 @php $remaining = (float)$receivable->amount - (float)$receivable->received; @endphp
 <div class="max-w-lg">
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+<div class="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
 <h3 class="text-base font-semibold text-slate-800 dark:text-white mb-4">Receivable Details</h3>
 <dl class="space-y-2 text-sm mb-6">
 <dt class="text-slate-500 dark:text-slate-400">Date</dt>
@@ -42,7 +42,7 @@
 <dt class="text-slate-500 dark:text-slate-400">Already received</dt>
 <dd class="text-slate-900 dark:text-white font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($receivable->received, 2) }}</dd>
 <dt class="text-slate-500 dark:text-slate-400">Remaining</dt>
-<dd class="text-amber-600 dark:text-amber-400 font-mono font-bold text-lg tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</dd>
+<dd class="text-black dark:text-white font-mono font-bold text-lg tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</dd>
 </dl>
 
 @if ($remaining > 0)
@@ -50,17 +50,34 @@
 @csrf
 @method('PUT')
 <div class="space-y-4">
+<div>
 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="received">Payment amount <span class="text-red-500">*</span></label>
 <input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="received" name="received" type="number" step="0.01" min="0.01" max="{{ $remaining }}" value="{{ old('received', $remaining) }}" placeholder="Max: {{ number_format($remaining, 2) }}" required>
 </div>
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="payment_date">Payment date</label>
+<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="payment_date" name="payment_date" type="date" value="{{ old('payment_date', now()->format('Y-m-d')) }}">
+</div>
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="payment_type">Payment type</label>
+<select class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="payment_type" name="payment_type">
+<option value="">—</option>
+<option value="Cash" {{ old('payment_type') === 'Cash' ? 'selected' : '' }}>Cash</option>
+<option value="Bank Transfer" {{ old('payment_type') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+<option value="Card" {{ old('payment_type') === 'Card' ? 'selected' : '' }}>Card</option>
+<option value="Cheque" {{ old('payment_type') === 'Cheque' ? 'selected' : '' }}>Cheque</option>
+<option value="Other" {{ old('payment_type') === 'Other' ? 'selected' : '' }}>Other</option>
+</select>
+</div>
+</div>
 <div class="flex flex-wrap gap-3 mt-6">
-<button type="submit" class="h-10 px-5 bg-primary hover:bg-blue-600 text-white text-sm font-bold rounded-lg transition-colors whitespace-nowrap">Record Payment</button>
+<button type="submit" class="h-10 px-5 bg-black hover:bg-gray-800 text-white text-sm font-bold rounded-lg transition-colors whitespace-nowrap">Record Payment</button>
 <a href="{{ route('receivables.index') }}" class="h-10 px-5 inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Cancel</a>
 </div>
 </form>
 @else
-<p class="text-emerald-600 dark:text-emerald-400 font-medium">This receivable has been fully paid.</p>
-<a href="{{ route('receivables.index') }}" class="inline-flex items-center mt-4 text-sm font-medium text-primary hover:underline">← Back to receivables</a>
+<p class="text-gray-600 dark:text-gray-400 font-medium">This receivable has been fully paid.</p>
+<a href="{{ route('receivables.index') }}" class="inline-flex items-center mt-4 text-sm font-medium text-black dark:text-white hover:underline">← Back to receivables</a>
 @endif
 </div>
 </div>

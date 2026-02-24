@@ -1,10 +1,10 @@
 /* Consistent background across all app pages - light and dark mode */
 body {
-    background-color: #f6f7f8;
+    background-color: #ffffff;
     min-height: 100vh;
 }
 html.dark body {
-    background-color: #101922;
+    background-color: #000000;
 }
 
 .material-symbols-outlined {

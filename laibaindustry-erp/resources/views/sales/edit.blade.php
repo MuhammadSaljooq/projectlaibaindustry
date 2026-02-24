@@ -6,7 +6,7 @@
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'sales'])
 <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+<header class="h-16 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
@@ -21,7 +21,7 @@
 </div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
+<div class="rounded-lg border border-gray-300 bg-gray-100 dark:bg-gray-800/50 dark:border-gray-700 px-4 py-3 text-sm text-gray-800 dark:text-gray-300">
 {{ session('success') }}
 </div>
 @endif
@@ -41,7 +41,7 @@
 @endif
 
 <div class="max-w-4xl">
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+<div class="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
 <form method="POST" action="{{ route('sales.update', $sale) }}" id="sale-form" novalidate>
 @csrf
 @method('PUT')
@@ -151,7 +151,7 @@ $vat = $item->tax_applied ?? ($amount * 0.15);
 </tbody>
 </table>
 </div>
-<button type="button" id="add-row" class="mt-2 h-9 px-3 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg border border-primary/30 transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0">
+<button type="button" id="add-row" class="mt-2 h-9 px-3 text-sm font-medium text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg border border-black/30 dark:border-white/30 transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0">
 <span class="material-symbols-outlined text-[18px] shrink-0">add</span>
 <span>Add row</span>
 </button>
@@ -166,7 +166,7 @@ $vat = $item->tax_applied ?? ($amount * 0.15);
 </div>
 
 <div class="flex flex-wrap gap-3 mt-6">
-<button type="submit" class="h-10 px-5 bg-primary hover:bg-blue-600 text-white text-sm font-bold rounded-lg transition-colors whitespace-nowrap">Update Sale</button>
+<button type="submit" class="h-10 px-5 bg-black hover:bg-gray-800 text-white text-sm font-bold rounded-lg transition-colors whitespace-nowrap">Update Sale</button>
 <a href="{{ route('sales.show', $sale) }}" class="h-10 px-5 inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Cancel</a>
 </div>
 </form>

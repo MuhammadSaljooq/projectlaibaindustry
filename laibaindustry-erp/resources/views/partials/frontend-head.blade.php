@@ -3,7 +3,7 @@
 <meta content="{{ csrf_token() }}" name="csrf-token"/>
 <title>{{ $title ?? 'ERP' }}</title>
 <script>
-  tailwind.config = { darkMode: 'class', theme: { extend: { colors: { primary: '#137fec', 'background-light': '#f6f7f8', 'background-dark': '#101922' }, fontFamily: { display: ['Manrope', 'sans-serif'] } } } }
+  tailwind.config = { darkMode: 'class', theme: { extend: { colors: { primary: '#000000', 'background-light': '#ffffff', 'background-dark': '#000000' }, fontFamily: { display: ['Manrope', 'sans-serif'] } } } }
 </script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="/scripts/frontend-common.js"></script>

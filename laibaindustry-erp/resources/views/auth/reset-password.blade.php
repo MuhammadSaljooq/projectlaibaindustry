@@ -39,7 +39,7 @@
 <div class="flex flex-col gap-2">
 <label class="text-base font-medium text-[#111418] dark:text-white" for="email">Email</label>
 <div class="relative">
-<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-[#1a2632] dark:border-slate-700 px-4 py-3.5 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="email" name="email" placeholder="name@company.com" type="email" value="{{ old('email') }}" required/>
+<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-black dark:border-slate-700 px-4 py-3.5 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="email" name="email" placeholder="name@company.com" type="email" value="{{ old('email') }}" required/>
 <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none flex items-center">
 <span class="material-symbols-outlined">mail</span>
 </div>
@@ -49,18 +49,18 @@
 <div class="flex flex-col gap-2">
 <label class="text-base font-medium text-[#111418] dark:text-white" for="password">New Password</label>
 <div class="relative">
-<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-[#1a2632] dark:border-slate-700 px-4 py-3.5 pr-12 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="password" name="password" placeholder="Enter new password" type="password" required/>
+<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-black dark:border-slate-700 px-4 py-3.5 pr-12 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="password" name="password" placeholder="Enter new password" type="password" required/>
 </div>
 </div>
 
 <div class="flex flex-col gap-2">
 <label class="text-base font-medium text-[#111418] dark:text-white" for="password_confirmation">Confirm Password</label>
 <div class="relative">
-<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-[#1a2632] dark:border-slate-700 px-4 py-3.5 pr-12 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="password_confirmation" name="password_confirmation" placeholder="Confirm new password" type="password" required/>
+<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-black dark:border-slate-700 px-4 py-3.5 pr-12 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="password_confirmation" name="password_confirmation" placeholder="Confirm new password" type="password" required/>
 </div>
 </div>
 
-<button class="flex w-full items-center justify-center rounded-lg bg-primary py-3.5 px-4 text-base font-bold text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[#101922] transition-colors" type="submit">
+<button class="flex w-full items-center justify-center rounded-lg bg-primary py-3.5 px-4 text-base font-bold text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 dark:focus:ring-offset-black transition-colors" type="submit">
                         Reset Password
                     </button>
 <p class="text-center text-sm text-slate-600 dark:text-slate-400 mt-2">

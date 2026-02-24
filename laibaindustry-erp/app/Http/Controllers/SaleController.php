@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\CustomerLedgerEntry;
 use App\Models\Product;
 use App\Models\Receivable;
 use App\Models\Sale;
@@ -15,24 +16,65 @@ use Illuminate\View\View;
 
 class SaleController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $items = SaleItem::query()
+        $search = $request->query('search');
+        $dateFrom = $request->query('date_from');
+        $dateTo = $request->query('date_to');
+        $customerCode = $request->query('customer');
+
+        $applyFilters = function ($query) use ($search, $dateFrom, $dateTo, $customerCode) {
+            if ($search !== null && trim($search) !== '') {
+                $term = str_replace(['%', '_'], ['\\%', '\\_'], trim($search));
+                $pattern = '%' . $term . '%';
+                $query->where(function ($q) use ($pattern) {
+                    $q->where('sales.customer_name', 'like', $pattern)
+                        ->orWhere('sales.customer_code', 'like', $pattern)
+                        ->orWhere('sales.invoice_number', 'like', $pattern)
+                        ->orWhere('products.name', 'like', $pattern);
+                });
+            }
+            if ($dateFrom) {
+                $query->where('sales.date', '>=', $dateFrom . ' 00:00:00');
+            }
+            if ($dateTo) {
+                $query->where('sales.date', '<=', $dateTo . ' 23:59:59');
+            }
+            if ($customerCode !== null && $customerCode !== '') {
+                $query->where('sales.customer_code', $customerCode);
+            }
+        };
+
+        $baseQuery = SaleItem::query()
+            ->join('sales', 'sales_items.sale_id', '=', 'sales.id')
+            ->leftJoin('products', 'sales_items.product_id', '=', 'products.id');
+        $applyFilters($baseQuery);
+        $saleIds = (clone $baseQuery)->select('sales.id')->distinct()->pluck('id');
+
+        $totals = Sale::query()
+            ->when($saleIds->isNotEmpty(), fn ($q) => $q->whereIn('id', $saleIds))
+            ->selectRaw('COALESCE(SUM(subtotal), 0) as total_subtotal, COALESCE(SUM(tax_amount), 0) as total_vat, COALESCE(SUM(total_amount), 0) as total_sales')
+            ->first();
+
+        $itemsQuery = SaleItem::query()
             ->with(['sale', 'product'])
             ->join('sales', 'sales_items.sale_id', '=', 'sales.id')
-            ->select('sales_items.*')
+            ->leftJoin('products', 'sales_items.product_id', '=', 'products.id')
+            ->select('sales_items.*');
+        $applyFilters($itemsQuery);
+        $items = $itemsQuery
             ->orderByDesc('sales.date')
             ->orderBy('sales.id')
             ->orderBy('sales_items.id')
-            ->paginate(25);
+            ->paginate(25)
+            ->withQueryString();
 
-        $totals = Sale::query()
-            ->selectRaw('COALESCE(SUM(subtotal), 0) as total_subtotal, COALESCE(SUM(tax_amount), 0) as total_vat, COALESCE(SUM(total_amount), 0) as total_sales')
-            ->first();
+        $customers = Customer::query()->orderBy('customer_name')->get(['customer_code', 'customer_name']);
 
         return view('sales.index', [
             'items' => $items,
             'totals' => $totals,
+            'customers' => $customers,
         ]);
     }
 
@@ -57,6 +99,32 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
 
+            // Resolve customer_code so statement shows under the right customer
+            $customerCode = trim($request->customer_code ?? '');
+            $customerName = trim($request->customer_name ?? '') ?: null;
+            if ($customerCode === '' && $customerName !== '') {
+                $customer = Customer::where('customer_name', $customerName)->first();
+                if ($customer) {
+                    $customerCode = $customer->customer_code;
+                } else {
+                    $newCode = 'CUST-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $customerName), 0, 6)) . '-' . substr((string) time(), -4);
+                    Customer::create([
+                        'customer_code' => $newCode,
+                        'customer_name' => $customerName,
+                        'phone' => null,
+                        'email' => null,
+                        'address' => null,
+                    ]);
+                    $customerCode = $newCode;
+                }
+            }
+            if ($customerCode !== '') {
+                Customer::firstOrCreate(
+                    ['customer_code' => $customerCode],
+                    ['customer_name' => $customerName ?: $customerCode, 'phone' => null, 'email' => null, 'address' => null]
+                );
+            }
+
             $subtotal = 0;
             foreach ($items as $item) {
                 $qty = (int) ($item['quantity'] ?? 1);
@@ -68,8 +136,8 @@ class SaleController extends Controller
 
             $sale = Sale::create([
                 'date' => $request->date,
-                'customer_code' => $request->customer_code ?: null,
-                'customer_name' => $request->customer_name ?: null,
+                'customer_code' => $customerCode !== '' ? $customerCode : null,
+                'customer_name' => $customerName ?: ($request->customer_name ?: null),
                 'invoice_number' => $request->invoice_number ?: null,
                 'subtotal' => round($subtotal, 2),
                 'tax_amount' => round($taxAmount, 2),
@@ -109,31 +177,26 @@ class SaleController extends Controller
                 $product->decrement('stock_quantity', $qty);
             }
 
-            Receivable::create([
+            $invoiceNumber = $request->invoice_number ?: "SALE-{$sale->id}";
+            $receivable = Receivable::create([
                 'date' => $request->date,
-                'invoice_number' => $request->invoice_number ?: "SALE-{$sale->id}",
-                'customer_name' => $request->customer_name ?: 'Walk-in',
-                'customer_code' => $request->customer_code ?: null,
+                'invoice_number' => $invoiceNumber,
+                'customer_name' => $customerName ?: 'Walk-in',
+                'customer_code' => $customerCode !== '' ? $customerCode : null,
                 'amount' => round($totalAmount, 2),
                 'received' => 0,
             ]);
 
-            $customerCode = trim($request->customer_code ?? '');
-            $customerName = trim($request->customer_name ?? '');
-            if ($customerCode !== '' || $customerName !== '') {
-                if ($customerCode !== '') {
-                    Customer::firstOrCreate(
-                        ['customer_code' => $customerCode],
-                        ['customer_name' => $customerName ?: $customerCode, 'phone' => null, 'email' => null, 'address' => null]
-                    );
-                } else {
-                    $existing = Customer::where('customer_name', $customerName)->first();
-                    if (!$existing) {
-                        $code = 'CUST-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $customerName), 0, 6)) . '-' . substr((string) time(), -4);
-                        Customer::create(['customer_code' => $code, 'customer_name' => $customerName, 'phone' => null, 'email' => null, 'address' => null]);
-                    }
-                }
-            }
+            CustomerLedgerEntry::create([
+                'customer_code' => $customerCode !== '' ? $customerCode : '',
+                'customer_name' => $customerName ?: 'Walk-in',
+                'entry_date' => $receivable->date,
+                'type' => 'invoice',
+                'reference' => $invoiceNumber,
+                'debit' => $receivable->amount,
+                'credit' => 0,
+                'receivable_id' => $receivable->id,
+            ]);
 
             DB::commit();
 
@@ -177,6 +240,26 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
 
+            // Resolve customer_code so statement stays correct
+            $customerCode = trim($request->customer_code ?? '');
+            $customerName = trim($request->customer_name ?? '') ?: null;
+            if ($customerCode === '' && $customerName !== '') {
+                $customer = Customer::where('customer_name', $customerName)->first();
+                if ($customer) {
+                    $customerCode = $customer->customer_code;
+                } else {
+                    $newCode = 'CUST-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $customerName), 0, 6)) . '-' . substr((string) time(), -4);
+                    Customer::create([
+                        'customer_code' => $newCode,
+                        'customer_name' => $customerName,
+                        'phone' => null,
+                        'email' => null,
+                        'address' => null,
+                    ]);
+                    $customerCode = $newCode;
+                }
+            }
+
             $sale->load('items.product');
             $oldTotal = (float) $sale->total_amount;
             $oldInvoiceRef = $sale->invoice_number ?: "SALE-{$sale->id}";
@@ -199,8 +282,8 @@ class SaleController extends Controller
 
             $sale->update([
                 'date' => $request->date,
-                'customer_code' => $request->customer_code ?: null,
-                'customer_name' => $request->customer_name ?: null,
+                'customer_code' => $customerCode !== '' ? $customerCode : null,
+                'customer_name' => $customerName ?: $request->customer_name,
                 'invoice_number' => $request->invoice_number ?: null,
                 'subtotal' => round($subtotal, 2),
                 'tax_amount' => round($taxAmount, 2),
@@ -238,22 +321,34 @@ class SaleController extends Controller
             }
 
             // Update the receivable for this sale (match by old invoice ref and old total)
-            $received = (float) (Receivable::query()
+            $receivable = Receivable::query()
                 ->where('invoice_number', $oldInvoiceRef)
                 ->where('amount', $oldTotal)
-                ->value('received') ?? 0);
+                ->first();
+            $received = $receivable ? (float) ($receivable->received ?? 0) : 0.0;
             $newInvoiceRef = $request->invoice_number ?: "SALE-{$sale->id}";
+            $newAmount = max(round($totalAmount, 2), $received);
 
-            Receivable::query()
-                ->where('invoice_number', $oldInvoiceRef)
-                ->where('amount', $oldTotal)
-                ->update([
+            if ($receivable) {
+                $receivable->update([
                     'date' => $request->date,
                     'invoice_number' => $newInvoiceRef,
-                    'customer_name' => $request->customer_name ?: 'Walk-in',
-                    'customer_code' => $request->customer_code ?: null,
-                    'amount' => max(round($totalAmount, 2), $received),
+                    'customer_name' => $customerName ?: 'Walk-in',
+                    'customer_code' => $customerCode !== '' ? $customerCode : null,
+                    'amount' => $newAmount,
                 ]);
+
+                CustomerLedgerEntry::query()
+                    ->where('receivable_id', $receivable->id)
+                    ->where('type', 'invoice')
+                    ->update([
+                        'entry_date' => $request->date,
+                        'reference' => $newInvoiceRef,
+                        'debit' => $newAmount,
+                        'customer_code' => $customerCode !== '' ? $customerCode : '',
+                        'customer_name' => $customerName ?: 'Walk-in',
+                    ]);
+            }
 
             DB::commit();
 

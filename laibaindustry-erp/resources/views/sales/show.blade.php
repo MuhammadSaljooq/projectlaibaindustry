@@ -6,12 +6,12 @@
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'sales'])
 <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+<header class="h-16 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
 </button>
-<a href="{{ route('sales.index') }}" class="inline-flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+<a href="{{ route('sales.index') }}" class="inline-flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-black dark:hover:text-white transition-colors">
 <span class="material-symbols-outlined">arrow_back</span>
 <span class="text-xl font-bold text-slate-800 dark:text-white hidden sm:inline">Back to Sales</span>
 </a>
@@ -20,14 +20,14 @@
 <div class="flex-1 overflow-y-auto p-6 scroll-smooth">
 <div class="max-w-[900px] mx-auto flex flex-col gap-6">
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
 <div class="p-6 border-b border-slate-200 dark:border-slate-700">
 <div class="flex flex-wrap items-start justify-between gap-4">
 <div>
 <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Sale {{ $sale->invoice_number ?: '#' . $sale->id }}</h1>
 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ $sale->date->format('l, F j, Y \a\t g:i A') }}</p>
 </div>
-<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $sale->status === 'completed' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300' }}">{{ ucfirst($sale->status) }}</span>
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $sale->status === 'completed' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300' }}">{{ ucfirst($sale->status) }}</span>
 </div>
 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
 <div>
@@ -101,7 +101,7 @@ $lineTotal = ($item->selling_price * $item->quantity) + ($item->tax_applied ?? 0
 @endif
 <div class="flex justify-between text-base font-bold pt-2 border-t border-slate-200 dark:border-slate-600">
 <span class="text-slate-900 dark:text-white">Total</span>
-<span class="font-mono text-primary tabular-nums">{{ $symbol }} {{ number_format($sale->total_amount, 2) }}</span>
+<span class="font-mono text-black dark:text-white tabular-nums">{{ $symbol }} {{ number_format($sale->total_amount, 2) }}</span>
 </div>
 </div>
 </div>
@@ -113,7 +113,7 @@ $lineTotal = ($item->selling_price * $item->quantity) + ($item->tax_applied ?? 0
 All Sales
 </a>
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('sales.edit', $sale) }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors shrink-0">
+<a href="{{ route('sales.edit', $sale) }}" class="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-black hover:bg-gray-800 text-white text-sm font-medium transition-colors shrink-0">
 <span class="material-symbols-outlined text-[20px]">edit</span>
 Edit Sale
 </a>

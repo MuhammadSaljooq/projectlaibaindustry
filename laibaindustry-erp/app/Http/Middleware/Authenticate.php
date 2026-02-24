@@ -13,7 +13,9 @@ class Authenticate extends Middleware
     protected function redirectTo(Request $request): ?string
     {
         if (! $request->expectsJson()) {
-            return route('login', absolute: false);
+            // Use same host so redirect always loads (avoids connection errors)
+            $loginPath = route('login', absolute: false);
+            return $request->getSchemeAndHttpHost() . $loginPath;
         }
 
         return null;

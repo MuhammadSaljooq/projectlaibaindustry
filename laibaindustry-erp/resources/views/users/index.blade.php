@@ -6,7 +6,7 @@
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'users'])
 <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+<header class="h-16 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
@@ -21,7 +21,7 @@
 </div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
+<div class="rounded-lg border border-gray-300 bg-gray-100 dark:bg-gray-800/50 dark:border-gray-700 px-4 py-3 text-sm text-gray-800 dark:text-gray-300">
 {{ session('success') }}
 </div>
 @endif
@@ -31,10 +31,10 @@
 </div>
 @endif
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
+<div class="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
 <h3 class="text-base font-semibold text-slate-800 dark:text-white">Users</h3>
-<a class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors shadow-sm hover:shadow active:scale-[0.98] shrink-0" href="{{ route('users.create') }}">
+<a class="h-10 px-4 bg-black hover:bg-gray-800 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors shadow-sm hover:shadow active:scale-[0.98] shrink-0" href="{{ route('users.create') }}">
 <span class="material-symbols-outlined text-[20px] shrink-0">add</span>
 <span>Add User</span>
 </a>
@@ -59,17 +59,17 @@
 <span class="material-symbols-outlined text-slate-400">person</span>
 </div>
 <div>
-<p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{{ $u->name }}</p>
+<p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-black dark:group-hover:text-white transition-colors">{{ $u->name }}</p>
 </div>
 </div>
 </td>
 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $u->email }}</td>
 <td class="px-6 py-4">
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $u->role === 'admin' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' : ($u->role === 'manager' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300') }}">{{ ucfirst($u->role) }}</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $u->role === 'admin' ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white' : ($u->role === 'manager' ? 'bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200' : 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300') }}">{{ ucfirst($u->role) }}</span>
 </td>
 <td class="px-6 py-4 text-right">
 <div class="flex items-center justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-<a class="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors" href="{{ route('users.edit', $u) }}" title="Edit user">
+<a class="p-1.5 text-slate-400 hover:text-black dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors" href="{{ route('users.edit', $u) }}" title="Edit user">
 <span class="material-symbols-outlined text-[20px]">edit</span>
 </a>
 @can('delete', $u)
@@ -110,7 +110,7 @@ No results
 @endif
 @foreach ($users->getUrlRange(max(1, $users->currentPage() - 2), min($users->lastPage(), $users->currentPage() + 2)) ?: [1 => $users->url(1)] as $page => $url)
 @if ($page == $users->currentPage())
-<span class="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white">{{ $page }}</span>
+<span class="px-3 py-1.5 text-sm font-medium rounded-lg bg-black text-white dark:bg-white dark:text-black">{{ $page }}</span>
 @else
 <a class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" href="{{ $url }}">{{ $page }}</a>
 @endif

@@ -6,7 +6,7 @@
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden font-display">
 @include('products.partials.sidebar', ['activeNav' => 'dashboard'])
 <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+<header class="h-16 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
@@ -43,7 +43,7 @@
 </div>
 <div class="rounded-xl border border-[#e5e7eb] dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:shadow-md transition-shadow">
 <div class="flex items-center justify-between mb-4">
-<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-black dark:bg-gray-800 dark:text-white">
 <span class="material-symbols-outlined">receipt_long</span>
 </div>
 </div>
@@ -138,7 +138,7 @@ $pathD .= ' L100 50 Z';
 <div class="rounded-xl border border-[#e5e7eb] dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col">
 <div class="flex items-center justify-between mb-4">
 <h3 class="text-lg font-bold text-[#111418] dark:text-white">Low Stock Alerts</h3>
-<a class="text-primary text-sm font-bold hover:underline" href="{{ route('products.index', absolute: false) }}">View Products</a>
+<a class="text-black dark:text-white text-sm font-bold hover:underline" href="{{ route('products.index', absolute: false) }}">View Products</a>
 </div>
 <div class="flex flex-col gap-1">
 @forelse($lowStockProducts ?? [] as $product)
@@ -148,7 +148,7 @@ $pathD .= ' L100 50 Z';
 <div class="flex items-start gap-3 py-3 border-b border-[#f3f4f6] dark:border-slate-800 last:border-0">
 @endif
 <div class="flex flex-col flex-1">
-<span class="text-sm font-medium text-[#111418] dark:text-white {{ auth()->user()->role !== 'viewer' ? 'group-hover:text-primary transition-colors' : '' }}">{{ $product->name }}</span>
+<span class="text-sm font-medium text-[#111418] dark:text-white {{ auth()->user()->role !== 'viewer' ? 'group-hover:text-black dark:group-hover:text-white transition-colors' : '' }}">{{ $product->name }}</span>
 <span class="text-xs font-bold {{ $product->stock_quantity <= 0 ? 'text-red-500' : 'text-orange-500' }} bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded w-fit mt-1">
 {{ $product->stock_quantity <= 0 ? 'Out of Stock' : 'Low Stock' }} ({{ $product->stock_quantity }} left)
 </span>

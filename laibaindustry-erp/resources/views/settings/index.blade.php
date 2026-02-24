@@ -6,7 +6,7 @@
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'settings'])
 <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+<header class="h-16 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
@@ -21,7 +21,7 @@
 </div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
+<div class="rounded-lg border border-gray-300 bg-gray-100 dark:bg-gray-800/50 dark:border-gray-700 px-4 py-3 text-sm text-gray-800 dark:text-gray-300">
 {{ session('success') }}
 </div>
 @endif
@@ -31,9 +31,9 @@
 </div>
 @endif
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">
-<div class="p-2 bg-primary/10 text-primary rounded-lg shrink-0">
+<div class="p-2 bg-black/10 text-black dark:bg-white/10 dark:text-white rounded-lg shrink-0">
 <span class="material-symbols-outlined text-[22px]">tune</span>
 </div>
 <div class="min-w-0">
@@ -81,7 +81,7 @@
 </div>
 </div>
 <div class="mt-6">
-<button type="submit" class="h-10 px-5 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors">Save settings</button>
+<button type="submit" class="h-10 px-5 rounded-lg bg-black hover:bg-gray-800 text-white text-sm font-medium transition-colors">Save settings</button>
 </div>
 </div>
 </form>
