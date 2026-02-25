@@ -9,17 +9,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customer_ledger_entries', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->increments('id');
+            // unsignedInteger matches customers.id which is INT AUTO_INCREMENT
+            $table->unsignedInteger('customer_id');
             $table->dateTime('date');
             $table->string('description');
             $table->string('reference', 100)->nullable();
             $table->decimal('debit', 10, 2)->default(0);
             $table->decimal('credit', 10, 2)->default(0);
             $table->string('source_type', 30)->nullable();
-            $table->unsignedBigInteger('source_id')->nullable();
+            $table->unsignedInteger('source_id')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
+
+            $table->foreign('customer_id')
+                ->references('id')
+                ->on('customers')
+                ->cascadeOnDelete();
 
             $table->index('customer_id');
             $table->index('date');

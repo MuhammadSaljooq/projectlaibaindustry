@@ -196,15 +196,15 @@ CREATE TABLE IF NOT EXISTS customers (
 
 -- Customer Ledger Entries Table
 CREATE TABLE IF NOT EXISTS customer_ledger_entries (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    customer_id BIGINT NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
     date DATETIME NOT NULL,
     description VARCHAR(255) NOT NULL,
     reference VARCHAR(100) NULL COMMENT 'Invoice number or payment reference',
     debit DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT 'Amount charged to customer (sale / payment made)',
     credit DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT 'Amount credited to customer (payment received / purchase)',
     source_type VARCHAR(30) NULL COMMENT 'sale | payment_received | purchase | payment_made',
-    source_id BIGINT NULL COMMENT 'ID of the originating sale, receivable, purchase, or payable',
+    source_id INT NULL COMMENT 'ID of the originating sale, receivable, purchase, or payable',
     notes TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
