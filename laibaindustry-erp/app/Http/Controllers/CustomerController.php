@@ -8,10 +8,38 @@ use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
+    /**
+     * Whether the customers table has the ledger-related columns.
+     * Checked once per request and cached to avoid repeated DB schema queries.
+     */
+    private function hasLedgerColumns(): bool
+    {
+        static $result = null;
+        if ($result === null) {
+            $result = Schema::hasColumn('customers', 'opening_balance');
+        }
+        return $result;
+    }
+
+    /**
+     * Strip ledger fields from the data array if the live DB
+     * doesn't have those columns yet.
+     */
+    private function prepareSaveData(array $data): array
+    {
+        if (! $this->hasLedgerColumns()) {
+            unset($data['opening_balance'], $data['opening_balance_date']);
+        } else {
+            $data['opening_balance'] = $data['opening_balance'] ?? 0;
+        }
+        return $data;
+    }
+
     public function index(): View
     {
         $customers = Customer::query()
@@ -28,10 +56,7 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $data['opening_balance'] = $data['opening_balance'] ?? 0;
-
-        Customer::create($data);
+        Customer::create($this->prepareSaveData($request->validated()));
 
         return redirect()
             ->route('customers.index')
@@ -58,9 +83,7 @@ class CustomerController extends Controller
         try {
             DB::beginTransaction();
 
-            $data = $request->validated();
-            $data['opening_balance'] = $data['opening_balance'] ?? 0;
-            $customer->update($data);
+            $customer->update($this->prepareSaveData($request->validated()));
 
             $cascade = [];
             if ($newCode !== $oldCode) {
@@ -104,44 +127,48 @@ class CustomerController extends Controller
 
     public function statement(Customer $customer): View
     {
-        $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
-            ->orderBy('date')
-            ->orderBy('id')
-            ->get();
+        $hasLedger = $this->hasLedgerColumns()
+            && Schema::hasTable('customer_ledger_entries');
 
-        $openingBalance = (float) $customer->opening_balance;
+        $openingBalance = $hasLedger ? (float) $customer->opening_balance : 0;
         $runningBalance = $openingBalance;
         $totalDebit     = 0;
         $totalCredit    = 0;
+        $ledgerRows     = [];
 
-        $ledgerRows = [];
+        if ($hasLedger) {
+            $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
+                ->orderBy('date')
+                ->orderBy('id')
+                ->get();
 
-        foreach ($entries as $entry) {
-            $debit  = (float) $entry->debit;
-            $credit = (float) $entry->credit;
+            foreach ($entries as $entry) {
+                $debit  = (float) $entry->debit;
+                $credit = (float) $entry->credit;
 
-            $runningBalance += $debit - $credit;
-            $totalDebit     += $debit;
-            $totalCredit    += $credit;
+                $runningBalance += $debit - $credit;
+                $totalDebit     += $debit;
+                $totalCredit    += $credit;
 
-            $ledgerRows[] = [
-                'date'            => $entry->date,
-                'description'     => $entry->description,
-                'reference'       => $entry->reference,
-                'debit'           => $debit,
-                'credit'          => $credit,
-                'running_balance' => $runningBalance,
-                'source_type'     => $entry->source_type,
-            ];
+                $ledgerRows[] = [
+                    'date'            => $entry->date,
+                    'description'     => $entry->description,
+                    'reference'       => $entry->reference,
+                    'debit'           => $debit,
+                    'credit'          => $credit,
+                    'running_balance' => $runningBalance,
+                    'source_type'     => $entry->source_type,
+                ];
+            }
         }
 
         return view('customers.statement', [
-            'customer'        => $customer,
-            'openingBalance'  => $openingBalance,
-            'ledgerRows'      => $ledgerRows,
-            'totalDebit'      => $totalDebit,
-            'totalCredit'     => $totalCredit,
-            'closingBalance'  => $runningBalance,
+            'customer'       => $customer,
+            'openingBalance' => $openingBalance,
+            'ledgerRows'     => $ledgerRows,
+            'totalDebit'     => $totalDebit,
+            'totalCredit'    => $totalCredit,
+            'closingBalance' => $runningBalance,
         ]);
     }
 }
