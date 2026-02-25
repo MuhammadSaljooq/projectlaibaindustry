@@ -28,7 +28,10 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
-        Customer::create($request->validated());
+        $data = $request->validated();
+        $data['opening_balance'] = $data['opening_balance'] ?? 0;
+
+        Customer::create($data);
 
         return redirect()
             ->route('customers.index')
@@ -55,7 +58,9 @@ class CustomerController extends Controller
         try {
             DB::beginTransaction();
 
-            $customer->update($request->validated());
+            $data = $request->validated();
+            $data['opening_balance'] = $data['opening_balance'] ?? 0;
+            $customer->update($data);
 
             $cascade = [];
             if ($newCode !== $oldCode) {
