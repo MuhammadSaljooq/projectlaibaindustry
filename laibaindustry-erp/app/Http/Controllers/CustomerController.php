@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
-use App\Models\Receivable;
+use App\Models\CustomerLedgerEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -55,10 +55,8 @@ class CustomerController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update the customer record itself
             $customer->update($request->validated());
 
-            // Build the cascade payload for every denormalized table
             $cascade = [];
             if ($newCode !== $oldCode) {
                 $cascade['customer_code'] = $newCode;
@@ -67,7 +65,6 @@ class CustomerController extends Controller
                 $cascade['customer_name'] = $newName;
             }
 
-            // Propagate to all tables that store customer_code / customer_name
             if (! empty($cascade) && $oldCode !== null) {
                 foreach (['sales', 'receivables', 'purchases', 'payables'] as $table) {
                     DB::table($table)
@@ -102,17 +99,44 @@ class CustomerController extends Controller
 
     public function statement(Customer $customer): View
     {
-        $receivables = Receivable::query()
-            ->where('customer_code', $customer->customer_code)
-            ->orderByDesc('date')
+        $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
+            ->orderBy('date')
+            ->orderBy('id')
             ->get();
 
-        $totalOutstanding = $receivables->sum(fn ($r) => (float) $r->amount - (float) $r->received);
+        $openingBalance = (float) $customer->opening_balance;
+        $runningBalance = $openingBalance;
+        $totalDebit     = 0;
+        $totalCredit    = 0;
+
+        $ledgerRows = [];
+
+        foreach ($entries as $entry) {
+            $debit  = (float) $entry->debit;
+            $credit = (float) $entry->credit;
+
+            $runningBalance += $debit - $credit;
+            $totalDebit     += $debit;
+            $totalCredit    += $credit;
+
+            $ledgerRows[] = [
+                'date'            => $entry->date,
+                'description'     => $entry->description,
+                'reference'       => $entry->reference,
+                'debit'           => $debit,
+                'credit'          => $credit,
+                'running_balance' => $runningBalance,
+                'source_type'     => $entry->source_type,
+            ];
+        }
 
         return view('customers.statement', [
-            'customer'         => $customer,
-            'receivables'      => $receivables,
-            'totalOutstanding' => $totalOutstanding,
+            'customer'        => $customer,
+            'openingBalance'  => $openingBalance,
+            'ledgerRows'      => $ledgerRows,
+            'totalDebit'      => $totalDebit,
+            'totalCredit'     => $totalCredit,
+            'closingBalance'  => $runningBalance,
         ]);
     }
 }

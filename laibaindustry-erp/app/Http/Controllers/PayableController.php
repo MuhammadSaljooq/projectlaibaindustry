@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
+use App\Models\CustomerLedgerEntry;
 use App\Models\Payable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,9 +19,9 @@ class PayableController extends Controller
 
         $totals = Payable::query()
             ->selectRaw('
-                COALESCE(SUM(amount), 0)                        AS total_amount,
-                COALESCE(SUM(received), 0)                      AS total_received,
-                COALESCE(SUM(amount) - SUM(received), 0)        AS total_outstanding
+                COALESCE(SUM(amount), 0)                   AS total_amount,
+                COALESCE(SUM(received), 0)                 AS total_received,
+                COALESCE(SUM(amount) - SUM(received), 0)   AS total_outstanding
             ')
             ->first();
 
@@ -63,15 +65,34 @@ class PayableController extends Controller
             'payment.max' => "Payment cannot exceed the remaining balance (" . number_format($balance, 2) . ").",
         ]);
 
-        $payable->increment('received', (float) $validated['payment']);
+        $payment = (float) $validated['payment'];
+
+        $payable->increment('received', $payment);
+
+        // Ledger: Debit entry — we paid this party (reduces their credit on our books)
+        $customer = $payable->customer_code
+            ? Customer::where('customer_code', $payable->customer_code)->first()
+            : null;
+
+        if ($customer) {
+            CustomerLedgerEntry::create([
+                'customer_id' => $customer->id,
+                'date'        => now(),
+                'description' => 'Payment Made',
+                'reference'   => $payable->invoice_number,
+                'debit'       => $payment,
+                'credit'      => 0,
+                'source_type' => 'payment_made',
+                'source_id'   => $payable->id,
+            ]);
+        }
 
         return redirect()->route('payables.index')
-            ->with('success', 'Payment of ' . number_format($validated['payment'], 2) . ' recorded successfully.');
+            ->with('success', 'Payment of ' . number_format($payment, 2) . ' recorded successfully.');
     }
 
     public function destroy(Payable $payable): RedirectResponse
     {
-        // Only admins and managers may delete payable records (e.g. orphaned entries)
         if (! in_array(auth()->user()?->role, ['admin', 'manager'], true)) {
             return redirect()->route('payables.index')
                 ->with('error', 'You do not have permission to delete payables.');

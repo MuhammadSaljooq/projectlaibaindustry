@@ -87,4 +87,42 @@
             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
     </div>
+
+    {{-- Opening balance section --}}
+    <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Opening Balance</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Set a starting balance for this customer's ledger. A positive value means they owe you money; negative means you owe them.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="opening_balance">
+                    Opening Balance
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">{{ $currencySymbol ?? '$' }}</span>
+                    <input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 pl-7 pr-4 py-2.5 text-right text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary font-mono @error('opening_balance') border-red-500 dark:border-red-500 @enderror"
+                        id="opening_balance"
+                        name="opening_balance"
+                        type="number"
+                        step="0.01"
+                        value="{{ old('opening_balance', $customer?->opening_balance ?? 0) }}">
+                </div>
+                @error('opening_balance')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="opening_balance_date">
+                    As of Date
+                </label>
+                <input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary @error('opening_balance_date') border-red-500 dark:border-red-500 @enderror"
+                    id="opening_balance_date"
+                    name="opening_balance_date"
+                    type="date"
+                    value="{{ old('opening_balance_date', $customer?->opening_balance_date?->format('Y-m-d')) }}">
+                @error('opening_balance_date')
+                    <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+    </div>
 </div>

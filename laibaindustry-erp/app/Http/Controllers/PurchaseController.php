@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePurchaseRequest;
 use App\Models\Customer;
+use App\Models\CustomerLedgerEntry;
 use App\Models\Payable;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
@@ -28,8 +29,8 @@ class PurchaseController extends Controller
 
         $totals = Purchase::query()
             ->selectRaw('
-                COALESCE(SUM(subtotal), 0)    AS total_subtotal,
-                COALESCE(SUM(vat_amount), 0)  AS total_vat,
+                COALESCE(SUM(subtotal), 0)     AS total_subtotal,
+                COALESCE(SUM(vat_amount), 0)   AS total_vat,
                 COALESCE(SUM(total_amount), 0) AS total_purchases
             ')
             ->first();
@@ -64,10 +65,10 @@ class PurchaseController extends Controller
             $purchaseVat      = 0;
 
             foreach ($lines as $line) {
-                $price    = (float) ($line['price']    ?? 0);
-                $qty      = (int)   ($line['quantity'] ?? 1);
-                $amount   = round($price * $qty, 2);
-                $vat      = round($amount * self::VAT_RATE, 2);
+                $price  = (float) ($line['price']    ?? 0);
+                $qty    = (int)   ($line['quantity'] ?? 1);
+                $amount = round($price * $qty, 2);
+                $vat    = round($amount * self::VAT_RATE, 2);
                 $purchaseSubtotal += $amount;
                 $purchaseVat      += $vat;
             }
@@ -122,6 +123,21 @@ class PurchaseController extends Controller
                 );
             }
 
+            // Ledger: Credit entry — we owe this party for the purchase
+            $customer = $customerCode !== '' ? Customer::where('customer_code', $customerCode)->first() : null;
+            if ($customer) {
+                CustomerLedgerEntry::create([
+                    'customer_id' => $customer->id,
+                    'date'        => $request->date,
+                    'description' => 'Purchase',
+                    'reference'   => $request->invoice_number,
+                    'debit'       => 0,
+                    'credit'      => $purchaseTotal,
+                    'source_type' => 'purchase',
+                    'source_id'   => $purchase->id,
+                ]);
+            }
+
             DB::commit();
 
             return redirect()->route('purchases.index')
@@ -153,6 +169,11 @@ class PurchaseController extends Controller
             if (! $deleted && $purchase->invoice_number) {
                 Payable::where('invoice_number', $purchase->invoice_number)->delete();
             }
+
+            // Ledger: remove the Credit entry for this purchase
+            CustomerLedgerEntry::where('source_type', 'purchase')
+                ->where('source_id', $purchase->id)
+                ->delete();
 
             $purchase->items()->delete();
             $purchase->delete();
