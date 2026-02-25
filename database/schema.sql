@@ -208,7 +208,6 @@ CREATE TABLE IF NOT EXISTS customer_ledger_entries (
     notes TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
     INDEX idx_customer_id (customer_id),
     INDEX idx_date (date),
     INDEX idx_source (source_type, source_id)
