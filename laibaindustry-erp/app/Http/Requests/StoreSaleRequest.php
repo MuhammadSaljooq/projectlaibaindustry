@@ -17,7 +17,7 @@ class StoreSaleRequest extends FormRequest
             'date' => ['required', 'date'],
             'customer_code' => ['nullable', 'string', 'max:100'],
             'customer_name' => ['nullable', 'string', 'max:255'],
-            'invoice_number' => ['nullable', 'string', 'max:100'],
+            'invoice_number' => ['required', 'string', 'max:100'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],

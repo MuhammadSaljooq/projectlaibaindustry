@@ -85,8 +85,13 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
-        $product->delete();
-        return redirect()->route('inventory.dashboard')->with('success', 'Product deleted successfully.');
+        try {
+            $product->delete();
+            return redirect()->route('inventory.dashboard')->with('success', 'Product deleted successfully.');
+        } catch (\Throwable $e) {
+            return redirect()->route('inventory.dashboard')
+                ->with('error', 'Cannot delete "' . $product->name . '" because it is referenced by existing sales. Remove those sales first.');
+        }
     }
 
     public function show(Product $product): RedirectResponse

@@ -34,6 +34,14 @@
 <span class="material-symbols-outlined text-[22px]">payments</span>
 <span class="text-sm font-medium">Receivables</span>
 </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ ($activeNav ?? '') === 'purchases' ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }} transition-colors" href="{{ route('purchases.index', absolute: false) }}">
+<span class="material-symbols-outlined text-[22px]">shopping_bag</span>
+<span class="text-sm font-medium">Purchases</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ ($activeNav ?? '') === 'payables' ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }} transition-colors" href="{{ route('payables.index', absolute: false) }}">
+<span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+<span class="text-sm font-medium">Payables</span>
+</a>
 <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-colors group" href="{{ route('products.index', absolute: false) }}">
 <span class="material-symbols-outlined text-[22px] group-hover:text-primary">bar_chart</span>
 <span class="text-sm font-medium">Reports</span>

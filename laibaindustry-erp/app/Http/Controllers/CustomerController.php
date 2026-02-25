@@ -7,7 +7,7 @@ use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Models\Receivable;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
@@ -28,10 +28,7 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
-        $validated['customer_code'] = $this->generateCustomerCode();
-
-        Customer::create($validated);
+        Customer::create($request->validated());
 
         return redirect()
             ->route('customers.index')
@@ -50,11 +47,48 @@ class CustomerController extends Controller
 
     public function update(UpdateCustomerRequest $request, Customer $customer): RedirectResponse
     {
-        $customer->update($request->validated());
+        $oldCode = $customer->customer_code;
+        $oldName = $customer->customer_name;
+        $newCode = $request->validated()['customer_code'];
+        $newName = $request->validated()['customer_name'];
 
-        return redirect()
-            ->route('customers.index')
-            ->with('success', 'Customer updated successfully.');
+        try {
+            DB::beginTransaction();
+
+            // Update the customer record itself
+            $customer->update($request->validated());
+
+            // Build the cascade payload for every denormalized table
+            $cascade = [];
+            if ($newCode !== $oldCode) {
+                $cascade['customer_code'] = $newCode;
+            }
+            if ($newName !== $oldName) {
+                $cascade['customer_name'] = $newName;
+            }
+
+            // Propagate to all tables that store customer_code / customer_name
+            if (! empty($cascade) && $oldCode !== null) {
+                foreach (['sales', 'receivables', 'purchases', 'payables'] as $table) {
+                    DB::table($table)
+                        ->where('customer_code', $oldCode)
+                        ->update($cascade);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('customers.index')
+                ->with('success', 'Customer updated successfully across all records.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Update failed: ' . $e->getMessage());
+        }
     }
 
     public function destroy(Customer $customer): RedirectResponse
@@ -76,22 +110,9 @@ class CustomerController extends Controller
         $totalOutstanding = $receivables->sum(fn ($r) => (float) $r->amount - (float) $r->received);
 
         return view('customers.statement', [
-            'customer' => $customer,
-            'receivables' => $receivables,
+            'customer'         => $customer,
+            'receivables'      => $receivables,
             'totalOutstanding' => $totalOutstanding,
         ]);
-    }
-
-    private function generateCustomerCode(): string
-    {
-        $prefix = 'CUST-';
-        $maxId = (int) Customer::max('id');
-        $code = $prefix . str_pad($maxId + 1, 4, '0', STR_PAD_LEFT);
-
-        if (Customer::where('customer_code', $code)->exists()) {
-            $code = $prefix . strtoupper(Str::random(6));
-        }
-
-        return $code;
     }
 }

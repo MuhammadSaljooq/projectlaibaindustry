@@ -64,8 +64,8 @@
 <input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="date" name="date" type="datetime-local" value="{{ old('date', $sale->date->format('Y-m-d\TH:i')) }}" required>
 </div>
 <div>
-<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="invoice_number">Invoice number</label>
-<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number', $sale->invoice_number) }}" maxlength="100">
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="invoice_number">Invoice number <span class="text-red-500">*</span></label>
+<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number', $sale->invoice_number) }}" maxlength="100" required placeholder="e.g. INV-2024-001">
 </div>
 <div>
 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="customer_code">Customer code</label>
