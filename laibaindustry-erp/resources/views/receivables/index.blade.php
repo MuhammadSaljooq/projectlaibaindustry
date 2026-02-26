@@ -31,6 +31,27 @@
 </div>
 @endif
 
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Amount</p>
+<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">
+<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_amount ?? 0, 2) }}</span>
+</p>
+</div>
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Received</p>
+<p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-1">
+<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_received ?? 0, 2) }}</span>
+</p>
+</div>
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Remaining</p>
+<p class="text-2xl font-bold text-primary font-mono mt-1">
+<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_remaining ?? 0, 2) }}</span>
+</p>
+</div>
+</div>
+
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700">
 <h3 class="text-base font-semibold text-slate-800 dark:text-white">Receivables</h3>

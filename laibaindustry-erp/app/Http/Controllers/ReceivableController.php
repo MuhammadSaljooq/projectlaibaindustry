@@ -17,7 +17,15 @@ class ReceivableController extends Controller
             ->orderByDesc('date')
             ->paginate(15);
 
-        return view('receivables.index', ['receivables' => $receivables]);
+        $totals = Receivable::query()
+            ->selectRaw('
+                COALESCE(SUM(amount), 0)                   AS total_amount,
+                COALESCE(SUM(received), 0)                 AS total_received,
+                COALESCE(SUM(amount) - SUM(received), 0)   AS total_remaining
+            ')
+            ->first();
+
+        return view('receivables.index', compact('receivables', 'totals'));
     }
 
     public function create(): RedirectResponse
