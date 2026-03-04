@@ -114,7 +114,16 @@ $subtotal = $amount + $vat;
 <td class="px-4 py-3 text-sm font-mono font-medium text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($subtotal, 2) }}</span></td>
 <td class="px-4 py-3">
 @if($sale)
+<div class="flex items-center gap-2">
 <a href="{{ route('sales.show', $sale) }}" class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg px-2 py-1 transition-colors whitespace-nowrap">View</a>
+@if(auth()->user()->role !== 'viewer')
+<form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this sale? Stock will be restored and the related receivable removed.');" onclick="event.stopPropagation();">
+@csrf
+@method('DELETE')
+<button type="submit" class="inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg px-2 py-1 transition-colors whitespace-nowrap">Delete</button>
+</form>
+@endif
+</div>
 @endif
 </td>
 </tr>

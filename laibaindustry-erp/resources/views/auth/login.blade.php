@@ -1,75 +1,105 @@
 <!DOCTYPE html>
-
-<html lang="en"><head>
-@include('partials.frontend-head', ['title' => 'ERP Login'])
+<html lang="en">
+<head>
+@include('partials.frontend-head', ['title' => 'Login - Laiba Safety'])
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-[#111418] dark:text-white">
-<div class="flex min-h-screen w-full flex-row overflow-hidden">
-<div class="hidden lg:flex w-1/2 relative bg-cover bg-center items-center justify-center auth-hero-bg" data-alt="Modern corporate office interior with glass walls and clean lighting">
-<div class="absolute inset-0 bg-primary/20 backdrop-blur-[2px]"></div>
-<div class="relative z-10 p-12 text-white max-w-lg">
-<h2 class="text-4xl font-bold mb-6 drop-shadow-md">Manage your business with confidence.</h2>
-<p class="text-lg font-medium opacity-90 drop-shadow-sm">Streamlined operations, real-time analytics, and seamless integration all in one powerful ERP platform.</p>
-</div>
-</div>
-<div class="flex w-full lg:w-1/2 flex-col items-center justify-center p-6 sm:p-12 bg-white dark:bg-background-dark">
-<div class="w-full max-w-[480px] flex flex-col gap-6">
-<div class="flex flex-col gap-2 pb-4">
-<div class="mb-4 flex items-center gap-2">
-<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-<span class="material-symbols-outlined text-3xl">grid_view</span>
-</div>
-<span class="text-xl font-bold tracking-tight text-[#111418] dark:text-white">Nexus ERP</span>
-</div>
-<h1 class="text-3xl font-bold leading-tight tracking-tight text-[#111418] dark:text-white">Welcome back</h1>
-<p class="text-base font-normal text-slate-500 dark:text-slate-400">Please enter your details to sign in to the ERP portal.</p>
-</div>
+<body class="bg-black font-display text-white min-h-screen">
+<div class="min-h-screen w-full flex items-center justify-center p-6 sm:p-8">
+<div class="w-full max-w-md">
+    {{-- Logo and Title --}}
+    <div class="mb-8">
+        <div class="flex items-center gap-2 mb-2">
+            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl text-black">inventory_2</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Laiba Safety</h1>
+        </div>
+    </div>
 
-@if ($errors->any())
-    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    {{-- Welcome Text --}}
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold text-white mb-2">Welcome back</h2>
+        <p class="text-gray-400">Please enter your credentials to continue</p>
+    </div>
+
+    @if ($errors->any())
+    <div class="mb-6 rounded-lg border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
         {{ $errors->first() }}
     </div>
-@endif
+    @endif
 
-<form action="{{ route('login.store', absolute: false) }}" class="flex flex-col gap-5" method="POST">
-@csrf
-<div class="flex flex-col gap-2">
-<label class="text-base font-medium text-[#111418] dark:text-white" for="email">Email or Username</label>
-<div class="relative">
-<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-[#1a2632] dark:border-slate-700 px-4 py-3.5 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="email" name="email" placeholder="name@company.com" type="email" value="{{ old('email') }}" required autofocus autocomplete="username"/>
-<div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none flex items-center">
-<span class="material-symbols-outlined">mail</span>
+    <form action="{{ route('login.store', absolute: false) }}" class="space-y-6" method="POST">
+        @csrf
+        {{-- Email Field --}}
+        <div class="space-y-2">
+            <label class="text-gray-300 text-sm font-medium" for="email">Email Address</label>
+            <input
+                class="w-full h-12 px-4 rounded-lg border border-white/50 bg-black text-white placeholder-gray-500 focus:border-white focus:ring-2 focus:ring-white/30 focus:outline-none transition-colors"
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Enter your email"
+                value="{{ old('email') }}"
+                required
+                autofocus
+                autocomplete="username"
+            />
+        </div>
+
+        {{-- Password Field --}}
+        <div class="space-y-2">
+            <label class="text-gray-300 text-sm font-medium" for="password">Password</label>
+            <div class="relative">
+                <input
+                    class="w-full h-12 px-4 pr-12 rounded-lg border border-white/50 bg-black text-white placeholder-gray-500 focus:border-white focus:ring-2 focus:ring-white/30 focus:outline-none transition-colors"
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    required
+                    autocomplete="current-password"
+                />
+                <button
+                    type="button"
+                    data-password-toggle="password"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                    aria-label="Toggle password visibility"
+                >
+                    <span class="material-symbols-outlined text-[20px]">visibility</span>
+                </button>
+            </div>
+        </div>
+
+        {{-- Remember me & Forgot password --}}
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input class="h-5 w-5 rounded border-gray-500 bg-black text-white focus:ring-white/50 focus:ring-2" type="checkbox" name="remember"/>
+                <span class="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Remember me</span>
+            </label>
+            <a class="text-sm text-gray-400 hover:text-white transition-colors" href="{{ route('password.request', absolute: false) }}">Forgot password?</a>
+        </div>
+
+        {{-- Sign In Button --}}
+        <button
+            type="submit"
+            class="w-full h-12 rounded-lg bg-white hover:bg-gray-200 text-black font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
+        >
+            Sign In
+        </button>
+    </form>
+
+    {{-- Contact Admin Link --}}
+    <div class="mt-6 text-center">
+        <p class="text-gray-400 text-sm">
+            Don't have an account? <a href="#" class="text-white hover:text-gray-300 transition-colors">Contact admin</a>
+        </p>
+    </div>
+
+    {{-- Footer --}}
+    <div class="mt-8 text-center text-xs text-gray-500">
+        <p>© {{ date('Y') }} Laiba Safety. All rights reserved.</p>
+    </div>
 </div>
 </div>
-</div>
-<div class="flex flex-col gap-2">
-<label class="text-base font-medium text-[#111418] dark:text-white" for="password">Password</label>
-<div class="relative group">
-<input class="form-input w-full rounded-lg border border-slate-200 bg-background-light dark:bg-[#1a2632] dark:border-slate-700 px-4 py-3.5 pr-12 text-base text-[#111418] dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors" id="password" name="password" placeholder="Enter your password" type="password" required autocomplete="current-password"/>
-<button class="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none" type="button" data-password-toggle="password">
-<span class="material-symbols-outlined">visibility</span>
-</button>
-</div>
-</div>
-<div class="flex flex-wrap items-center justify-between gap-4 py-1">
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-600 dark:bg-[#1a2632]" type="checkbox" name="remember"/>
-<span class="text-sm font-medium text-slate-600 group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-slate-200 transition-colors">Remember me</span>
-</label>
-<a class="text-sm font-semibold text-primary hover:text-blue-600 transition-colors" href="{{ route('password.request', absolute: false) }}">Forgot password?</a>
-</div>
-<button class="flex w-full items-center justify-center rounded-lg bg-primary py-3.5 px-4 text-base font-bold text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-[#101922] transition-colors" type="submit">
-                        Sign In
-                    </button>
-<p class="text-center text-sm text-slate-600 dark:text-slate-400 mt-2">
-                        Don't have an account?
-                        <a class="font-bold text-primary hover:text-blue-600 transition-colors" href="#">Sign Up</a>
-</p>
-</form>
-<div class="mt-8 flex justify-center text-xs text-slate-400 dark:text-slate-600">
-<p>© 2024 Nexus ERP Systems. All rights reserved.</p>
-</div>
-</div>
-</div>
-</div>
-</body></html>
+</body>
+</html>

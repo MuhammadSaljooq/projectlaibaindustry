@@ -6,7 +6,9 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -125,7 +127,10 @@ class CustomerController extends Controller
             ->with('success', 'Customer deleted successfully.');
     }
 
-    public function statement(Customer $customer): View
+    /**
+     * Get statement data for a customer (ledger rows, balances, totals).
+     */
+    private function getStatementData(Customer $customer): array
     {
         $hasLedger = $this->hasLedgerColumns()
             && Schema::hasTable('customer_ledger_entries');
@@ -162,13 +167,38 @@ class CustomerController extends Controller
             }
         }
 
-        return view('customers.statement', [
+        return [
             'customer'       => $customer,
             'openingBalance' => $openingBalance,
             'ledgerRows'     => $ledgerRows,
             'totalDebit'     => $totalDebit,
             'totalCredit'    => $totalCredit,
             'closingBalance' => $runningBalance,
-        ]);
+        ];
+    }
+
+    public function statement(Customer $customer): View
+    {
+        $data = $this->getStatementData($customer);
+
+        return view('customers.statement', $data);
+    }
+
+    public function statementPdf(Customer $customer): Response
+    {
+        $data = $this->getStatementData($customer);
+
+        $pdf = Pdf::loadView('customers.statement-pdf', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', false);
+
+        $filename = sprintf(
+            'statement-%s-%s.pdf',
+            \Illuminate\Support\Str::slug($customer->customer_name),
+            now()->format('Y-m-d')
+        );
+
+        return $pdf->download($filename);
     }
 }

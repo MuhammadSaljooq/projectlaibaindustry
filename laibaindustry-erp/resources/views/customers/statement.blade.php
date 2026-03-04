@@ -25,8 +25,14 @@
 <span class="hidden sm:inline">Edit Customer</span>
 </a>
 @endif
+<a href="{{ route('customers.statement.pdf', $customer) }}"
+   target="_blank"
+   class="h-9 px-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/5 rounded-lg border border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[17px]">download</span>
+<span class="hidden sm:inline">Download PDF</span>
+</a>
 <button onclick="window.print()"
-    class="h-9 px-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/5 rounded-lg border border-primary/30 transition-colors">
+    class="h-9 px-3 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 transition-colors">
 <span class="material-symbols-outlined text-[17px]">print</span>
 <span class="hidden sm:inline">Print</span>
 </button>

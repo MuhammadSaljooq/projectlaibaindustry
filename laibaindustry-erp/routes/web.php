@@ -52,6 +52,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
+    Route::get('customers/{customer}/statement/pdf', [CustomerController::class, 'statementPdf'])->name('customers.statement.pdf');
     Route::resource('payables', PayableController::class);
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
