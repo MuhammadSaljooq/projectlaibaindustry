@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Receivable;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\VatEntry;
 use App\Http\Requests\StoreSaleRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -143,6 +144,20 @@ class SaleController extends Controller
                 ]);
             }
 
+            VatEntry::create([
+                'type'           => 'sale',
+                'source_type'    => Sale::class,
+                'source_id'      => $sale->id,
+                'date'           => $request->date,
+                'invoice_number' => $request->invoice_number,
+                'customer_name'  => $request->customer_name ?: null,
+                'customer_code'  => $request->customer_code ?: null,
+                'subtotal'       => round($subtotal, 2),
+                'vat_rate'       => $taxRate,
+                'vat_amount'     => round($taxAmount, 2),
+                'total_amount'   => round($totalAmount, 2),
+            ]);
+
             DB::commit();
 
             return redirect()->route('sales.index')->with('success', 'Sale created successfully.');
@@ -271,6 +286,19 @@ class SaleController extends Controller
                     'debit'       => round($totalAmount, 2),
                 ]);
 
+            VatEntry::where('source_type', Sale::class)
+                ->where('source_id', $sale->id)
+                ->update([
+                    'date'           => $request->date,
+                    'invoice_number' => $request->invoice_number,
+                    'customer_name'  => $request->customer_name ?: null,
+                    'customer_code'  => $request->customer_code ?: null,
+                    'subtotal'       => round($subtotal, 2),
+                    'vat_rate'       => $taxRate,
+                    'vat_amount'     => round($taxAmount, 2),
+                    'total_amount'   => round($totalAmount, 2),
+                ]);
+
             DB::commit();
 
             return redirect()->route('sales.show', $sale)->with('success', 'Sale updated successfully.');
@@ -302,6 +330,10 @@ class SaleController extends Controller
 
             // Ledger: remove the Debit entry for this sale
             CustomerLedgerEntry::where('source_type', 'sale')
+                ->where('source_id', $sale->id)
+                ->delete();
+
+            VatEntry::where('source_type', Sale::class)
                 ->where('source_id', $sale->id)
                 ->delete();
 

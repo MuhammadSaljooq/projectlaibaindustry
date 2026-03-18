@@ -8,6 +8,7 @@ use App\Models\CustomerLedgerEntry;
 use App\Models\Payable;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use App\Models\VatEntry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -138,6 +139,20 @@ class PurchaseController extends Controller
                 ]);
             }
 
+            VatEntry::create([
+                'type'           => 'purchase',
+                'source_type'    => Purchase::class,
+                'source_id'      => $purchase->id,
+                'date'           => $request->date,
+                'invoice_number' => $request->invoice_number,
+                'customer_name'  => $request->customer_name ?: null,
+                'customer_code'  => $request->customer_code ?: null,
+                'subtotal'       => round($purchaseSubtotal, 2),
+                'vat_rate'       => self::VAT_RATE * 100,
+                'vat_amount'     => round($purchaseVat, 2),
+                'total_amount'   => $purchaseTotal,
+            ]);
+
             DB::commit();
 
             return redirect()->route('purchases.index')
@@ -172,6 +187,10 @@ class PurchaseController extends Controller
 
             // Ledger: remove the Credit entry for this purchase
             CustomerLedgerEntry::where('source_type', 'purchase')
+                ->where('source_id', $purchase->id)
+                ->delete();
+
+            VatEntry::where('source_type', Purchase::class)
                 ->where('source_id', $purchase->id)
                 ->delete();
 
