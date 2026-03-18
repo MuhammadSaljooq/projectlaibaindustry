@@ -235,6 +235,39 @@ CREATE TABLE IF NOT EXISTS payables (
     INDEX idx_customer_code (customer_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Expenses Table
+CREATE TABLE IF NOT EXISTS expenses (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    date DATE NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    INDEX idx_date (date),
+    INDEX idx_type (type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- VAT Entries Table
+CREATE TABLE IF NOT EXISTS vat_entries (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(20) NOT NULL COMMENT 'sale or purchase',
+    source_type VARCHAR(255) NOT NULL,
+    source_id BIGINT UNSIGNED NOT NULL,
+    date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    invoice_number VARCHAR(100) NULL,
+    customer_name VARCHAR(255) NULL,
+    customer_code VARCHAR(100) NULL,
+    subtotal DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    vat_rate DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    vat_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    INDEX idx_type (type),
+    INDEX idx_date (date),
+    INDEX idx_source (source_type, source_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Insert default category
