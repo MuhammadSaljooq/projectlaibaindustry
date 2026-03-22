@@ -8,24 +8,45 @@ use App\Models\Product;
 use App\Models\Receivable;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\TaxSetting;
 use App\Models\VatEntry;
 use App\Http\Requests\StoreSaleRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SaleController extends Controller
 {
     public function index(): View
     {
-        $items = SaleItem::query()
+        $query = SaleItem::query()
             ->with(['sale', 'product'])
             ->join('sales', 'sales_items.sale_id', '=', 'sales.id')
-            ->select('sales_items.*')
+            ->join('products', 'sales_items.product_id', '=', 'products.id')
+            ->select('sales_items.*');
+
+        if ($search = request('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('sales.invoice_number', 'like', "%{$search}%")
+                  ->orWhere('sales.customer_name', 'like', "%{$search}%")
+                  ->orWhere('sales.customer_code', 'like', "%{$search}%")
+                  ->orWhere('products.name', 'like', "%{$search}%");
+            });
+        }
+        if ($from = request('from')) {
+            $query->whereDate('sales.date', '>=', $from);
+        }
+        if ($to = request('to')) {
+            $query->whereDate('sales.date', '<=', $to);
+        }
+
+        $items = $query
             ->orderByDesc('sales.date')
             ->orderBy('sales.id')
             ->orderBy('sales_items.id')
-            ->paginate(25);
+            ->paginate(25)
+            ->appends(request()->query());
 
         $totals = Sale::query()
             ->selectRaw('COALESCE(SUM(subtotal), 0) as total_subtotal, COALESCE(SUM(tax_amount), 0) as total_vat, COALESCE(SUM(total_amount), 0) as total_sales')
@@ -34,6 +55,36 @@ class SaleController extends Controller
         return view('sales.index', [
             'items'  => $items,
             'totals' => $totals,
+        ]);
+    }
+
+    public function export(): StreamedResponse
+    {
+        $sales = Sale::with('items.product')->orderByDesc('date')->get();
+
+        return response()->streamDownload(function () use ($sales) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Date', 'Invoice #', 'Customer Code', 'Customer Name', 'Product', 'Qty', 'Price', 'Amount', 'VAT', 'Total']);
+            foreach ($sales as $sale) {
+                foreach ($sale->items as $item) {
+                    $amount = $item->selling_price * $item->quantity;
+                    fputcsv($handle, [
+                        $sale->date->format('Y-m-d H:i'),
+                        $sale->invoice_number,
+                        $sale->customer_code ?? '',
+                        $sale->customer_name ?? '',
+                        $item->product?->name ?? 'Product #' . $item->product_id,
+                        $item->quantity,
+                        number_format($item->selling_price, 2, '.', ''),
+                        number_format($amount, 2, '.', ''),
+                        number_format($item->tax_applied ?? 0, 2, '.', ''),
+                        number_format($amount + ($item->tax_applied ?? 0), 2, '.', ''),
+                    ]);
+                }
+            }
+            fclose($handle);
+        }, 'sales-' . now()->format('Y-m-d') . '.csv', [
+            'Content-Type' => 'text/csv',
         ]);
     }
 
@@ -53,7 +104,7 @@ class SaleController extends Controller
         }
 
         $defaultCurrencyId = \App\Models\Currency::query()->where('is_default', true)->value('id');
-        $taxRate = 15.0;
+        $taxRate = (float) (TaxSetting::first()?->default_rate ?? 15.0);
 
         try {
             DB::beginTransaction();

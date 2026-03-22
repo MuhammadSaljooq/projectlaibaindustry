@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('password_hash');
             $table->string('name');
             $table->enum('role', ['admin', 'manager', 'viewer'])->default('viewer');
+            $table->rememberToken();
             $table->timestamps();
 
             $table->index('email', 'idx_email');

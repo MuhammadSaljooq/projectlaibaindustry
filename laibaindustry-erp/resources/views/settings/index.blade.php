@@ -30,6 +30,15 @@
 {{ session('error') }}
 </div>
 @endif
+@if ($errors->any())
+<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+<ul class="list-disc list-inside">
+@foreach ($errors->all() as $error)
+<li>{{ $error }}</li>
+@endforeach
+</ul>
+</div>
+@endif
 
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">

@@ -6,20 +6,54 @@ use App\Models\Expense;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExpenseController extends Controller
 {
     public function index(): View
     {
-        $expenses = Expense::query()
+        $query = Expense::query();
+
+        if ($search = request('search')) {
+            $query->where('type', 'like', "%{$search}%");
+        }
+        if ($from = request('from')) {
+            $query->whereDate('date', '>=', $from);
+        }
+        if ($to = request('to')) {
+            $query->whereDate('date', '<=', $to);
+        }
+
+        $expenses = $query
             ->orderByDesc('date')
-            ->paginate(25);
+            ->paginate(25)
+            ->appends(request()->query());
 
         $totalAmount = Expense::query()->sum('amount');
 
         return view('expenses.index', [
             'expenses' => $expenses,
             'totalAmount' => $totalAmount,
+        ]);
+    }
+
+    public function export(): StreamedResponse
+    {
+        $expenses = Expense::orderByDesc('date')->get();
+
+        return response()->streamDownload(function () use ($expenses) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Date', 'Type', 'Amount']);
+            foreach ($expenses as $expense) {
+                fputcsv($handle, [
+                    $expense->date->format('Y-m-d'),
+                    $expense->type,
+                    number_format($expense->amount, 2, '.', ''),
+                ]);
+            }
+            fclose($handle);
+        }, 'expenses-' . now()->format('Y-m-d') . '.csv', [
+            'Content-Type' => 'text/csv',
         ]);
     }
 

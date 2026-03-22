@@ -41,18 +41,26 @@
 </div>
 </div>
 
+@include('partials.search-filter-bar', ['action' => route('expenses.index'), 'searchPlaceholder' => 'Search expense type...'])
+
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
 <div>
 <h3 class="text-base font-semibold text-slate-800 dark:text-white">Expenses</h3>
 <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Track your business expenses by date, type, and amount.</p>
 </div>
+<div class="flex items-center gap-2">
+<a class="h-9 px-3 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-slate-600 rounded-lg transition-colors inline-flex items-center gap-1.5 whitespace-nowrap" href="{{ route('expenses.export') }}">
+<span class="material-symbols-outlined text-[18px]">download</span>
+CSV
+</a>
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('expenses.create') }}" class="h-10 px-4 inline-flex items-center gap-2 text-sm font-semibold text-white bg-primary hover:bg-blue-600 rounded-lg transition-colors shrink-0">
 <span class="material-symbols-outlined text-[20px]">add</span>
 <span>Add Expense</span>
 </a>
 @endif
+</div>
 </div>
 
 <div class="overflow-x-auto w-full -mx-4 sm:mx-0">

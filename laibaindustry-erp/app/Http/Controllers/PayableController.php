@@ -7,6 +7,7 @@ use App\Models\CustomerLedgerEntry;
 use App\Models\Payable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PayableController extends Controller
@@ -67,28 +68,37 @@ class PayableController extends Controller
 
         $payment = (float) $validated['payment'];
 
-        $payable->increment('received', $payment);
+        try {
+            DB::beginTransaction();
 
-        // Ledger: Debit entry — we paid this party (reduces their credit on our books)
-        $customer = $payable->customer_code
-            ? Customer::where('customer_code', $payable->customer_code)->first()
-            : null;
+            $payable->increment('received', $payment);
 
-        if ($customer) {
-            CustomerLedgerEntry::create([
-                'customer_id' => $customer->id,
-                'date'        => now(),
-                'description' => 'Payment Made',
-                'reference'   => $payable->invoice_number,
-                'debit'       => $payment,
-                'credit'      => 0,
-                'source_type' => 'payment_made',
-                'source_id'   => $payable->id,
-            ]);
+            $customer = $payable->customer_code
+                ? Customer::where('customer_code', $payable->customer_code)->first()
+                : null;
+
+            if ($customer) {
+                CustomerLedgerEntry::create([
+                    'customer_id' => $customer->id,
+                    'date'        => now(),
+                    'description' => 'Payment Made',
+                    'reference'   => $payable->invoice_number,
+                    'debit'       => $payment,
+                    'credit'      => 0,
+                    'source_type' => 'payment_made',
+                    'source_id'   => $payable->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('payables.index')
+                ->with('success', 'Payment of ' . number_format($payment, 2) . ' recorded successfully.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()
+                ->with('error', 'Failed to record payment: ' . $e->getMessage());
         }
-
-        return redirect()->route('payables.index')
-            ->with('success', 'Payment of ' . number_format($payment, 2) . ' recorded successfully.');
     }
 
     public function destroy(Payable $payable): RedirectResponse

@@ -7,6 +7,7 @@ use App\Models\CustomerLedgerEntry;
 use App\Models\Receivable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ReceivableController extends Controller
@@ -64,28 +65,37 @@ class ReceivableController extends Controller
                 ->with('error', "Amount cannot exceed remaining balance (" . number_format($maxReceivable, 2) . ").");
         }
 
-        $receivable->increment('received', $payment);
+        try {
+            DB::beginTransaction();
 
-        // Ledger: Credit entry — customer paid us
-        $customer = $receivable->customer_code
-            ? Customer::where('customer_code', $receivable->customer_code)->first()
-            : null;
+            $receivable->increment('received', $payment);
 
-        if ($customer) {
-            CustomerLedgerEntry::create([
-                'customer_id' => $customer->id,
-                'date'        => now(),
-                'description' => 'Payment Received',
-                'reference'   => $receivable->invoice_number,
-                'debit'       => 0,
-                'credit'      => $payment,
-                'source_type' => 'payment_received',
-                'source_id'   => $receivable->id,
-            ]);
+            $customer = $receivable->customer_code
+                ? Customer::where('customer_code', $receivable->customer_code)->first()
+                : null;
+
+            if ($customer) {
+                CustomerLedgerEntry::create([
+                    'customer_id' => $customer->id,
+                    'date'        => now(),
+                    'description' => 'Payment Received',
+                    'reference'   => $receivable->invoice_number,
+                    'debit'       => 0,
+                    'credit'      => $payment,
+                    'source_type' => 'payment_received',
+                    'source_id'   => $receivable->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('receivables.index')
+                ->with('success', 'Payment recorded successfully.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()
+                ->with('error', 'Failed to record payment: ' . $e->getMessage());
         }
-
-        return redirect()->route('receivables.index')
-            ->with('success', 'Payment recorded successfully.');
     }
 
     public function destroy(Receivable $receivable): RedirectResponse

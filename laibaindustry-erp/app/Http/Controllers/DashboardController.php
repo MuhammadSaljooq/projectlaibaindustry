@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Currency;
+use App\Models\Expense;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Receivable;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\VatEntry;
 use Carbon\Carbon;
 use Illuminate\View\View;
 
@@ -20,7 +23,16 @@ class DashboardController extends Controller
         $totalRevenue = Sale::sum('total_amount');
         $openInvoicesCount = Receivable::whereRaw('amount > received')->count();
         $totalCustomers = Customer::count();
-        $netProfit = SaleItem::sum('profit');
+        $totalExpenses = Expense::sum('amount');
+        $netProfit = SaleItem::sum('profit') - $totalExpenses;
+
+        $vatTotals = VatEntry::query()
+            ->selectRaw("
+                COALESCE(SUM(CASE WHEN type = 'sale'     THEN vat_amount ELSE 0 END), 0) AS sales_vat,
+                COALESCE(SUM(CASE WHEN type = 'purchase' THEN vat_amount ELSE 0 END), 0) AS purchase_vat
+            ")
+            ->first();
+        $netVat = (float) $vatTotals->sales_vat - (float) $vatTotals->purchase_vat;
 
         $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth();
         $salesByMonth = Sale::query()
@@ -45,12 +57,57 @@ class DashboardController extends Controller
 
         $lowStockProducts = Product::lowStock()->orderBy('stock_quantity')->take(5)->get();
 
+        $profitMargin = $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 1) : 0;
+
         $recentSales = Sale::with('items')
             ->orderByDesc('date')
             ->take(5)
             ->get();
 
-        $recentCustomers = Customer::orderByDesc('created_at')->take(3)->get();
+        $recentPurchases = Purchase::orderByDesc('date')->take(3)->get();
+        $recentExpenses = Expense::orderByDesc('date')->take(3)->get();
+
+        $transactions = collect();
+        foreach ($recentSales as $sale) {
+            $transactions->push((object) [
+                'type' => 'sale',
+                'icon' => 'receipt',
+                'label' => "Sale #{$sale->invoice_number} - " . ($sale->customer_name ?: 'Walk-in'),
+                'detail' => $sale->date->format('M d, Y') . ' • Sale',
+                'amount' => '+' . $currencySymbol . ' ' . number_format($sale->total_amount, 2),
+                'amountClass' => 'text-emerald-400',
+                'status' => 'Completed',
+                'statusClass' => 'text-emerald-400/70',
+                'sortDate' => $sale->date,
+            ]);
+        }
+        foreach ($recentPurchases as $purchase) {
+            $transactions->push((object) [
+                'type' => 'purchase',
+                'icon' => 'shopping_bag',
+                'label' => "Purchase #{$purchase->invoice_number} - " . ($purchase->customer_name ?: 'Supplier'),
+                'detail' => $purchase->date->format('M d, Y') . ' • Purchase',
+                'amount' => '-' . $currencySymbol . ' ' . number_format($purchase->total_amount, 2),
+                'amountClass' => 'text-white',
+                'status' => 'Completed',
+                'statusClass' => 'text-[#8e9192]',
+                'sortDate' => $purchase->date,
+            ]);
+        }
+        foreach ($recentExpenses as $expense) {
+            $transactions->push((object) [
+                'type' => 'expense',
+                'icon' => 'account_balance_wallet',
+                'label' => $expense->type,
+                'detail' => $expense->date->format('M d, Y') . ' • Operating Expense',
+                'amount' => '-' . $currencySymbol . ' ' . number_format($expense->amount, 2),
+                'amountClass' => 'text-white',
+                'status' => 'Completed',
+                'statusClass' => 'text-[#8e9192]',
+                'sortDate' => $expense->date,
+            ]);
+        }
+        $transactions = $transactions->sortByDesc('sortDate')->take(6)->values();
 
         $activities = collect();
         foreach ($recentSales as $sale) {
@@ -62,24 +119,6 @@ class DashboardController extends Controller
                 'time' => $sale->date->diffForHumans(),
             ]);
         }
-        foreach ($recentCustomers as $customer) {
-            $activities->push((object) [
-                'type' => 'customer',
-                'icon' => 'person_add',
-                'iconBg' => 'bg-blue-100 text-primary dark:bg-blue-900/20 dark:text-blue-400',
-                'message' => 'New customer: ' . $customer->customer_name,
-                'time' => $customer->created_at->diffForHumans(),
-            ]);
-        }
-        foreach ($lowStockProducts as $product) {
-            $activities->push((object) [
-                'type' => 'low_stock',
-                'icon' => 'inventory',
-                'iconBg' => 'bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400',
-                'message' => 'Low stock: ' . $product->name . ' (' . $product->stock_quantity . ' left)',
-                'time' => 'Stock alert',
-            ]);
-        }
         $activities = $activities->take(5)->values();
 
         return view('dashboard', [
@@ -87,7 +126,13 @@ class DashboardController extends Controller
             'totalRevenue' => $totalRevenue,
             'openInvoicesCount' => $openInvoicesCount,
             'totalCustomers' => $totalCustomers,
+            'totalExpenses' => $totalExpenses,
             'netProfit' => $netProfit,
+            'profitMargin' => $profitMargin,
+            'salesVat' => (float) $vatTotals->sales_vat,
+            'purchaseVat' => (float) $vatTotals->purchase_vat,
+            'netVat' => $netVat,
+            'transactions' => $transactions,
             'chartLabels' => $chartLabels,
             'chartValues' => $chartValues,
             'chartMax' => $chartMax,

@@ -1,97 +1,117 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-@include('partials.frontend-head', ['title' => 'Customers - ERP'])
+@include('partials.frontend-head', ['title' => 'Customers - Laiba Safety'])
+<style>
+body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+::selection { background: #FFFFFF; color: #131313; }
+</style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'customers'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+
+<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
+
+<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
 </button>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">Customers</h2>
 </div>
-<div class="flex items-center gap-4">
-<div class="relative hidden sm:block">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[20px]">search</span>
-<input class="h-9 pl-10 pr-4 text-sm bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary/50 w-64 placeholder-slate-400 text-slate-700 dark:text-slate-200 transition-all" placeholder="Global search..." type="text" disabled>
-</div>
-<button class="p-2 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-full relative transition-colors" type="button">
-<span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#1a2632]"></span>
-</button>
+<div class="flex items-center gap-3">
+@if(auth()->user()->role !== 'viewer')
+<a href="{{ route('customers.create') }}" class="h-10 px-5 inline-flex items-center gap-2 text-sm font-bold rounded-md transition-all duration-200 whitespace-nowrap" style="background:#FFFFFF;color:#2F3131;" onmouseenter="this.style.background='#C6C6C7'" onmouseleave="this.style.background='#FFFFFF'">
+<span class="material-symbols-outlined" style="font-size:18px;">add</span>
+ADD CUSTOMER
+</a>
+@endif
 </div>
 </header>
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1400px] mx-auto flex flex-col gap-6">
-<div class="sm:hidden">
-<h2 class="text-2xl font-bold text-slate-800 dark:text-white">Customers</h2>
+
+<div class="flex-1 overflow-y-auto no-scrollbar">
+<div class="max-w-[1400px] mx-auto px-6 md:px-8 py-8 flex flex-col gap-8">
+
+<div>
+<p class="text-xs font-medium uppercase tracking-[0.15em] mb-2" style="color:#8e9192;">Client Directory</p>
+<h1 class="text-4xl font-bold tracking-tight" style="color:#FFFFFF;letter-spacing:-0.02em;">Customers</h1>
 </div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
-{{ session('success') }}
+<div class="flex items-center gap-3 px-5 py-3.5 rounded-md" style="background:rgba(255,255,255,0.04);">
+<span class="material-symbols-outlined" style="color:#FFFFFF;font-size:20px;">check_circle</span>
+<span class="text-sm font-medium" style="color:#C4C7C8;">{{ session('success') }}</span>
 </div>
 @endif
 @if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-{{ session('error') }}
+<div class="flex items-center gap-3 px-5 py-3.5 rounded-md" style="background:rgba(255,180,171,0.06);">
+<span class="material-symbols-outlined" style="color:#FFB4AB;font-size:20px;">error</span>
+<span class="text-sm font-medium" style="color:#FFB4AB;">{{ session('error') }}</span>
 </div>
 @endif
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
-<div class="p-5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
-<h3 class="text-base font-semibold text-slate-800 dark:text-white">Customers</h3>
-@if(auth()->user()->role !== 'viewer')
-<a class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors shadow-sm hover:shadow active:scale-[0.98] shrink-0" href="{{ route('customers.create') }}">
-<span class="material-symbols-outlined text-[20px] shrink-0">add</span>
-<span>Add Customer</span>
-</a>
-@endif
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="rounded-lg p-5" style="background:#1B1B1B;">
+<p class="text-xs font-medium uppercase tracking-[0.15em] mb-3" style="color:#8e9192;">Total Customers</p>
+<p class="text-2xl font-bold" style="color:#FFFFFF;">{{ $customers->total() }}</p>
+</div>
+<div class="rounded-lg p-5" style="background:#1B1B1B;">
+<p class="text-xs font-medium uppercase tracking-[0.15em] mb-3" style="color:#8e9192;">This Page</p>
+<p class="text-2xl font-bold" style="color:#FFFFFF;">{{ $customers->count() }}</p>
+</div>
+<div class="rounded-lg p-5 relative overflow-hidden" style="background:#FFFFFF;">
+<p class="text-xs font-medium uppercase tracking-[0.15em] mb-3" style="color:#666;">Active Records</p>
+<p class="text-2xl font-bold" style="color:#131313;">{{ $customers->total() }}</p>
+<div class="absolute top-4 right-4">
+<span class="material-symbols-outlined" style="font-size:32px;color:rgba(19,19,19,0.08);">group</span>
+</div>
+</div>
 </div>
 
-<div class="overflow-x-auto w-full -mx-4 sm:mx-0">
-<table class="w-full text-left border-collapse min-w-[500px]">
+<div class="rounded-lg overflow-hidden" style="background:#1B1B1B;">
+<div class="overflow-x-auto">
+<table class="w-full text-left min-w-[600px]">
 <thead>
-<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[250px]">Name</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email address</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
+<tr style="background:#0E0E0E;">
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Customer</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Code</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Contact</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Email</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right" style="color:#8e9192;">Actions</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+<tbody>
 @forelse($customers as $customer)
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<tr class="group transition-colors duration-150 cursor-pointer" style="border-bottom:1px solid rgba(68,71,72,0.15);" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'" onclick="window.location='{{ route('customers.edit', $customer) }}'">
 <td class="px-6 py-4">
 <div class="flex items-center gap-3">
-<div class="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-<span class="material-symbols-outlined text-slate-400">person</span>
+<div class="h-9 w-9 rounded flex items-center justify-center shrink-0" style="background:#353535;">
+<span class="material-symbols-outlined" style="color:#8e9192;font-size:18px;">person</span>
 </div>
-<div>
-<p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{{ $customer->customer_name }}</p>
-<p class="text-xs text-slate-500 dark:text-slate-400">{{ $customer->customer_code }}</p>
-</div>
+<p class="text-sm font-semibold" style="color:#FFFFFF;">{{ $customer->customer_name }}</p>
 </div>
 </td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $customer->phone ?? '-' }}</td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $customer->email ?? '-' }}</td>
-<td class="px-6 py-4 text-right">
-<div class="flex items-center justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-<a class="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors" href="{{ route('customers.statement', $customer) }}" title="View statement">
-<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+<td class="px-6 py-4">
+<span class="text-xs font-mono px-2 py-1 rounded" style="background:#353535;color:#C4C7C8;">{{ $customer->customer_code }}</span>
+</td>
+<td class="px-6 py-4 text-sm" style="color:#C4C7C8;">{{ $customer->phone ?? '—' }}</td>
+<td class="px-6 py-4 text-sm" style="color:#C4C7C8;">{{ $customer->email ?? '—' }}</td>
+<td class="px-6 py-4 text-right" onclick="event.stopPropagation();">
+<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+<a href="{{ route('customers.statement', $customer) }}" class="p-2 rounded-md transition-colors duration-150" style="color:#8e9192;" onmouseenter="this.style.color='#FFFFFF';this.style.background='rgba(255,255,255,0.06)'" onmouseleave="this.style.color='#8e9192';this.style.background='transparent'" title="Statement">
+<span class="material-symbols-outlined" style="font-size:18px;">receipt_long</span>
 </a>
 @if(auth()->user()->role !== 'viewer')
-<a class="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors" href="{{ route('customers.edit', $customer) }}">
-<span class="material-symbols-outlined text-[20px]">edit</span>
+<a href="{{ route('customers.edit', $customer) }}" class="p-2 rounded-md transition-colors duration-150" style="color:#8e9192;" onmouseenter="this.style.color='#FFFFFF';this.style.background='rgba(255,255,255,0.06)'" onmouseleave="this.style.color='#8e9192';this.style.background='transparent'" title="Edit">
+<span class="material-symbols-outlined" style="font-size:18px;">edit</span>
 </a>
-<form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline-flex" onsubmit="return confirm('Are you sure you want to delete this customer?');">
+<form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline-flex" onsubmit="return confirm('Delete this customer?');">
 @csrf
 @method('DELETE')
-<button type="submit" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
-<span class="material-symbols-outlined text-[20px]">delete</span>
+<button type="submit" class="p-2 rounded-md transition-colors duration-150" style="color:#8e9192;" onmouseenter="this.style.color='#FFB4AB';this.style.background='rgba(255,180,171,0.06)'" onmouseleave="this.style.color='#8e9192';this.style.background='transparent'" title="Delete">
+<span class="material-symbols-outlined" style="font-size:18px;">delete</span>
 </button>
 </form>
 @endif
@@ -100,8 +120,12 @@
 </tr>
 @empty
 <tr>
-<td colspan="4" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-No customers yet. @if(auth()->user()->role !== 'viewer')<a href="{{ route('customers.create') }}" class="text-primary font-medium hover:underline">Add your first customer</a>@else<span>No customers recorded yet.</span>@endif
+<td colspan="5" class="px-6 py-16 text-center">
+<span class="material-symbols-outlined block mb-3 mx-auto" style="font-size:40px;color:#353535;">group_off</span>
+<p class="text-sm mb-1" style="color:#8e9192;">No customers yet</p>
+@if(auth()->user()->role !== 'viewer')
+<a href="{{ route('customers.create') }}" class="text-sm font-medium hover:underline" style="color:#FFFFFF;">Add your first customer</a>
+@endif
 </td>
 </tr>
 @endforelse
@@ -109,36 +133,51 @@ No customers yet. @if(auth()->user()->role !== 'viewer')<a href="{{ route('custo
 </table>
 </div>
 
-<div class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-<p class="text-sm text-slate-500 dark:text-slate-400">
+@if($customers->hasPages())
+<div class="flex items-center justify-between px-6 py-4" style="background:#0E0E0E;">
+<p class="text-xs" style="color:#8e9192;">
+Showing <span class="font-medium" style="color:#FFFFFF;">{{ $customers->firstItem() }}</span>–<span class="font-medium" style="color:#FFFFFF;">{{ $customers->lastItem() }}</span> of <span class="font-medium" style="color:#FFFFFF;">{{ $customers->total() }}</span>
+</p>
+<nav class="flex items-center gap-1" aria-label="Pagination">
+@if (!$customers->onFirstPage())
+<a class="p-1.5 rounded-md transition-colors" style="color:#C4C7C8;" href="{{ $customers->previousPageUrl() }}" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">
+<span class="material-symbols-outlined" style="font-size:18px;">chevron_left</span>
+</a>
+@endif
+@foreach ($customers->getUrlRange(max(1, $customers->currentPage() - 2), min($customers->lastPage(), $customers->currentPage() + 2)) ?: [1 => $customers->url(1)] as $page => $url)
+@if ($page == $customers->currentPage())
+<span class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded-md" style="background:#FFFFFF;color:#131313;">{{ $page }}</span>
+@else
+<a class="w-8 h-8 flex items-center justify-center text-xs font-medium rounded-md transition-colors" style="color:#C4C7C8;" href="{{ $url }}" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">{{ $page }}</a>
+@endif
+@endforeach
+@if ($customers->hasMorePages())
+<a class="p-1.5 rounded-md transition-colors" style="color:#C4C7C8;" href="{{ $customers->nextPageUrl() }}" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">
+<span class="material-symbols-outlined" style="font-size:18px;">chevron_right</span>
+</a>
+@endif
+</nav>
+</div>
+@else
+<div class="px-6 py-4" style="background:#0E0E0E;">
+<p class="text-xs" style="color:#8e9192;">
 @if($customers->total() > 0)
-Showing <span class="font-medium text-slate-900 dark:text-white">{{ $customers->firstItem() }}</span> to <span class="font-medium text-slate-900 dark:text-white">{{ $customers->lastItem() }}</span> of <span class="font-medium text-slate-900 dark:text-white">{{ $customers->total() }}</span> results
+Showing all <span class="font-medium" style="color:#FFFFFF;">{{ $customers->total() }}</span> results
 @else
 No results
 @endif
 </p>
-@if($customers->hasPages())
-<nav class="flex items-center gap-1" aria-label="Pagination">
-@if (!$customers->onFirstPage())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $customers->previousPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($customers->getUrlRange(max(1, $customers->currentPage() - 2), min($customers->lastPage(), $customers->currentPage() + 2)) ?: [1 => $customers->url(1)] as $page => $url)
-@if ($page == $customers->currentPage())
-<span class="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white">{{ $page }}</span>
-@else
-<a class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($customers->hasMorePages())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $customers->nextPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
+</div>
 @endif
 </div>
+
+<footer class="pt-4 pb-8 text-center">
+<p class="text-xs" style="color:rgba(142,145,146,0.4);">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</p>
+</footer>
+
 </div>
 </div>
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
-</div>
+
 </main>
 </body>
 </html>

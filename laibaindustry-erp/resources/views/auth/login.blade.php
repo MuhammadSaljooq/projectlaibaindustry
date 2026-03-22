@@ -101,5 +101,21 @@
     </div>
 </div>
 </div>
+<script>
+document.querySelectorAll('[data-password-toggle]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var input = document.getElementById(btn.getAttribute('data-password-toggle'));
+        if (!input) return;
+        var icon = btn.querySelector('.material-symbols-outlined');
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) icon.textContent = 'visibility_off';
+        } else {
+            input.type = 'password';
+            if (icon) icon.textContent = 'visibility';
+        }
+    });
+});
+</script>
 </body>
 </html>

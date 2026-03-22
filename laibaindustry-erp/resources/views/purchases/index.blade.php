@@ -13,16 +13,6 @@
 </button>
 <h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">Purchases</h2>
 </div>
-<div class="flex items-center gap-4">
-<div class="relative hidden sm:block">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[20px]">search</span>
-<input class="h-9 pl-10 pr-4 text-sm bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary/50 w-64 placeholder-slate-400 text-slate-700 dark:text-slate-200 transition-all" placeholder="Global search..." type="text" disabled>
-</div>
-<button class="p-2 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-full relative transition-colors" type="button">
-<span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#1a2632]"></span>
-</button>
-</div>
 </header>
 <div class="flex-1 overflow-y-auto p-6 scroll-smooth">
 <div class="max-w-[1400px] mx-auto flex flex-col gap-6">
@@ -56,15 +46,23 @@
 </div>
 </div>
 
+@include('partials.search-filter-bar', ['action' => route('purchases.index'), 'searchPlaceholder' => 'Search invoice, supplier, product...'])
+
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
 <h3 class="text-base font-semibold text-slate-800 dark:text-white">Purchases</h3>
+<div class="flex items-center gap-2">
+<a class="h-9 px-3 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-slate-600 rounded-lg transition-colors inline-flex items-center gap-1.5 whitespace-nowrap" href="{{ route('purchases.export') }}">
+<span class="material-symbols-outlined text-[18px]">download</span>
+CSV
+</a>
 @if(auth()->user()->role !== 'viewer')
 <a class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors shadow-sm hover:shadow active:scale-[0.98] shrink-0" href="{{ route('purchases.create') }}">
 <span class="material-symbols-outlined text-[20px] shrink-0">add</span>
 <span>New Purchase</span>
 </a>
 @endif
+</div>
 </div>
 
 <div class="overflow-x-auto w-full -mx-4 sm:mx-0">

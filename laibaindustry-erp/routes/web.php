@@ -58,6 +58,11 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::resource('payables', PayableController::class);
     Route::resource('expenses', ExpenseController::class);
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
+    Route::get('/vat/export', [VatController::class, 'export'])->name('vat.export');
+
+    Route::get('/sales/export/csv', [\App\Http\Controllers\SaleController::class, 'export'])->name('sales.export');
+    Route::get('/purchases/export/csv', [\App\Http\Controllers\PurchaseController::class, 'export'])->name('purchases.export');
+    Route::get('/expenses/export/csv', [\App\Http\Controllers\ExpenseController::class, 'export'])->name('expenses.export');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');

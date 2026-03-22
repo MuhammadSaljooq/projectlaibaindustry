@@ -24,27 +24,37 @@
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sales VAT (Output)</p>
 <p class="text-2xl font-bold text-primary font-mono mt-1">
-<span class="tabular-nums">$ {{ number_format($totals->sales_vat ?? 0, 2) }}</span>
+<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->sales_vat ?? 0, 2) }}</span>
 </p>
 </div>
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Purchase VAT (Input)</p>
 <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 font-mono mt-1">
-<span class="tabular-nums">$ {{ number_format($totals->purchase_vat ?? 0, 2) }}</span>
+<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->purchase_vat ?? 0, 2) }}</span>
 </p>
 </div>
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Net VAT Payable</p>
 <p class="text-2xl font-bold {{ ($totals->net_vat ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }} font-mono mt-1">
-<span class="tabular-nums">$ {{ number_format($totals->net_vat ?? 0, 2) }}</span>
+<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->net_vat ?? 0, 2) }}</span>
 </p>
 </div>
 </div>
 
+@include('partials.search-filter-bar', ['action' => route('vat.index'), 'searchPlaceholder' => 'Search invoice, customer...'])
+
 <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
 <div class="p-5 border-b border-slate-200 dark:border-slate-700">
+<div class="flex flex-wrap items-center justify-between gap-3 w-full">
+<div>
 <h3 class="text-base font-semibold text-slate-800 dark:text-white">VAT Entries</h3>
 <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Automatically recorded from Sales and Purchases.</p>
+</div>
+<a class="h-9 px-3 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-slate-600 rounded-lg transition-colors inline-flex items-center gap-1.5 whitespace-nowrap" href="{{ route('vat.export') }}">
+<span class="material-symbols-outlined text-[18px]">download</span>
+CSV
+</a>
+</div>
 </div>
 
 <div class="overflow-x-auto w-full -mx-4 sm:mx-0">
@@ -79,9 +89,9 @@ Purchase
 </td>
 <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{{ $entry->invoice_number ?: '-' }}</td>
 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $entry->customer_name ?: $entry->customer_code ?: '-' }}</td>
-<td class="px-6 py-4 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">$ {{ number_format($entry->subtotal, 2) }}</span></td>
+<td class="px-6 py-4 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($entry->subtotal, 2) }}</span></td>
 <td class="px-6 py-4 text-sm font-mono text-right text-slate-600 dark:text-slate-300 whitespace-nowrap"><span class="tabular-nums">{{ number_format($entry->vat_rate, 2) }}%</span></td>
-<td class="px-6 py-4 text-sm font-mono font-bold text-right {{ $entry->type === 'sale' ? 'text-primary' : 'text-amber-600 dark:text-amber-400' }} whitespace-nowrap"><span class="tabular-nums">$ {{ number_format($entry->vat_amount, 2) }}</span></td>
+<td class="px-6 py-4 text-sm font-mono font-bold text-right {{ $entry->type === 'sale' ? 'text-primary' : 'text-amber-600 dark:text-amber-400' }} whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($entry->vat_amount, 2) }}</span></td>
 </tr>
 @empty
 <tr>

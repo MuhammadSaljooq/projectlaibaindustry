@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Currency;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,12 +29,15 @@ class ProductController extends Controller
         $totalValue = Product::query()->selectRaw('COALESCE(SUM(cost_price * stock_quantity), 0) as v')->value('v') ?? 0;
         $categories = Category::orderBy('name')->get();
 
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
         return view('inventory-dashboard', [
             'products' => $products,
             'totalItems' => $totalItems,
             'lowStockCount' => $lowStockCount,
             'totalValue' => $totalValue,
             'categories' => $categories,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 

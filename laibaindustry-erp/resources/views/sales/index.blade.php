@@ -1,90 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-@include('partials.frontend-head', ['title' => 'Sales - ERP'])
+@include('partials.frontend-head', ['title' => 'Sales - Laiba Safety'])
+<style>
+body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+::selection { background: #FFFFFF; color: #131313; }
+</style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'sales'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+
+<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
+
+<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
 </button>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">Sales</h2>
 </div>
-<div class="flex items-center gap-4">
-<div class="relative hidden sm:block">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[20px]">search</span>
-<input class="h-9 pl-10 pr-4 text-sm bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary/50 w-64 placeholder-slate-400 text-slate-700 dark:text-slate-200 transition-all" placeholder="Global search..." type="text" disabled>
-</div>
-<button class="p-2 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-full relative transition-colors" type="button">
-<span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#1a2632]"></span>
-</button>
-</div>
-</header>
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1400px] mx-auto flex flex-col gap-6">
-<div class="sm:hidden">
-<h2 class="text-2xl font-bold text-slate-800 dark:text-white">Sales</h2>
-</div>
-
-@if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
-{{ session('success') }}
-</div>
-@endif
-@if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-{{ session('error') }}
-</div>
-@endif
-
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subtotal</p>
-<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_subtotal ?? 0, 2) }}</span></p>
-</div>
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">VAT (15%)</p>
-<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_vat ?? 0, 2) }}</span></p>
-</div>
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Sales</p>
-<p class="text-2xl font-bold text-primary font-mono mt-1"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_sales ?? 0, 2) }}</span></p>
-</div>
-</div>
-
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
-<div class="p-5 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
-<h3 class="text-base font-semibold text-slate-800 dark:text-white">Sales</h3>
+<div class="flex items-center gap-3">
+<a href="{{ route('sales.export') }}" class="h-9 px-4 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='#FFFFFF'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(68,71,72,0.4)'">
+<span class="material-symbols-outlined" style="font-size:14px;">download</span>
+CSV
+</a>
 @if(auth()->user()->role !== 'viewer')
-<a class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors shadow-sm hover:shadow active:scale-[0.98] shrink-0" href="{{ route('sales.create') }}">
-<span class="material-symbols-outlined text-[20px] shrink-0">add</span>
-<span>New Sale</span>
+<a href="{{ route('sales.create') }}" class="h-9 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;">
+<span class="material-symbols-outlined" style="font-size:14px;">add</span>
+NEW SALE
 </a>
 @endif
 </div>
+</header>
 
-<div class="overflow-x-auto w-full -mx-4 sm:mx-0">
-<table class="w-full text-left border-collapse min-w-[900px]">
+<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
+<div class="max-w-[1400px] mx-auto flex flex-col" style="gap:2rem;">
+
+{{-- Heading --}}
+<div>
+<span class="text-[11px] font-medium uppercase block mb-2" style="letter-spacing:0.2em;color:#8e9192;">Revenue Tracking</span>
+<h2 class="text-white font-black" style="font-size:2.5rem;letter-spacing:-0.02em;line-height:1.1;">Sales</h2>
+</div>
+
+{{-- Flash --}}
+@if (session('success'))
+<div style="background:rgba(255,255,255,0.05);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium text-white">
+<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;">check_circle</span>{{ session('success') }}
+</div>
+@endif
+@if (session('error'))
+<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium">
+<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;color:#FFB4AB;">error</span><span style="color:#FFB4AB;">{{ session('error') }}</span>
+</div>
+@endif
+
+{{-- Stat Cards --}}
+<div class="grid grid-cols-12" style="gap:1.5rem;">
+<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
+<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:#C4C7C8;">Subtotal</p>
+<h3 class="text-white font-black tabular-nums" style="font-size:clamp(1.75rem,4vw,2.5rem);letter-spacing:-0.03em;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_subtotal ?? 0, 2) }}</h3>
+</div>
+<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
+<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:#C4C7C8;">VAT (15%)</p>
+<h3 class="text-white font-black tabular-nums" style="font-size:clamp(1.75rem,4vw,2.5rem);letter-spacing:-0.03em;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_vat ?? 0, 2) }}</h3>
+</div>
+<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:linear-gradient(135deg,#FFFFFF,#C6C6C7);border-radius:0.5rem;padding:2rem;">
+<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:rgba(42,49,49,0.5);">Total Sales</p>
+<h3 class="font-black tabular-nums" style="font-size:clamp(1.75rem,4vw,2.5rem);letter-spacing:-0.03em;color:#1a1c1c;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_sales ?? 0, 2) }}</h3>
+</div>
+</div>
+
+{{-- Search & Filter --}}
+<form method="GET" action="{{ route('sales.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style="background:#1B1B1B;border-radius:0.5rem;padding:1.25rem 1.5rem;">
+<div class="relative flex-1 min-w-0">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none" style="font-size:18px;color:#8e9192;">search</span>
+<input class="w-full h-10 pl-10 pr-4 text-sm font-medium text-white placeholder-[#C4C7C8]/50 outline-none transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;" name="search" type="text" placeholder="Search invoice, customer, product..." value="{{ request('search') }}" onfocus="this.style.borderColor='#FFFFFF';this.style.boxShadow='0 0 0 2px rgba(255,255,255,0.1)'" onblur="this.style.borderColor='rgba(68,71,72,0.4)';this.style.boxShadow='none'"/>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<input class="h-10 px-3 text-sm font-medium text-white outline-none transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;color-scheme:dark;" name="from" type="date" value="{{ request('from') }}" onfocus="this.style.borderColor='#FFFFFF'" onblur="this.style.borderColor='rgba(68,71,72,0.4)'"/>
+<input class="h-10 px-3 text-sm font-medium text-white outline-none transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;color-scheme:dark;" name="to" type="date" value="{{ request('to') }}" onfocus="this.style.borderColor='#FFFFFF'" onblur="this.style.borderColor='rgba(68,71,72,0.4)'"/>
+</div>
+<button type="submit" class="h-10 px-5 text-[11px] font-bold uppercase flex items-center justify-center gap-2 active:scale-[0.98] transition-all shrink-0" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;">
+<span class="material-symbols-outlined" style="font-size:14px;">filter_list</span>FILTER
+</button>
+@if(request('search') || request('from') || request('to'))
+<a href="{{ route('sales.index') }}" class="h-10 px-4 text-[11px] font-bold uppercase flex items-center justify-center transition-all shrink-0" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;" onmouseover="this.style.color='#FFFFFF'" onmouseout="this.style.color='#C4C7C8'">CLEAR</a>
+@endif
+</form>
+
+{{-- Table --}}
+<div style="background:#1B1B1B;border-radius:0.5rem;overflow:hidden;">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse" style="min-width:900px;">
 <thead>
-<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Date</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Customer code</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Customer name</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Invoice number</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Product name</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Price</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Qty</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Amount</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">VAT 15%</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Subtotal</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24"></th>
+<tr style="background:#0E0E0E;">
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Date</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Customer</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Invoice</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Product</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Price</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Qty</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Amount</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">VAT</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Total</th>
+<th class="px-4 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:100px;"></th>
 </tr>
 </thead>
-<tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+<tbody>
 @forelse($items as $item)
 @php
 $sale = $item->sale;
@@ -92,35 +116,34 @@ $amount = $item->selling_price * $item->quantity;
 $vat = $item->tax_applied ?? 0;
 $subtotal = $amount + $vat;
 @endphp
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors {{ $sale ? 'cursor-pointer' : '' }}"
-    @if($sale) data-href="{{ route('sales.show', $sale) }}" role="button" tabindex="0" @endif
-    @if($sale) onclick="const href = this.dataset.href; if (href) window.location.href = href;" @endif
-    @if($sale) onkeydown="if (event.key === 'Enter' && this.dataset.href) window.location.href = this.dataset.href;" @endif>
-<td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ $sale ? $sale->date->format('Y-m-d H:i') : '-' }}</td>
-<td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $sale && $sale->customer_code ? $sale->customer_code : '-' }}</td>
-<td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $sale && $sale->customer_name ? $sale->customer_name : '-' }}</td>
-<td class="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">
+<tr class="group transition-colors {{ $sale ? 'cursor-pointer' : '' }}" style="border-top:1px solid rgba(68,71,72,0.15);"
+    onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'"
+    @if($sale) onclick="window.location.href='{{ route('sales.show', $sale) }}'" @endif>
+<td class="px-4 py-4 text-sm whitespace-nowrap" style="color:#C4C7C8;">{{ $sale ? $sale->date->format('Y-m-d') : '-' }}</td>
+<td class="px-4 py-4 text-sm font-medium text-white truncate" style="max-width:160px;">{{ $sale?->customer_name ?: ($sale?->customer_code ?: '-') }}</td>
+<td class="px-4 py-4 text-sm font-bold text-white">
 @if($sale)
-<a href="{{ route('sales.show', $sale) }}" class="text-primary hover:underline">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>
-@else
--
-@endif
+<a href="{{ route('sales.show', $sale) }}" class="hover:underline" style="text-decoration-color:#444748;" onclick="event.stopPropagation();">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>
+@else - @endif
 </td>
-<td class="px-4 py-3 text-sm text-slate-900 dark:text-white">{{ $item->product ? $item->product->name : 'Product #' . $item->product_id }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($item->selling_price, 2) }}</span></td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300">{{ number_format($item->quantity) }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($amount, 2) }}</span></td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300 whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($vat, 2) }}</span></td>
-<td class="px-4 py-3 text-sm font-mono font-medium text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($subtotal, 2) }}</span></td>
-<td class="px-4 py-3">
+<td class="px-4 py-4 text-sm" style="color:#C4C7C8;">{{ $item->product?->name ?: 'Product #' . $item->product_id }}</td>
+<td class="px-4 py-4 text-sm tabular-nums text-right text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($item->selling_price, 2) }}</td>
+<td class="px-4 py-4 text-sm tabular-nums text-right" style="color:#C4C7C8;">{{ number_format($item->quantity) }}</td>
+<td class="px-4 py-4 text-sm tabular-nums text-right text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($amount, 2) }}</td>
+<td class="px-4 py-4 text-sm tabular-nums text-right whitespace-nowrap" style="color:#C4C7C8;">{{ $currencySymbol ?? '$' }} {{ number_format($vat, 2) }}</td>
+<td class="px-4 py-4 text-sm font-bold tabular-nums text-right text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($subtotal, 2) }}</td>
+<td class="px-4 py-4 text-right" onclick="event.stopPropagation();">
 @if($sale)
-<div class="flex items-center gap-2">
-<a href="{{ route('sales.show', $sale) }}" class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg px-2 py-1 transition-colors whitespace-nowrap">View</a>
+<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<a href="{{ route('sales.show', $sale) }}" class="p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFFFFF';this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.color='#8e9192';this.style.background='transparent'">
+<span class="material-symbols-outlined" style="font-size:18px;">visibility</span>
+</a>
 @if(auth()->user()->role !== 'viewer')
-<form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this sale? Stock will be restored and the related receivable removed.');" onclick="event.stopPropagation();">
-@csrf
-@method('DELETE')
-<button type="submit" class="inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg px-2 py-1 transition-colors whitespace-nowrap">Delete</button>
+<form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline-flex" onsubmit="return confirm('Delete this sale? Stock will be restored.');">
+@csrf @method('DELETE')
+<button type="submit" class="p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFB4AB';this.style.background='rgba(255,180,171,0.08)'" onmouseout="this.style.color='#8e9192';this.style.background='transparent'">
+<span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+</button>
 </form>
 @endif
 </div>
@@ -129,8 +152,12 @@ $subtotal = $amount + $vat;
 </tr>
 @empty
 <tr>
-<td colspan="11" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-No sales yet. @if(auth()->user()->role !== 'viewer')<a href="{{ route('sales.create') }}" class="text-primary font-medium hover:underline">Create your first sale</a>@else<span>No sales recorded yet.</span>@endif
+<td colspan="10" class="px-6 py-16 text-center">
+<span class="material-symbols-outlined block" style="font-size:3rem;color:#353535;margin-bottom:1rem;">receipt</span>
+<p class="text-sm font-medium" style="color:#8e9192;">No sales recorded yet.</p>
+@if(auth()->user()->role !== 'viewer')
+<a href="{{ route('sales.create') }}" class="inline-block text-[11px] font-bold uppercase text-white" style="margin-top:1rem;border-bottom:1px solid #FFFFFF;padding-bottom:0.25rem;">Create First Sale</a>
+@endif
 </td>
 </tr>
 @endforelse
@@ -138,35 +165,35 @@ No sales yet. @if(auth()->user()->role !== 'viewer')<a href="{{ route('sales.cre
 </table>
 </div>
 
-<div class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-<p class="text-sm text-slate-500 dark:text-slate-400">
+{{-- Pagination --}}
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4" style="padding:1rem 1.5rem;background:#0E0E0E;">
+<p class="text-xs font-medium" style="color:#8e9192;">
 @if($items->total() > 0)
-Showing <span class="font-medium text-slate-900 dark:text-white">{{ $items->firstItem() }}</span> to <span class="font-medium text-slate-900 dark:text-white">{{ $items->lastItem() }}</span> of <span class="font-medium text-slate-900 dark:text-white">{{ $items->total() }}</span> line items
-@else
-No results
-@endif
+Showing <span class="text-white font-bold">{{ $items->firstItem() }}</span> to <span class="text-white font-bold">{{ $items->lastItem() }}</span> of <span class="text-white font-bold">{{ $items->total() }}</span> line items
+@else No results @endif
 </p>
 @if($items->hasPages())
 <nav class="flex items-center gap-1" aria-label="Pagination">
 @if (!$items->onFirstPage())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $items->previousPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
+<a class="p-1.5 transition-colors" style="color:#C4C7C8;border-radius:0.25rem;" href="{{ $items->previousPageUrl() }}" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:18px;">chevron_left</span></a>
 @endif
 @foreach ($items->getUrlRange(max(1, $items->currentPage() - 2), min($items->lastPage(), $items->currentPage() + 2)) ?: [1 => $items->url(1)] as $page => $url)
 @if ($page == $items->currentPage())
-<span class="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white">{{ $page }}</span>
+<span class="px-3 py-1.5 text-xs font-bold" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;">{{ $page }}</span>
 @else
-<a class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" href="{{ $url }}">{{ $page }}</a>
+<a class="px-3 py-1.5 text-xs font-medium transition-colors" style="color:#C4C7C8;border-radius:0.375rem;" href="{{ $url }}" onmouseover="this.style.background='#2A2A2A';this.style.color='#FFFFFF'" onmouseout="this.style.background='transparent';this.style.color='#C4C7C8'">{{ $page }}</a>
 @endif
 @endforeach
 @if ($items->hasMorePages())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $items->nextPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
+<a class="p-1.5 transition-colors" style="color:#C4C7C8;border-radius:0.25rem;" href="{{ $items->nextPageUrl() }}" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:18px;">chevron_right</span></a>
 @endif
 </nav>
 @endif
 </div>
 </div>
+
+<div class="text-center text-[10px] uppercase font-medium pb-4" style="margin-top:2rem;letter-spacing:0.15em;color:#8e9192;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
 </div>
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
 </div>
 </main>
 </body>

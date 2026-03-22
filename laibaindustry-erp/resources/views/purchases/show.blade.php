@@ -20,6 +20,10 @@ Purchase {{ $purchase->invoice_number ?: '#' . $purchase->id }}
 </div>
 <div class="flex items-center gap-3">
 @if(auth()->user()->role !== 'viewer')
+<a href="{{ route('purchases.edit', $purchase) }}" class="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-blue-600 hover:bg-primary/5 rounded-lg border border-primary/30 transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span class="hidden sm:inline">Edit</span>
+</a>
 <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirm('Delete this purchase? This cannot be undone.');">
 @csrf
 @method('DELETE')
