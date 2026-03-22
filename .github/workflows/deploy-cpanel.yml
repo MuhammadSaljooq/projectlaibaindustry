@@ -48,6 +48,7 @@ jobs:
             ../deploy-package/storage/framework/sessions \
             ../deploy-package/storage/framework/views \
             ../deploy-package/storage/logs \
+            ../deploy-package/storage/fonts \
             ../deploy-package/bootstrap/cache
 
       - name: Generate production .env from GitHub Secrets

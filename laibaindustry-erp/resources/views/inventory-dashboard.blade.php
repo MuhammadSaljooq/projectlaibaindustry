@@ -79,9 +79,9 @@ ADD ITEM
 </div>
 
 {{-- Total Value (Hero Inverted White) --}}
-<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:linear-gradient(135deg,#FFFFFF,#C6C6C7);border-radius:0.5rem;padding:2rem;">
-<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:rgba(42,49,49,0.5);">Total Inventory Value</p>
-<h3 class="font-black tabular-nums" style="font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-0.03em;margin-bottom:0.5rem;color:#1a1c1c;">{{ $currencySymbol }}{{ number_format($totalValue ?? 0, 0) }}</h3>
+<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:linear-gradient(135deg,#FFFFFF,#C6C6C7);border-radius:0.5rem;padding:1.5rem;">
+<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1rem;color:rgba(42,49,49,0.5);">Total Inventory Value</p>
+<h3 class="font-black tabular-nums" style="font-size:clamp(1.25rem,2.5vw,1.75rem);letter-spacing:-0.02em;margin-bottom:0.5rem;color:#1a1c1c;word-break:break-all;">{{ $currencySymbol }} {{ number_format($totalValue ?? 0, 0) }}</h3>
 <p class="text-sm font-medium" style="color:rgba(42,49,49,0.45);">Cost-based valuation</p>
 </div>
 

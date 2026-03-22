@@ -1,102 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-@include('partials.frontend-head', ['title' => 'Receivables - ERP'])
+@include('partials.frontend-head', ['title' => 'Receivables - Laiba Safety'])
+<style>
+body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+::selection { background: #FFFFFF; color: #131313; }
+</style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'receivables'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+
+<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
+
+<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined">menu</span>
 </button>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">Receivables</h2>
 </div>
 </header>
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1400px] mx-auto flex flex-col gap-6">
-<div class="sm:hidden">
-<h2 class="text-2xl font-bold text-slate-800 dark:text-white">Receivables</h2>
+
+<div class="flex-1 overflow-y-auto no-scrollbar">
+<div class="max-w-[1400px] mx-auto px-6 md:px-8 py-8 flex flex-col gap-8">
+
+<div>
+<p class="text-xs font-medium uppercase tracking-[0.15em] mb-2" style="color:#8e9192;">Accounts Receivable</p>
+<h1 class="text-4xl font-bold tracking-tight" style="color:#FFFFFF;letter-spacing:-0.02em;">Receivables</h1>
 </div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
-{{ session('success') }}
+<div class="flex items-center gap-3 px-5 py-3.5 rounded-md" style="background:rgba(255,255,255,0.04);">
+<span class="material-symbols-outlined" style="color:#FFFFFF;font-size:20px;">check_circle</span>
+<span class="text-sm font-medium" style="color:#C4C7C8;">{{ session('success') }}</span>
 </div>
 @endif
 @if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-{{ session('error') }}
+<div class="flex items-center gap-3 px-5 py-3.5 rounded-md" style="background:rgba(255,180,171,0.06);">
+<span class="material-symbols-outlined" style="color:#FFB4AB;font-size:20px;">error</span>
+<span class="text-sm font-medium" style="color:#FFB4AB;">{{ session('error') }}</span>
 </div>
 @endif
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Amount</p>
-<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">
-<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_amount ?? 0, 2) }}</span>
-</p>
+<div class="rounded-lg p-5" style="background:#1B1B1B;">
+<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style="color:#8e9192;">Total Invoiced</p>
+<p class="text-2xl font-bold font-mono tabular-nums" style="color:#FFFFFF;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_amount ?? 0, 2) }}</p>
 </div>
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Received</p>
-<p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-1">
-<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_received ?? 0, 2) }}</span>
-</p>
+<div class="rounded-lg p-5" style="background:#1B1B1B;">
+<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style="color:#8e9192;">Total Received</p>
+<p class="text-2xl font-bold font-mono tabular-nums" style="color:#FFFFFF;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_received ?? 0, 2) }}</p>
 </div>
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Remaining</p>
-<p class="text-2xl font-bold text-primary font-mono mt-1">
-<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_remaining ?? 0, 2) }}</span>
-</p>
+<div class="rounded-lg p-5 relative overflow-hidden" style="background:#FFFFFF;">
+<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style="color:#666;">Outstanding</p>
+<p class="text-2xl font-bold font-mono tabular-nums" style="color:#131313;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_remaining ?? 0, 2) }}</p>
+<div class="absolute top-4 right-4">
+<span class="material-symbols-outlined" style="font-size:32px;color:rgba(19,19,19,0.08);">account_balance_wallet</span>
+</div>
 </div>
 </div>
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
-<div class="p-5 border-b border-slate-200 dark:border-slate-700">
-<h3 class="text-base font-semibold text-slate-800 dark:text-white">Receivables</h3>
-<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Track amounts owed by customers. Record payments via Edit.</p>
+<div class="rounded-lg overflow-hidden" style="background:#1B1B1B;">
+<div class="px-6 py-4 flex items-center justify-between" style="border-bottom:1px solid rgba(68,71,72,0.15);">
+<div>
+<p class="text-sm font-semibold" style="color:#FFFFFF;">All Receivables</p>
+<p class="text-xs mt-0.5" style="color:#8e9192;">Track amounts owed by customers. Record payments via Edit.</p>
+</div>
 </div>
 
-<div class="overflow-x-auto w-full -mx-4 sm:mx-0">
-<table class="w-full text-left border-collapse min-w-[560px]">
+<div class="overflow-x-auto">
+<table class="w-full text-left min-w-[700px]">
 <thead>
-<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Invoice</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Amount</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Received</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Remaining</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-24"></th>
+<tr style="background:#0E0E0E;">
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Date</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Invoice</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Customer</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right" style="color:#8e9192;">Amount</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right" style="color:#8e9192;">Received</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right" style="color:#8e9192;">Remaining</th>
+<th class="px-6 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right w-28" style="color:#8e9192;">Status</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+<tbody>
 @forelse($receivables as $r)
 @php $remaining = (float)$r->amount - (float)$r->received; @endphp
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $r->date->format('Y-m-d') }}</td>
-<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">{{ $r->invoice_number ?: '-' }}</td>
-<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $r->customer_name ?: $r->customer_code ?: '-' }}</td>
-<td class="px-6 py-4 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</span></td>
-<td class="px-6 py-4 text-sm font-mono text-right text-slate-600 dark:text-slate-300 whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($r->received, 2) }}</span></td>
-<td class="px-6 py-4 text-sm font-mono font-bold text-right {{ $remaining > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }} whitespace-nowrap"><span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</span></td>
-<td class="px-6 py-4">
+<tr class="group transition-colors duration-150" style="border-bottom:1px solid rgba(68,71,72,0.15);" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">
+<td class="px-6 py-4 text-sm whitespace-nowrap" style="color:#C4C7C8;">{{ $r->date->format('Y-m-d') }}</td>
+<td class="px-6 py-4 text-sm font-medium" style="color:#FFFFFF;">{{ $r->invoice_number ?: '—' }}</td>
+<td class="px-6 py-4 text-sm" style="color:#C4C7C8;">{{ $r->customer_name ?: $r->customer_code ?: '—' }}</td>
+<td class="px-6 py-4 text-sm font-mono text-right whitespace-nowrap tabular-nums" style="color:#FFFFFF;">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</td>
+<td class="px-6 py-4 text-sm font-mono text-right whitespace-nowrap tabular-nums" style="color:#8e9192;">{{ $currencySymbol ?? '$' }} {{ number_format($r->received, 2) }}</td>
+<td class="px-6 py-4 text-sm font-mono font-semibold text-right whitespace-nowrap tabular-nums" style="color:#FFFFFF;">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</td>
+<td class="px-6 py-4 text-right">
 @if ($remaining > 0)
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('receivables.edit', $r) }}" class="h-8 px-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors whitespace-nowrap">Record payment</a>
+<a href="{{ route('receivables.edit', $r) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.05em] rounded-md transition-all duration-200 whitespace-nowrap" style="color:#FFFFFF;border:1px solid rgba(68,71,72,0.4);" onmouseenter="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='#8e9192'" onmouseleave="this.style.background='transparent';this.style.borderColor='rgba(68,71,72,0.4)'">
+<span class="material-symbols-outlined" style="font-size:14px;">payments</span>
+Record
+</a>
 @else
-<span class="text-xs text-slate-500 dark:text-slate-400">—</span>
+<span class="text-xs" style="color:#8e9192;">—</span>
 @endif
 @else
-<span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Paid</span>
+<span class="inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] rounded" style="background:rgba(255,255,255,0.06);color:#C4C7C8;">Paid</span>
 @endif
 </td>
 </tr>
 @empty
 <tr>
-<td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-No receivables yet. Receivables are created automatically when you create a sale.
+<td colspan="7" class="px-6 py-16 text-center">
+<span class="material-symbols-outlined block mb-3 mx-auto" style="font-size:40px;color:#353535;">account_balance_wallet</span>
+<p class="text-sm mb-1" style="color:#8e9192;">No receivables yet</p>
+<p class="text-xs" style="color:#555;">Receivables are created automatically when you create a sale.</p>
 </td>
 </tr>
 @endforelse
@@ -104,36 +121,51 @@ No receivables yet. Receivables are created automatically when you create a sale
 </table>
 </div>
 
-<div class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-<p class="text-sm text-slate-500 dark:text-slate-400">
+@if($receivables->hasPages())
+<div class="flex items-center justify-between px-6 py-4" style="background:#0E0E0E;">
+<p class="text-xs" style="color:#8e9192;">
+Showing <span class="font-medium" style="color:#FFFFFF;">{{ $receivables->firstItem() }}</span>–<span class="font-medium" style="color:#FFFFFF;">{{ $receivables->lastItem() }}</span> of <span class="font-medium" style="color:#FFFFFF;">{{ $receivables->total() }}</span>
+</p>
+<nav class="flex items-center gap-1" aria-label="Pagination">
+@if (!$receivables->onFirstPage())
+<a class="p-1.5 rounded-md transition-colors" style="color:#C4C7C8;" href="{{ $receivables->previousPageUrl() }}" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">
+<span class="material-symbols-outlined" style="font-size:18px;">chevron_left</span>
+</a>
+@endif
+@foreach ($receivables->getUrlRange(max(1, $receivables->currentPage() - 2), min($receivables->lastPage(), $receivables->currentPage() + 2)) ?: [1 => $receivables->url(1)] as $page => $url)
+@if ($page == $receivables->currentPage())
+<span class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded-md" style="background:#FFFFFF;color:#131313;">{{ $page }}</span>
+@else
+<a class="w-8 h-8 flex items-center justify-center text-xs font-medium rounded-md transition-colors" style="color:#C4C7C8;" href="{{ $url }}" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">{{ $page }}</a>
+@endif
+@endforeach
+@if ($receivables->hasMorePages())
+<a class="p-1.5 rounded-md transition-colors" style="color:#C4C7C8;" href="{{ $receivables->nextPageUrl() }}" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">
+<span class="material-symbols-outlined" style="font-size:18px;">chevron_right</span>
+</a>
+@endif
+</nav>
+</div>
+@else
+<div class="px-6 py-4" style="background:#0E0E0E;">
+<p class="text-xs" style="color:#8e9192;">
 @if($receivables->total() > 0)
-Showing <span class="font-medium text-slate-900 dark:text-white">{{ $receivables->firstItem() }}</span> to <span class="font-medium text-slate-900 dark:text-white">{{ $receivables->lastItem() }}</span> of <span class="font-medium text-slate-900 dark:text-white">{{ $receivables->total() }}</span> results
+Showing all <span class="font-medium" style="color:#FFFFFF;">{{ $receivables->total() }}</span> results
 @else
 No results
 @endif
 </p>
-@if($receivables->hasPages())
-<nav class="flex items-center gap-1" aria-label="Pagination">
-@if (!$receivables->onFirstPage())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $receivables->previousPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($receivables->getUrlRange(max(1, $receivables->currentPage() - 2), min($receivables->lastPage(), $receivables->currentPage() + 2)) ?: [1 => $receivables->url(1)] as $page => $url)
-@if ($page == $receivables->currentPage())
-<span class="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white">{{ $page }}</span>
-@else
-<a class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($receivables->hasMorePages())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $receivables->nextPageUrl() }}"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
+</div>
 @endif
 </div>
+
+<footer class="pt-4 pb-8 text-center">
+<p class="text-xs" style="color:rgba(142,145,146,0.4);">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</p>
+</footer>
+
 </div>
 </div>
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
-</div>
+
 </main>
 </body>
 </html>

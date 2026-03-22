@@ -184,21 +184,32 @@ class CustomerController extends Controller
         return view('customers.statement', $data);
     }
 
-    public function statementPdf(Customer $customer): Response
+    public function statementPdf(Customer $customer): Response|RedirectResponse
     {
-        $data = $this->getStatementData($customer);
+        try {
+            $fontsDir = storage_path('fonts');
+            if (! is_dir($fontsDir)) {
+                mkdir($fontsDir, 0755, true);
+            }
 
-        $pdf = Pdf::loadView('customers.statement-pdf', $data)
-            ->setPaper('a4', 'portrait')
-            ->setOption('isHtml5ParserEnabled', true)
-            ->setOption('isRemoteEnabled', false);
+            $data = $this->getStatementData($customer);
 
-        $filename = sprintf(
-            'statement-%s-%s.pdf',
-            \Illuminate\Support\Str::slug($customer->customer_name),
-            now()->format('Y-m-d')
-        );
+            $pdf = Pdf::loadView('customers.statement-pdf', $data)
+                ->setPaper('a4', 'portrait')
+                ->setOption('isHtml5ParserEnabled', true)
+                ->setOption('isRemoteEnabled', false);
 
-        return $pdf->download($filename);
+            $filename = sprintf(
+                'statement-%s-%s.pdf',
+                \Illuminate\Support\Str::slug($customer->customer_name),
+                now()->format('Y-m-d')
+            );
+
+            return $pdf->download($filename);
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('customers.statement', $customer)
+                ->with('error', 'PDF generation failed: ' . $e->getMessage());
+        }
     }
 }
