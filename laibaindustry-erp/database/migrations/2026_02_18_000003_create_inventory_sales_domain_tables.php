@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip if DB was bootstrapped from schema.sql / manual import (tables already exist).
+        if (Schema::hasTable('categories')) {
+            return;
+        }
+
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();

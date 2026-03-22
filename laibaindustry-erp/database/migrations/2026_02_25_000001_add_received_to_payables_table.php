@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('payables') || Schema::hasColumn('payables', 'received')) {
+            return;
+        }
+
         Schema::table('payables', function (Blueprint $table) {
             $table->decimal('received', 10, 2)->default(0)->after('amount');
         });

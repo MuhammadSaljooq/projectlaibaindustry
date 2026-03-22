@@ -9,6 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('sales', 'receivable_id')) {
+            return;
+        }
+
         Schema::table('sales', function (Blueprint $table) {
             $table->unsignedBigInteger('receivable_id')->nullable()->after('status');
             $table->index('receivable_id');

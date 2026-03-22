@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('payables') || Schema::hasColumn('payables', 'purchase_id')) {
+            return;
+        }
+
         Schema::table('payables', function (Blueprint $table) {
             // Nullable so existing orphaned rows don't break; SET NULL on purchase delete
             // so the payable stays visible even after a purchase is force-deleted externally.

@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('customer_ledger_entries')) {
+            return;
+        }
+
         Schema::create('customer_ledger_entries', function (Blueprint $table) {
             $table->increments('id');
             // unsignedInteger matches customers.id which is INT AUTO_INCREMENT

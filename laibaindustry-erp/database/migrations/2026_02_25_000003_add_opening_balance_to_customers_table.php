@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('customers') || Schema::hasColumn('customers', 'opening_balance')) {
+            return;
+        }
+
         Schema::table('customers', function (Blueprint $table) {
             $table->decimal('opening_balance', 10, 2)->default(0)->after('address');
             $table->date('opening_balance_date')->nullable()->after('opening_balance');
