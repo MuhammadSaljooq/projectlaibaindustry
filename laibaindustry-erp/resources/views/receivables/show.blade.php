@@ -1,34 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Record Payment - Laiba Safety'])
+@include('partials.frontend-head', ['title' => 'Receivable Detail - Laiba Safety'])
 <style>
 body { background-color: #FFFFFF; color: #2B3437; font-family: 'Inter', sans-serif; color-scheme: light; }
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 ::selection { background: #2B3437; color: #FFFFFF; }
-input::placeholder { color: rgba(94, 94, 94, 0.55) !important; }
-.arch-input {
-  background-color: #FFFFFF !important;
-  border: 1px solid #D3D8DE !important;
-  border-radius: 0 !important;
-  color: #2B3437 !important;
-  color-scheme: light !important;
-}
-.arch-input:focus {
-  border-color: #5E5E5E !important;
-  border-width: 2px !important;
-  box-shadow: none !important;
-  outline: none !important;
-  --tw-ring-shadow: none !important;
-  --tw-ring-offset-shadow: none !important;
-}
-main input:focus {
-  outline: none !important;
-  --tw-ring-shadow: 0 0 #0000 !important;
-  box-shadow: none !important;
-}
 </style>
 </head>
 <body class="h-screen flex overflow-hidden">
@@ -54,25 +33,18 @@ Back to Receivables
 <div>
 <div class="flex items-end justify-between" style="padding-bottom:0.75rem;border-bottom:2px solid #5E5E5E;">
 <div>
-<h1 class="font-bold" style="font-size:1.5rem;letter-spacing:-0.02em;color:#2B3437;">Record Payment</h1>
-<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;margin-top:0.5rem;">Payment Collection</p>
+<h1 class="font-bold" style="font-size:1.5rem;letter-spacing:-0.02em;color:#2B3437;">Receivable detail</h1>
+<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;margin-top:0.5rem;">Read-only summary</p>
 </div>
-<span class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Form AR-{{ $receivable->id }}</span>
+<span class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">AR-{{ $receivable->id }}</span>
 </div>
 </div>
-
-@if (session('error'))
-<div style="border:1px solid #9F403D;padding:0.75rem 1.25rem;" class="text-sm font-bold flex items-center gap-3">
-<span class="material-symbols-outlined" style="color:#9F403D;font-size:20px;">error</span>
-<span style="color:#9F403D;">{{ session('error') }}</span>
-</div>
-@endif
 
 @php $remaining = (float)$receivable->amount - (float)$receivable->received; @endphp
 
 <div style="border:1px solid #D3D8DE;background:#FFFFFF;">
 <div style="padding:1rem 1.5rem;border-bottom:1px solid #D3D8DE;background:#F8F9FA;">
-<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Invoice Details</p>
+<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Balance details</p>
 </div>
 <div style="padding:2rem;">
 
@@ -131,7 +103,7 @@ Back to Receivables
 <p class="text-lg font-bold font-mono tabular-nums" style="color:#2B3437;">{{ $currencySymbol ?? '$' }} {{ number_format($receivable->amount, 2) }}</p>
 </div>
 <div>
-<p class="text-[10px] font-bold uppercase mb-1.5" style="letter-spacing:0.05em;color:#5E5E5E;">Already Received</p>
+<p class="text-[10px] font-bold uppercase mb-1.5" style="letter-spacing:0.05em;color:#5E5E5E;">Already received</p>
 <p class="text-lg font-bold font-mono tabular-nums" style="color:#5E5E5E;">{{ $currencySymbol ?? '$' }} {{ number_format($receivable->received, 2) }}</p>
 </div>
 <div>
@@ -141,46 +113,21 @@ Back to Receivables
 </div>
 </div>
 
-@if ($remaining > 0)
+@if (auth()->user()->role === 'viewer')
 <div class="pt-5" style="border-top:1px solid #D3D8DE;">
-<form method="POST" action="{{ route('receivables.update', $receivable) }}">
-@csrf
-@method('PUT')
-
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="received">
-Payment Amount <span style="color:#9F403D;">*</span>
-</label>
-<input class="arch-input w-full h-11 px-4 text-sm font-bold font-mono text-right"
-    id="received"
-    name="received"
-    type="number"
-    step="0.01"
-    min="0.01"
-    max="{{ $remaining }}"
-    value="{{ old('received', $remaining) }}"
-    placeholder="Max: {{ number_format($remaining, 2) }}"
-    required>
-<p class="text-xs font-bold mt-2" style="color:#5E5E5E;">Enter the amount received. Max: {{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</p>
-
-<div class="flex flex-wrap items-center gap-3 mt-8">
-<button type="submit" class="h-11 px-6 text-[11px] font-bold uppercase inline-flex items-center gap-2 transition-all whitespace-nowrap" style="background:#5E5E5E;color:#F8F8F8;letter-spacing:0.05em;" onmouseover="this.style.opacity='0.92'" onmouseout="this.style.opacity='1'">
-<span class="material-symbols-outlined" style="font-size:16px;">payments</span>
-RECORD PAYMENT
-</button>
-<a href="{{ route('receivables.index') }}" class="h-11 px-6 text-[11px] font-bold uppercase inline-flex items-center transition-all whitespace-nowrap" style="color:#2B3437;border:1px solid #5E5E5E;letter-spacing:0.05em;background:transparent;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">
-CANCEL
-</a>
+<p class="text-xs font-bold" style="color:#5E5E5E;">You have view-only access. Ask an admin or manager to record payments.</p>
 </div>
-</form>
+@elseif ($remaining > 0)
+<div class="pt-5 flex flex-wrap gap-3" style="border-top:1px solid #D3D8DE;">
+<a href="{{ route('receivables.edit', $receivable) }}" class="h-11 px-6 text-[11px] font-bold uppercase inline-flex items-center gap-2 transition-all whitespace-nowrap" style="background:#5E5E5E;color:#F8F8F8;letter-spacing:0.05em;" onmouseover="this.style.opacity='0.92'" onmouseout="this.style.opacity='1'">
+<span class="material-symbols-outlined" style="font-size:16px;">payments</span>
+Record payment
+</a>
 </div>
 @else
 <div class="pt-5 text-center" style="border-top:1px solid #D3D8DE;">
 <span class="material-symbols-outlined block mb-2 mx-auto" style="font-size:32px;color:#5E5E5E;">check_circle</span>
-<p class="text-sm font-bold mb-4" style="color:#5E5E5E;">This receivable has been fully paid.</p>
-<a href="{{ route('receivables.index') }}" class="inline-flex items-center gap-2 text-[11px] font-bold uppercase" style="color:#2B3437;border-bottom:2px solid #5E5E5E;padding-bottom:0.25rem;letter-spacing:0.05em;">
-<span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-Back to Receivables
-</a>
+<p class="text-sm font-bold" style="color:#5E5E5E;">This receivable is fully paid.</p>
 </div>
 @endif
 </div>

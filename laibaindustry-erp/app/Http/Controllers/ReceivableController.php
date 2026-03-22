@@ -9,16 +9,20 @@ use App\Models\Receivable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class ReceivableController extends Controller
 {
     public function index(): View
     {
-        $receivables = Receivable::query()
-            ->withCount('sales')
-            ->orderByDesc('date')
-            ->paginate(15);
+        $query = Receivable::query()->orderByDesc('date');
+
+        if (Schema::hasColumn('sales', 'receivable_id')) {
+            $query->withCount('sales');
+        }
+
+        $receivables = $query->paginate(15);
 
         $totals = Receivable::query()
             ->selectRaw('
@@ -49,14 +53,21 @@ class ReceivableController extends Controller
             ->with('error', 'Receivables are created automatically from sales.');
     }
 
-    public function show(Receivable $receivable): RedirectResponse
+    public function show(Receivable $receivable): View
     {
-        return redirect()->route('receivables.index');
+        $this->loadReceivableSalesIfPossible($receivable);
+
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('receivables.show', [
+            'receivable'     => $receivable,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function edit(Receivable $receivable): View
     {
-        $receivable->load(['sales' => fn ($q) => $q->orderByDesc('date')->orderByDesc('id')]);
+        $this->loadReceivableSalesIfPossible($receivable);
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         return view('receivables.edit', [
@@ -89,7 +100,9 @@ class ReceivableController extends Controller
                 : null;
 
             if ($customer) {
-                $salesCount = $receivable->sales()->count();
+                $salesCount = Schema::hasColumn('sales', 'receivable_id')
+                    ? $receivable->sales()->count()
+                    : 1;
                 $reference  = $receivable->customer_code
                     ? ($salesCount > 1
                         ? 'AR / ' . $receivable->customer_code . ' (multiple invoices)'
@@ -125,5 +138,14 @@ class ReceivableController extends Controller
     {
         return redirect()->route('receivables.index')
             ->with('error', 'Receivable deletion is not available.');
+    }
+
+    private function loadReceivableSalesIfPossible(Receivable $receivable): void
+    {
+        if (Schema::hasColumn('sales', 'receivable_id')) {
+            $receivable->load(['sales' => fn ($q) => $q->orderByDesc('date')->orderByDesc('id')]);
+        } else {
+            $receivable->setRelation('sales', collect());
+        }
     }
 }

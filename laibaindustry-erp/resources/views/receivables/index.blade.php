@@ -92,13 +92,13 @@ body { background-color: #FFFFFF; color: #2B3437; font-family: 'Inter', sans-ser
     tabindex="0"
     role="link"
     aria-label="Open receivable for {{ $r->customer_name ?: $r->customer_code ?: 'customer' }}"
-    data-href="{{ route('receivables.edit', $r) }}"
+    data-href="{{ auth()->user()->role === 'viewer' ? route('receivables.show', $r) : route('receivables.edit', $r) }}"
     onmouseenter="this.style.background='#F8F9FA'"
     onmouseleave="this.style.background='transparent'"
     onclick="if (!event.target.closest('a, button')) { window.location = this.dataset.href; }"
     onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !event.target.closest('a, button')) { event.preventDefault(); window.location = this.dataset.href; }"
 >
-<td class="px-6 py-4 text-sm whitespace-nowrap font-bold" style="color:#5E5E5E;">{{ $r->date->format('Y-m-d') }}</td>
+<td class="px-6 py-4 text-sm whitespace-nowrap font-bold" style="color:#5E5E5E;">{{ $r->date ? $r->date->format('Y-m-d') : '—' }}</td>
 <td class="px-6 py-4 text-sm font-bold" style="color:#2B3437;">
 @php $invCount = (int) ($r->sales_count ?? 0); @endphp
 @if ($invCount > 1)
