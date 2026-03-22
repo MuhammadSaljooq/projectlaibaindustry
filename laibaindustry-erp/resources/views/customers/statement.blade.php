@@ -62,6 +62,12 @@ PRINT
 <span class="text-sm font-medium" style="color:#C4C7C8;">{{ session('success') }}</span>
 </div>
 @endif
+@if (session('error'))
+<div class="flex items-center gap-3 px-5 py-3.5 rounded-md" style="background:rgba(255,180,171,0.06);">
+<span class="material-symbols-outlined" style="color:#FFB4AB;font-size:20px;">error</span>
+<span class="text-sm font-medium" style="color:#FFB4AB;">{{ session('error') }}</span>
+</div>
+@endif
 
 <div class="rounded-lg p-6" style="background:#1B1B1B;">
 <div class="flex flex-wrap items-start justify-between gap-6">

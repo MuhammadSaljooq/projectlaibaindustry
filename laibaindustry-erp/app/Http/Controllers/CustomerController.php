@@ -189,7 +189,13 @@ class CustomerController extends Controller
         try {
             $fontsDir = storage_path('fonts');
             if (! is_dir($fontsDir)) {
-                mkdir($fontsDir, 0755, true);
+                @mkdir($fontsDir, 0755, true);
+            }
+
+            if (! class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+                return redirect()
+                    ->route('customers.statement', $customer)
+                    ->with('error', 'PDF package not installed on server.');
             }
 
             $data = $this->getStatementData($customer);
@@ -197,7 +203,9 @@ class CustomerController extends Controller
             $pdf = Pdf::loadView('customers.statement-pdf', $data)
                 ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
-                ->setOption('isRemoteEnabled', false);
+                ->setOption('isRemoteEnabled', false)
+                ->setOption('fontDir', $fontsDir)
+                ->setOption('fontCache', $fontsDir);
 
             $filename = sprintf(
                 'statement-%s-%s.pdf',
@@ -207,6 +215,12 @@ class CustomerController extends Controller
 
             return $pdf->download($filename);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('PDF generation failed', [
+                'customer' => $customer->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return redirect()
                 ->route('customers.statement', $customer)
                 ->with('error', 'PDF generation failed: ' . $e->getMessage());
