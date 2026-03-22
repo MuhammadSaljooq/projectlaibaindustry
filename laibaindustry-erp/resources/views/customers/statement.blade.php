@@ -9,13 +9,24 @@ body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-ser
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 ::selection { background: #FFFFFF; color: #131313; }
 @media print {
-    body { background: #fff !important; color: #000 !important; }
-    .no-print { display: none !important; }
+    @page { margin: 20mm; }
+    * { color: #000 !important; background: #fff !important; border-color: #ccc !important; box-shadow: none !important; }
+    body { overflow: visible !important; height: auto !important; display: block !important; font-size: 10pt !important; }
+    .no-print, nav, header, footer, [data-sidebar-toggle] { display: none !important; }
+    main { overflow: visible !important; height: auto !important; position: static !important; width: 100% !important; }
+    .no-scrollbar { overflow: visible !important; height: auto !important; }
+    [style*="background:#1B1B1B"], [style*="background:#0E0E0E"], [style*="background:#131313"] { background: #fff !important; }
+    [style*="background:#FFFFFF"] { background: #f5f5f5 !important; }
+    [style*="color:#FFFFFF"], [style*="color:#C4C7C8"], [style*="color:#8e9192"], [style*="color:#e2e2e2"] { color: #000 !important; }
+    table { border-collapse: collapse !important; }
+    th, td { border: 1px solid #ddd !important; padding: 6px 8px !important; }
+    tr:hover { background: transparent !important; }
+    .print-title { display: block !important; }
 }
 </style>
 </head>
 <body class="h-screen flex overflow-hidden">
-@include('products.partials.sidebar', ['activeNav' => 'customers'])
+<div class="no-print">@include('products.partials.sidebar', ['activeNav' => 'customers'])</div>
 
 <main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
 
@@ -36,13 +47,9 @@ Back to Customers
 EDIT
 </a>
 @endif
-<a href="{{ route('customers.statement.pdf', $customer) }}" target="_blank" class="h-10 px-4 inline-flex items-center gap-2 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);" onmouseenter="this.style.borderColor='#8e9192';this.style.color='#FFFFFF'" onmouseleave="this.style.borderColor='rgba(68,71,72,0.4)';this.style.color='#C4C7C8'">
-<span class="material-symbols-outlined" style="font-size:18px;">download</span>
-PDF
-</a>
 <button onclick="window.print()" class="h-10 px-4 inline-flex items-center gap-2 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);" onmouseenter="this.style.borderColor='#8e9192';this.style.color='#FFFFFF'" onmouseleave="this.style.borderColor='rgba(68,71,72,0.4)';this.style.color='#C4C7C8'">
-<span class="material-symbols-outlined" style="font-size:18px;">print</span>
-PRINT
+<span class="material-symbols-outlined" style="font-size:18px;">download</span>
+PDF / PRINT
 </button>
 </div>
 </header>
@@ -259,9 +266,13 @@ $badge = match($row['source_type']) {
 </div>
 </div>
 
-<footer class="pt-4 pb-8 text-center">
+<footer class="pt-4 pb-8 text-center no-print">
 <p class="text-xs" style="color:rgba(142,145,146,0.4);">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</p>
 </footer>
+<div class="print-title" style="display:none;text-align:center;padding-top:24px;font-size:8pt;color:#666;">
+<p>This statement is computer-generated and requires no signature.</p>
+<p>&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</p>
+</div>
 
 </div>
 </div>
