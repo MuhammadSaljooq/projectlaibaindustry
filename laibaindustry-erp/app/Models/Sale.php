@@ -21,6 +21,7 @@ class Sale extends Model
         'currency_id',
         'exchange_rate',
         'status',
+        'receivable_id',
     ];
 
     protected $casts = [
@@ -30,6 +31,11 @@ class Sale extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    public function receivable(): BelongsTo
+    {
+        return $this->belongsTo(Receivable::class);
     }
 
     public function items(): HasMany

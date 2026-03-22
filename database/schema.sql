@@ -74,6 +74,23 @@ CREATE TABLE IF NOT EXISTS tax_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Receivables Table (before sales: sales.receivable_id FK)
+CREATE TABLE IF NOT EXISTS receivables (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    invoice_number VARCHAR(100) NULL COMMENT 'Single invoice #, latest sale invoice, or NULL when multiple sales share this balance',
+    customer_name VARCHAR(255) NULL,
+    customer_code VARCHAR(100) NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    received DECIMAL(10, 2) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_date (date),
+    INDEX idx_invoice_number (invoice_number),
+    INDEX idx_customer_name (customer_name),
+    INDEX idx_customer_code (customer_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Sales Table
 CREATE TABLE IF NOT EXISTS sales (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -89,14 +106,17 @@ CREATE TABLE IF NOT EXISTS sales (
     currency_id INT NULL COMMENT 'Sale currency',
     exchange_rate DECIMAL(10, 6) NULL COMMENT 'Rate used at time of sale',
     status VARCHAR(50) DEFAULT 'completed',
+    receivable_id INT NULL COMMENT 'FK to receivables; shared bucket per customer_code when set',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (currency_id) REFERENCES currencies(id) ON DELETE SET NULL,
+    FOREIGN KEY (receivable_id) REFERENCES receivables(id) ON DELETE RESTRICT,
     INDEX idx_date (date),
     INDEX idx_customer_code (customer_code),
     INDEX idx_customer_name (customer_name),
     INDEX idx_invoice_number (invoice_number),
-    INDEX idx_sales_date_customer (date, customer_code)
+    INDEX idx_sales_date_customer (date, customer_code),
+    INDEX idx_sales_receivable (receivable_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Sales Items Table
@@ -113,23 +133,6 @@ CREATE TABLE IF NOT EXISTS sales_items (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
     INDEX idx_sale (sale_id),
     INDEX idx_product (product_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Receivables Table
-CREATE TABLE IF NOT EXISTS receivables (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    invoice_number VARCHAR(100) NULL,
-    customer_name VARCHAR(255) NULL,
-    customer_code VARCHAR(100) NULL,
-    amount DECIMAL(10, 2) NOT NULL,
-    received DECIMAL(10, 2) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_date (date),
-    INDEX idx_invoice_number (invoice_number),
-    INDEX idx_customer_name (customer_name),
-    INDEX idx_customer_code (customer_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Purchases Table (Purchase Entry header)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Product;
@@ -52,9 +53,12 @@ class SaleController extends Controller
             ->selectRaw('COALESCE(SUM(subtotal), 0) as total_subtotal, COALESCE(SUM(tax_amount), 0) as total_vat, COALESCE(SUM(total_amount), 0) as total_sales')
             ->first();
 
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
         return view('sales.index', [
-            'items'  => $items,
-            'totals' => $totals,
+            'items'            => $items,
+            'totals'           => $totals,
+            'currencySymbol'   => $currencySymbol,
         ]);
     }
 
@@ -92,8 +96,13 @@ class SaleController extends Controller
     {
         $products  = Product::query()->orderBy('name')->get();
         $customers = Customer::query()->orderBy('customer_name')->get();
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
-        return view('sales.create', ['products' => $products, 'customers' => $customers]);
+        return view('sales.create', [
+            'products'         => $products,
+            'customers'        => $customers,
+            'currencySymbol'   => $currencySymbol,
+        ]);
     }
 
     public function store(StoreSaleRequest $request): RedirectResponse
@@ -161,14 +170,16 @@ class SaleController extends Controller
                 $product->decrement('stock_quantity', $qty);
             }
 
-            Receivable::create([
-                'date'           => $request->date,
-                'invoice_number' => $request->invoice_number,
-                'customer_name'  => $request->customer_name ?: null,
-                'customer_code'  => $request->customer_code ?: null,
-                'amount'         => round($totalAmount, 2),
-                'received'       => 0,
-            ]);
+            $receivable = $this->createReceivableForNewSale($sale);
+            $sale->update(['receivable_id' => $receivable->id]);
+            $receivable->recalculateAmountFromSales();
+            $receivable->syncDisplayFromLinkedSales();
+            $receivable->refresh();
+            if (! $receivable->hasValidBalance()) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', 'Receivable total is below payments already recorded for this customer balance.');
+            }
 
             // Only upsert a customer record when a customer_code is explicitly provided
             $customerCode = trim($request->customer_code ?? '');
@@ -221,8 +232,12 @@ class SaleController extends Controller
     public function show(Sale $sale): View
     {
         $sale->load(['items.product', 'currency']);
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
-        return view('sales.show', ['sale' => $sale]);
+        return view('sales.show', [
+            'sale'           => $sale,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function edit(Sale $sale): View
@@ -231,10 +246,13 @@ class SaleController extends Controller
         $products  = Product::query()->orderBy('name')->get();
         $customers = Customer::query()->orderBy('customer_name')->get();
 
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
         return view('sales.edit', [
-            'sale'      => $sale,
-            'products'  => $products,
-            'customers' => $customers,
+            'sale'           => $sale,
+            'products'       => $products,
+            'customers'      => $customers,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -252,8 +270,7 @@ class SaleController extends Controller
             DB::beginTransaction();
 
             $sale->load('items.product');
-            $oldTotal      = (float) $sale->total_amount;
-            $oldInvoiceRef = $sale->invoice_number;
+            $oldReceivableId = $sale->receivable_id;
 
             foreach ($sale->items as $item) {
                 if ($item->product) {
@@ -310,22 +327,35 @@ class SaleController extends Controller
                 $product->decrement('stock_quantity', $qty);
             }
 
-            if ($oldInvoiceRef) {
-                $received = (float) (Receivable::query()
-                    ->where('invoice_number', $oldInvoiceRef)
-                    ->where('amount', $oldTotal)
-                    ->value('received') ?? 0);
+            $sale->refresh();
+            $customerCodeRaw = trim((string) ($request->customer_code ?? ''));
 
-                Receivable::query()
-                    ->where('invoice_number', $oldInvoiceRef)
-                    ->where('amount', $oldTotal)
-                    ->update([
-                        'date'           => $request->date,
-                        'invoice_number' => $request->invoice_number,
-                        'customer_name'  => $request->customer_name ?: null,
-                        'customer_code'  => $request->customer_code ?: null,
-                        'amount'         => max(round($totalAmount, 2), $received),
-                    ]);
+            $targetReceivable = $this->resolveTargetReceivableForSale(
+                $sale,
+                $request->invoice_number,
+                $customerCodeRaw,
+                $request->customer_name ?: null,
+                $request->date
+            );
+
+            $sale->update(['receivable_id' => $targetReceivable->id]);
+
+            if ($oldReceivableId && (int) $oldReceivableId !== (int) $targetReceivable->id) {
+                $oldReceivable = Receivable::find($oldReceivableId);
+                if ($oldReceivable) {
+                    $oldReceivable->recalculateAmountFromSales();
+                    $oldReceivable->syncDisplayFromLinkedSales();
+                    $this->cleanupReceivableIfUnused($oldReceivable);
+                }
+            }
+
+            $targetReceivable->recalculateAmountFromSales();
+            $targetReceivable->syncDisplayFromLinkedSales();
+            $targetReceivable->refresh();
+            if (! $targetReceivable->hasValidBalance()) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', 'The updated sale total would be less than payments already recorded on this customer balance.');
             }
 
             // Ledger: update the existing Debit entry for this sale
@@ -365,18 +395,12 @@ class SaleController extends Controller
             DB::beginTransaction();
 
             $sale->load('items.product');
+            $receivableId = $sale->receivable_id;
 
             foreach ($sale->items as $item) {
                 if ($item->product) {
                     $item->product->increment('stock_quantity', $item->quantity);
                 }
-            }
-
-            if ($sale->invoice_number) {
-                Receivable::query()
-                    ->where('invoice_number', $sale->invoice_number)
-                    ->where('amount', $sale->total_amount)
-                    ->delete();
             }
 
             // Ledger: remove the Debit entry for this sale
@@ -391,12 +415,113 @@ class SaleController extends Controller
             $sale->items()->delete();
             $sale->delete();
 
+            if ($receivableId) {
+                $receivable = Receivable::find($receivableId);
+                if ($receivable) {
+                    $receivable->recalculateAmountFromSales();
+                    $receivable->syncDisplayFromLinkedSales();
+                    $this->cleanupReceivableIfUnused($receivable);
+                }
+            }
+
             DB::commit();
 
             return redirect()->route('sales.index')->with('success', 'Sale deleted successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
             return redirect()->route('sales.index')->with('error', 'Failed to delete sale: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * New sale: one receivable bucket per customer_code (non-empty), else one receivable per walk-in sale.
+     */
+    private function createReceivableForNewSale(Sale $sale): Receivable
+    {
+        $code = $sale->customer_code !== null ? trim((string) $sale->customer_code) : '';
+
+        if ($code !== '') {
+            return Receivable::firstOrCreate(
+                ['customer_code' => $code],
+                [
+                    'date'           => $sale->date,
+                    'customer_name'  => $sale->customer_name,
+                    'invoice_number' => null,
+                    'amount'         => 0,
+                    'received'       => 0,
+                ]
+            );
+        }
+
+        return Receivable::create([
+            'date'           => $sale->date,
+            'invoice_number' => $sale->invoice_number,
+            'customer_name'  => $sale->customer_name,
+            'customer_code'  => null,
+            'amount'         => 0,
+            'received'       => 0,
+        ]);
+    }
+
+    /**
+     * After sale header changes: resolve which receivable row this sale should belong to.
+     */
+    private function resolveTargetReceivableForSale(
+        Sale $sale,
+        string $invoiceNumber,
+        string $customerCodeRaw,
+        ?string $customerName,
+        mixed $date
+    ): Receivable {
+        $code = trim($customerCodeRaw);
+
+        if ($code !== '') {
+            return Receivable::firstOrCreate(
+                ['customer_code' => $code],
+                [
+                    'date'           => $date,
+                    'customer_name'  => $customerName,
+                    'invoice_number' => null,
+                    'amount'         => 0,
+                    'received'       => 0,
+                ]
+            );
+        }
+
+        if ($sale->receivable_id) {
+            $current = Receivable::find($sale->receivable_id);
+            // Only reuse a dedicated walk-in row (no customer_code on receivable), not a merged customer bucket.
+            if ($current
+                && $current->customer_code === null
+                && $current->sales()->count() === 1
+                && (int) $current->sales()->first()->id === (int) $sale->id) {
+                return $current;
+            }
+        }
+
+        return Receivable::create([
+            'date'           => $date,
+            'invoice_number' => $invoiceNumber,
+            'customer_name'  => $customerName,
+            'customer_code'  => null,
+            'amount'         => 0,
+            'received'       => 0,
+        ]);
+    }
+
+    /**
+     * Remove receivable when it has no linked sales and no payments recorded.
+     */
+    private function cleanupReceivableIfUnused(?Receivable $receivable): void
+    {
+        if (! $receivable) {
+            return;
+        }
+
+        $receivable->refresh();
+
+        if ($receivable->sales()->count() === 0 && (float) $receivable->received === 0.0) {
+            $receivable->delete();
         }
     }
 }

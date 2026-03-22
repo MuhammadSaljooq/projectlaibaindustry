@@ -1,163 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'New Purchase - ERP'])
+@include('partials.frontend-head', ['title' => 'New Purchase - Laiba Safety'])
+<style>
+body { background-color: #FFFFFF; color: #2B3437; font-family: 'Inter', sans-serif; color-scheme: light; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+::selection { background: #2B3437; color: #FFFFFF; }
+input::placeholder { color: rgba(94, 94, 94, 0.55) !important; }
+.arch-input, .arch-select {
+  background-color: #FFFFFF !important;
+  border: 1px solid #D3D8DE !important;
+  border-radius: 0 !important;
+  color: #2B3437 !important;
+  color-scheme: light !important;
+}
+.arch-input:focus, .arch-select:focus {
+  border-color: #5E5E5E !important;
+  border-width: 2px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-offset-shadow: none !important;
+}
+.arch-select option { background: #FFFFFF; color: #2B3437; }
+main input:focus, main select:focus {
+  outline: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  box-shadow: none !important;
+}
+</style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'purchases'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+
+<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#FFFFFF;">
+
+<header class="h-14 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="border-bottom:1px solid #D3D8DE;background:#F8F9FA;">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
-</button>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">New Purchase</h2>
+<button class="md:hidden p-2 rounded-none" style="color:#5E5E5E;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu"><span class="material-symbols-outlined">menu</span></button>
+<a href="{{ route('purchases.index') }}" class="flex items-center gap-2 transition-colors font-bold text-sm" style="color:#5E5E5E;" onmouseover="this.style.color='#2B3437'" onmouseout="this.style.color='#5E5E5E'">
+<span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
+<span class="hidden sm:inline">Back to Purchases</span>
+</a>
 </div>
 </header>
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1400px] mx-auto flex flex-col gap-6">
-<div class="sm:hidden">
-<h2 class="text-2xl font-bold text-slate-800 dark:text-white">New Purchase</h2>
+
+<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
+<div class="max-w-4xl mx-auto flex flex-col" style="gap:3rem;">
+
+<div>
+<div class="flex items-end justify-between" style="padding-bottom:0.75rem;border-bottom:2px solid #5E5E5E;">
+<div>
+<h2 class="font-bold" style="font-size:1.5rem;letter-spacing:-0.02em;color:#2B3437;">Create Purchase</h2>
+<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;margin-top:0.5rem;">New procurement record</p>
+</div>
+<span class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Form PUR-NEW</span>
+</div>
 </div>
 
-@if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-{{ session('error') }}
-</div>
-@endif
 @if ($errors->any())
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-<ul class="list-disc list-inside space-y-0.5">
+<div style="border:1px solid #9F403D;padding:1rem 1.25rem;background:#FFFFFF;">
+<p class="text-[10px] font-bold uppercase mb-2" style="color:#9F403D;letter-spacing:0.05em;">Please fix the following</p>
 @foreach ($errors->all() as $err)
-<li>{{ $err }}</li>
+<p class="text-sm font-bold" style="color:#9F403D;margin-top:0.25rem;">{{ $err }}</p>
 @endforeach
-</ul>
 </div>
 @endif
+@if (session('error'))
+<div style="border:1px solid #9F403D;padding:0.75rem 1.25rem;background:#FFFFFF;" class="text-sm font-bold"><span style="color:#9F403D;">{{ session('error') }}</span></div>
+@endif
 
-<div class="max-w-4xl">
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+<div style="border:1px solid #D3D8DE;background:#FFFFFF;">
+<div style="padding:1rem 1.5rem;border-bottom:1px solid #D3D8DE;background:#F8F9FA;">
+<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Purchase details</p>
+</div>
+<div style="padding:2rem;">
 <form method="POST" action="{{ route('purchases.store') }}" id="purchase-form" novalidate>
 @csrf
-<div class="space-y-6">
 
-<h3 class="text-base font-semibold text-slate-800 dark:text-white">Purchase Details</h3>
-
-<div class="space-y-4">
-<div>
-<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="customer_select">Customer / Supplier</label>
-<select class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="customer_select">
+<div style="margin-bottom:1.5rem;">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="customer_select">Supplier / customer</label>
+<select class="arch-select w-full h-11 pl-4 pr-10 text-sm font-bold appearance-none cursor-pointer" id="customer_select">
 <option value="">Add new supplier</option>
 @foreach($customers as $c)
 <option value="{{ $c->id }}" data-code="{{ e($c->customer_code) }}" data-name="{{ e($c->customer_name) }}">{{ $c->customer_name }} ({{ $c->customer_code }})</option>
 @endforeach
 </select>
-<p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Select an existing record to auto-fill, or enter details below</p>
+<p class="mt-1.5 text-xs font-bold" style="color:#5E5E5E;">Select existing or fill fields below manually</p>
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="grid grid-cols-1 sm:grid-cols-2" style="gap:1.5rem;margin-bottom:1.5rem;">
 <div>
-<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="date">Date <span class="text-red-500">*</span></label>
-<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="date" name="date" type="datetime-local" value="{{ old('date', now()->format('Y-m-d\TH:i')) }}" required>
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="date">Date <span style="color:#9F403D;">*</span></label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="date" name="date" type="datetime-local" value="{{ old('date', now()->format('Y-m-d\TH:i')) }}" required>
 </div>
 <div>
-<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="invoice_number">Invoice Number <span class="text-red-500">*</span></label>
-<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number') }}" maxlength="100" required placeholder="e.g. INV-2024-001">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="invoice_number">Invoice number <span style="color:#9F403D;">*</span></label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number') }}" maxlength="100" required placeholder="e.g. INV-2024-001">
 </div>
 <div>
-<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="customer_code">Customer Code</label>
-<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code') }}" maxlength="100" placeholder="Auto-filled when selecting supplier">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="customer_code">Customer code</label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code') }}" maxlength="100" placeholder="Auto-filled from selection">
 </div>
 <div>
-<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" for="customer_name">Customer Name</label>
-<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name') }}" maxlength="255" placeholder="Auto-filled when selecting supplier">
-</div>
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="customer_name">Customer name</label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name') }}" maxlength="255" placeholder="Auto-filled from selection">
 </div>
 </div>
 
-<h3 class="text-base font-semibold text-slate-800 dark:text-white pt-4">Line Items</h3>
-<div class="overflow-x-auto -mx-4 sm:mx-0">
-<table class="w-full text-left border-collapse min-w-[640px]">
+<div style="margin:2rem 0;border-top:1px solid #D3D8DE;"></div>
+
+<p class="text-[10px] font-bold uppercase mb-4" style="letter-spacing:0.05em;color:#5E5E5E;">Line items</p>
+
+<div class="overflow-x-auto" style="margin:0 -0.5rem;">
+<table class="w-full text-left border-collapse" style="min-width:640px;">
 <thead>
-<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Product Name</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase text-right w-28">Price</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase text-right w-20">Qty</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase text-right w-28">Amount</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase text-right w-28">VAT 15%</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase text-right w-28">Subtotal</th>
-<th class="px-4 py-3 w-12"></th>
+<tr style="background:#F8F9FA;border-bottom:1px solid #D3D8DE;">
+<th class="px-4 py-3 text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Product name</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:110px;">Price</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:80px;">Qty</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:100px;">Amount</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:100px;">VAT 15%</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:100px;">Subtotal</th>
+<th class="px-4 py-3" style="width:48px;"></th>
 </tr>
 </thead>
 <tbody id="line-items">
-<tr class="line-item border-b border-slate-200 dark:border-slate-700">
+<tr class="line-item" style="border-top:1px solid #EAECEE;">
 <td class="px-4 py-3">
-<input class="product-name-input w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" name="items[0][product_name]" type="text" placeholder="Enter product name" required>
+<input class="product-name-input arch-input w-full h-10 px-3 text-sm font-bold" name="items[0][product_name]" type="text" placeholder="Product name" required>
 </td>
-<td class="px-4 py-3">
-<input class="price-input w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-right text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" name="items[0][price]" type="number" step="0.01" min="0" value="0" required>
-</td>
-<td class="px-4 py-3">
-<input class="qty-input w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-right text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" name="items[0][quantity]" type="number" min="1" value="1" required>
-</td>
-<td class="px-4 py-3 text-right">
-<span class="amount-display font-mono text-sm text-slate-900 dark:text-white">0.00</span>
-</td>
-<td class="px-4 py-3 text-right">
-<span class="vat-display font-mono text-sm text-slate-600 dark:text-slate-300">0.00</span>
-</td>
-<td class="px-4 py-3 text-right">
-<span class="subtotal-display font-mono text-sm font-medium text-slate-900 dark:text-white">0.00</span>
-</td>
-<td class="px-4 py-3">
-<button type="button" class="remove-row p-2 text-slate-400 hover:text-red-500 rounded-lg transition-colors" title="Remove row">
-<span class="material-symbols-outlined text-[20px]">delete</span>
-</button>
-</td>
+<td class="px-4 py-3"><input class="price-input arch-input w-full h-10 px-3 text-right text-sm font-bold tabular-nums" name="items[0][price]" type="number" step="0.01" min="0" value="0" required></td>
+<td class="px-4 py-3"><input class="qty-input arch-input w-full h-10 px-3 text-right text-sm font-bold tabular-nums" name="items[0][quantity]" type="number" min="1" value="1" required></td>
+<td class="px-4 py-3 text-right"><span class="amount-display text-sm font-bold tabular-nums" style="color:#2B3437;">0.00</span></td>
+<td class="px-4 py-3 text-right"><span class="vat-display text-sm tabular-nums" style="color:#5E5E5E;">0.00</span></td>
+<td class="px-4 py-3 text-right"><span class="subtotal-display text-sm font-bold tabular-nums" style="color:#2B3437;">0.00</span></td>
+<td class="px-4 py-3"><button type="button" class="remove-row p-1.5 transition-colors" style="color:#5E5E5E;" onmouseover="this.style.color='#9F403D'" onmouseout="this.style.color='#5E5E5E'" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button></td>
 </tr>
 </tbody>
 </table>
 </div>
 
-<button type="button" id="add-row" class="mt-2 h-9 px-3 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg border border-primary/30 transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0">
-<span class="material-symbols-outlined text-[18px] shrink-0">add</span>
-<span>Add row</span>
+<button type="button" id="add-row" class="mt-3 h-9 px-4 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#2B3437;border:1px solid #5E5E5E;border-radius:0;letter-spacing:0.05em;background:transparent;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">
+<span class="material-symbols-outlined" style="font-size:16px;">add</span>ADD ROW
 </button>
 
-<div class="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
-<div class="text-right space-y-1.5 min-w-[240px]">
-<div class="flex items-center justify-between gap-8 text-sm text-slate-600 dark:text-slate-400">
-<span>Subtotal (excl. VAT)</span>
-<span id="subtotal-display" class="font-bold text-slate-900 dark:text-white font-mono">0.00</span>
-</div>
-<div class="flex items-center justify-between gap-8 text-sm text-slate-600 dark:text-slate-400">
-<span>Total VAT (15%)</span>
-<span id="vat-display" class="font-bold text-slate-900 dark:text-white font-mono">0.00</span>
-</div>
-<div class="flex items-center justify-between gap-8 text-lg font-bold text-slate-900 dark:text-white border-t border-slate-200 dark:border-slate-700 pt-1.5">
-<span>Total</span>
-<span class="font-mono">$<span id="total-display">0.00</span></span>
+<div style="margin-top:2rem;border-top:1px solid #D3D8DE;padding-top:1.5rem;">
+<div class="flex justify-end">
+<div style="min-width:220px;" class="flex flex-col gap-2">
+<div class="flex justify-between text-sm font-bold"><span style="color:#5E5E5E;">Subtotal (excl. VAT)</span><span class="tabular-nums" style="color:#2B3437;" id="subtotal-display">0.00</span></div>
+<div class="flex justify-between text-sm font-bold"><span style="color:#5E5E5E;">VAT (15%)</span><span class="tabular-nums" style="color:#2B3437;" id="vat-display">0.00</span></div>
+<div class="flex justify-between text-base font-bold" style="padding-top:0.75rem;border-top:1px solid #D3D8DE;"><span style="color:#2B3437;">Total</span><span class="tabular-nums" style="color:#2B3437;">{{ $currencySymbol ?? '$' }} <span id="total-display">0.00</span></span></div>
 </div>
 </div>
 </div>
 
-</div>
-
-<div class="flex flex-wrap gap-3 mt-6">
-<button type="submit" class="h-10 px-5 bg-primary hover:bg-blue-600 text-white text-sm font-bold rounded-lg transition-colors whitespace-nowrap">Save Purchase</button>
-<a href="{{ route('purchases.index') }}" class="h-10 px-5 inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Cancel</a>
+<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid #D3D8DE;" class="flex flex-wrap items-center gap-3">
+<button type="submit" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#5E5E5E;color:#F8F8F8;border-radius:0;letter-spacing:0.05em;" onmouseover="this.style.opacity='0.92'" onmouseout="this.style.opacity='1'">
+<span class="material-symbols-outlined" style="font-size:16px;">save</span>SAVE PURCHASE
+</button>
+<a href="{{ route('purchases.index') }}" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#2B3437;border:1px solid #5E5E5E;border-radius:0;letter-spacing:0.05em;background:transparent;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">CANCEL</a>
 </div>
 </form>
 </div>
 </div>
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
+
+<div class="text-center text-[10px] uppercase font-bold pb-4" style="letter-spacing:0.05em;color:#5E5E5E;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
 </div>
 </div>
 </main>
 
 <script>
 (function () {
-    // Customer select auto-fill
     var customerSelect = document.getElementById('customer_select');
     var customerCodeInput = document.getElementById('customer_code');
     var customerNameInput = document.getElementById('customer_name');
@@ -184,7 +201,6 @@
         }
     }
 
-    // Re-index item names before submit so validation works correctly
     document.getElementById('purchase-form')?.addEventListener('submit', function () {
         var idx = 0;
         document.querySelectorAll('.line-item').forEach(function (row) {
@@ -203,12 +219,13 @@
     });
 
     var rowIndex = 1;
+    var VAT_RATE = 0.15;
 
     function calcRow(row) {
         var price    = parseFloat(row.querySelector('.price-input')?.value) || 0;
         var qty      = parseInt(row.querySelector('.qty-input')?.value, 10) || 0;
         var amount   = price * qty;
-        var vat      = amount * 0.15;
+        var vat      = amount * VAT_RATE;
         var subtotal = amount + vat;
 
         var amountSpan   = row.querySelector('.amount-display');
@@ -229,7 +246,7 @@
             var qty    = parseInt(row.querySelector('.qty-input')?.value, 10) || 0;
             var amount = price * qty;
             totalSubtotal += amount;
-            totalVat      += amount * 0.15;
+            totalVat      += amount * VAT_RATE;
         });
 
         var total = totalSubtotal + totalVat;

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Payable;
@@ -26,7 +27,13 @@ class PayableController extends Controller
             ')
             ->first();
 
-        return view('payables.index', compact('payables', 'totals'));
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('payables.index', [
+            'payables'       => $payables,
+            'totals'         => $totals,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function create(): RedirectResponse
@@ -48,7 +55,12 @@ class PayableController extends Controller
 
     public function edit(Payable $payable): View
     {
-        return view('payables.edit', compact('payable'));
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('payables.edit', [
+            'payable'        => $payable,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function update(Request $request, Payable $payable): RedirectResponse

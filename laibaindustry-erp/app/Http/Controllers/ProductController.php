@@ -57,6 +57,8 @@ class ProductController extends Controller
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'stock_quantity' => ['nullable', 'integer', 'min:0'],
             'reorder_level' => ['nullable', 'integer', 'min:0'],
+        ], [], [
+            'sku' => 'article #',
         ]);
         $validated['stock_quantity'] = $validated['stock_quantity'] ?? 0;
         $validated['reorder_level'] = $validated['reorder_level'] ?? 10;
@@ -80,6 +82,8 @@ class ProductController extends Controller
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'stock_quantity' => ['nullable', 'integer', 'min:0'],
             'reorder_level' => ['nullable', 'integer', 'min:0'],
+        ], [], [
+            'sku' => 'article #',
         ]);
         $validated['stock_quantity'] = $validated['stock_quantity'] ?? 0;
         $validated['reorder_level'] = $validated['reorder_level'] ?? 10;

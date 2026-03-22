@@ -1,69 +1,95 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 @include('partials.frontend-head', ['title' => 'Edit Sale - Laiba Safety'])
 <style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
+body { background-color: #FFFFFF; color: #2B3437; font-family: 'Inter', sans-serif; color-scheme: light; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
-input::placeholder { color: rgba(196,199,200,0.5) !important; }
-.arch-input, .arch-select { background-color:#1B1B1B !important; border:1px solid rgba(68,71,72,0.4) !important; border-radius:0.375rem !important; color:#FFFFFF !important; color-scheme:dark; }
-.arch-input:focus, .arch-select:focus { border-color:#FFFFFF !important; box-shadow:0 0 0 2px rgba(255,255,255,0.1) !important; outline:none !important; --tw-ring-shadow:none !important; }
-.arch-select option { background:#1B1B1B; color:#FFFFFF; }
+::selection { background: #2B3437; color: #FFFFFF; }
+input::placeholder { color: rgba(94, 94, 94, 0.55) !important; }
+.arch-input, .arch-select {
+  background-color: #FFFFFF !important;
+  border: 1px solid #D3D8DE !important;
+  border-radius: 0 !important;
+  color: #2B3437 !important;
+  color-scheme: light !important;
+}
+.arch-input:focus, .arch-select:focus {
+  border-color: #5E5E5E !important;
+  border-width: 2px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-offset-shadow: none !important;
+}
+.arch-select option { background: #FFFFFF; color: #2B3437; }
+main input:focus, main select:focus {
+  outline: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  box-shadow: none !important;
+}
 </style>
 </head>
 <body class="h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'sales'])
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
+<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#FFFFFF;">
 
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
+<header class="h-14 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="border-bottom:1px solid #D3D8DE;background:#F8F9FA;">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;" type="button" data-sidebar-toggle aria-label="Toggle menu"><span class="material-symbols-outlined">menu</span></button>
-<a href="{{ route('sales.show', $sale) }}" class="flex items-center gap-2 transition-colors" style="color:#C4C7C8;" onmouseover="this.style.color='#FFFFFF'" onmouseout="this.style.color='#C4C7C8'">
+<button class="md:hidden p-2 rounded-none" style="color:#5E5E5E;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu"><span class="material-symbols-outlined">menu</span></button>
+<a href="{{ route('sales.show', $sale) }}" class="flex items-center gap-2 transition-colors font-bold text-sm" style="color:#5E5E5E;" onmouseover="this.style.color='#2B3437'" onmouseout="this.style.color='#5E5E5E'">
 <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-<span class="text-sm font-medium hidden sm:inline">Back to Sale</span>
+<span class="hidden sm:inline">Back to Sale</span>
 </a>
 </div>
 </header>
 
 <div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
-<div class="max-w-4xl mx-auto flex flex-col" style="gap:2rem;">
+<div class="max-w-4xl mx-auto flex flex-col" style="gap:3rem;">
 
 <div>
-<span class="text-[11px] font-medium uppercase block mb-2" style="letter-spacing:0.2em;color:#8e9192;">Modify Transaction</span>
-<h2 class="text-white font-black" style="font-size:2rem;letter-spacing:-0.02em;line-height:1.1;">Edit Sale</h2>
-<p class="text-sm font-medium" style="color:#C4C7C8;margin-top:0.5rem;">{{ $sale->invoice_number ?: '#' . $sale->id }}</p>
+<div class="flex items-end justify-between" style="padding-bottom:0.75rem;border-bottom:2px solid #5E5E5E;">
+<div>
+<h2 class="font-bold" style="font-size:1.5rem;letter-spacing:-0.02em;color:#2B3437;">Edit Sale</h2>
+<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;margin-top:0.5rem;">Modify Transaction</p>
+<p class="text-sm font-bold" style="color:#2B3437;margin-top:0.5rem;">{{ $sale->invoice_number ?: '#' . $sale->id }}</p>
+</div>
+<span class="text-[10px] font-bold uppercase self-start" style="letter-spacing:0.05em;color:#5E5E5E;">Form SLS-{{ $sale->id }}</span>
+</div>
 </div>
 
 @if ($errors->any())
-<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:1rem 1.25rem;">
-<p class="text-xs font-bold uppercase mb-2" style="color:#FFB4AB;letter-spacing:0.1em;">Please fix the following</p>
+<div style="border:1px solid #9F403D;padding:1rem 1.25rem;background:#FFFFFF;">
+<p class="text-[10px] font-bold uppercase mb-2" style="color:#9F403D;letter-spacing:0.05em;">Please fix the following</p>
 @foreach ($errors->all() as $err)
-<p class="text-sm font-medium" style="color:#FFB4AB;margin-top:0.25rem;">{{ $err }}</p>
+<p class="text-sm font-bold" style="color:#9F403D;margin-top:0.25rem;">{{ $err }}</p>
 @endforeach
 </div>
 @endif
 @if (session('error'))
-<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium"><span style="color:#FFB4AB;">{{ session('error') }}</span></div>
+<div style="border:1px solid #9F403D;padding:0.75rem 1.25rem;background:#FFFFFF;" class="text-sm font-bold"><span style="color:#9F403D;">{{ session('error') }}</span></div>
 @endif
 @if (session('success'))
-<div style="background:rgba(255,255,255,0.05);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium text-white">
-<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;">check_circle</span>{{ session('success') }}
+<div style="border:1px solid #D3D8DE;padding:0.75rem 1.25rem;background:#FFFFFF;" class="text-sm font-bold">
+<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;color:#5E5E5E;">check_circle</span>{{ session('success') }}
 </div>
 @endif
 
-<div style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
+<div style="border:1px solid #D3D8DE;background:#FFFFFF;">
+<div style="padding:1rem 1.5rem;border-bottom:1px solid #D3D8DE;background:#F8F9FA;">
+<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Sale Details</p>
+</div>
+<div style="padding:2rem;">
 <form method="POST" action="{{ route('sales.update', $sale) }}" id="sale-form" novalidate>
 @csrf @method('PUT')
 
-<p class="text-[10px] font-bold uppercase mb-6" style="letter-spacing:0.15em;color:#8e9192;">Sale Details</p>
-
 <div style="margin-bottom:1.5rem;">
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="customer_select">Customer</label>
-<select class="arch-select w-full h-11 pl-4 pr-10 text-sm font-medium text-white appearance-none cursor-pointer" id="customer_select">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="customer_select">Customer</label>
+<select class="arch-select w-full h-11 pl-4 pr-10 text-sm font-bold appearance-none cursor-pointer" id="customer_select">
 <option value="">Select or add new customer</option>
 @foreach($customers ?? [] as $c)
 <option value="{{ $c->id }}" data-code="{{ e($c->customer_code) }}" data-name="{{ e($c->customer_name) }}" {{ old('customer_code', $sale->customer_code) === $c->customer_code ? 'selected' : '' }}>{{ $c->customer_name }} ({{ $c->customer_code }})</option>
@@ -73,118 +99,117 @@ input::placeholder { color: rgba(196,199,200,0.5) !important; }
 
 <div class="grid grid-cols-1 sm:grid-cols-2" style="gap:1.5rem;margin-bottom:1.5rem;">
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="date">Date <span style="color:#FFB4AB;">*</span></label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="date" name="date" type="datetime-local" value="{{ old('date', $sale->date->format('Y-m-d\TH:i')) }}" required style="color-scheme:dark;">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="date">Date <span style="color:#9F403D;">*</span></label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="date" name="date" type="datetime-local" value="{{ old('date', $sale->date->format('Y-m-d\TH:i')) }}" required>
 </div>
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="invoice_number">Invoice Number <span style="color:#FFB4AB;">*</span></label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number', $sale->invoice_number) }}" maxlength="100" required placeholder="e.g. INV-2024-001">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="invoice_number">Invoice Number <span style="color:#9F403D;">*</span></label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number', $sale->invoice_number) }}" maxlength="100" required placeholder="e.g. INV-2024-001">
 </div>
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="customer_code">Customer Code</label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code', $sale->customer_code) }}" maxlength="100" placeholder="Auto-filled from selection">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="customer_code">Customer Code</label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code', $sale->customer_code) }}" maxlength="100" placeholder="Auto-filled from selection">
 </div>
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="customer_name">Customer Name</label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name', $sale->customer_name) }}" maxlength="255" placeholder="Auto-filled from selection">
+<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.05em;color:#5E5E5E;" for="customer_name">Customer Name</label>
+<input class="arch-input w-full h-11 px-4 text-sm font-bold" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name', $sale->customer_name) }}" maxlength="255" placeholder="Auto-filled from selection">
 </div>
 </div>
 
-<div style="margin:2rem 0;border-top:1px solid rgba(68,71,72,0.2);"></div>
+<div style="margin:2rem 0;border-top:1px solid #D3D8DE;"></div>
 
-<p class="text-[10px] font-bold uppercase mb-4" style="letter-spacing:0.15em;color:#8e9192;">Line Items</p>
+<p class="text-[10px] font-bold uppercase mb-4" style="letter-spacing:0.05em;color:#5E5E5E;">Line Items</p>
 
 <div class="overflow-x-auto" style="margin:0 -0.5rem;">
 <table class="w-full text-left border-collapse" style="min-width:600px;">
 <thead>
-<tr style="background:#0E0E0E;">
-<th class="px-4 py-3 text-[10px] font-bold uppercase" style="letter-spacing:0.15em;color:#8e9192;">Product</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:110px;">Price</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:80px;">Qty</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:100px;">Amount</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:100px;">VAT 15%</th>
+<tr style="background:#F8F9FA;border-bottom:1px solid #D3D8DE;">
+<th class="px-4 py-3 text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#5E5E5E;">Product</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:110px;">Price</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:80px;">Qty</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:100px;">Amount</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.05em;color:#5E5E5E;width:100px;">VAT 15%</th>
 <th class="px-4 py-3" style="width:48px;"></th>
 </tr>
 </thead>
 <tbody id="line-items">
 @foreach($sale->items as $idx => $item)
 @php $amount = $item->selling_price * $item->quantity; $vat = $item->tax_applied ?? ($amount * 0.15); @endphp
-<tr class="line-item" style="border-top:1px solid rgba(68,71,72,0.15);">
+<tr class="line-item" style="border-top:1px solid #EAECEE;">
 <td class="px-4 py-3">
-<select class="product-select arch-select w-full h-10 pl-3 pr-8 text-sm font-medium text-white appearance-none" name="items[{{ $idx }}][product_id]" required>
+<select class="product-select arch-select w-full h-10 pl-3 pr-8 text-sm font-bold appearance-none" name="items[{{ $idx }}][product_id]" required>
 <option value="">Select product</option>
 @foreach($products as $p)
-<option value="{{ $p->id }}" data-price="{{ $p->selling_price ?? $p->cost_price }}" data-stock="{{ $p->stock_quantity }}" {{ (old("items.{$idx}.product_id", $item->product_id) == $p->id) ? 'selected' : '' }}>{{ $p->name }} ({{ $p->sku }})</option>
+<option value="{{ $p->id }}" data-price="{{ $p->selling_price ?? $p->cost_price }}" data-stock="{{ $p->stock_quantity }}" {{ (old("items.{$idx}.product_id", $item->product_id) == $p->id) ? 'selected' : '' }}>{{ $p->name }} (Article #{{ $p->sku }})</option>
 @endforeach
 </select>
 </td>
-<td class="px-4 py-3"><input class="price-input arch-input w-full h-10 px-3 text-right text-sm font-medium text-white tabular-nums" name="items[{{ $idx }}][selling_price]" type="number" step="0.01" min="0" value="{{ old("items.{$idx}.selling_price", $item->selling_price) }}" required></td>
-<td class="px-4 py-3"><input class="qty-input arch-input w-full h-10 px-3 text-right text-sm font-medium text-white tabular-nums" name="items[{{ $idx }}][quantity]" type="number" min="1" value="{{ old("items.{$idx}.quantity", $item->quantity) }}" required></td>
-<td class="px-4 py-3 text-right"><span class="amount-display text-sm font-bold text-white tabular-nums">{{ number_format($amount, 2) }}</span></td>
-<td class="px-4 py-3 text-right"><span class="vat-display text-sm tabular-nums" style="color:#C4C7C8;">{{ number_format($vat, 2) }}</span></td>
-<td class="px-4 py-3"><button type="button" class="remove-row p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFB4AB'" onmouseout="this.style.color='#8e9192'" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button></td>
+<td class="px-4 py-3"><input class="price-input arch-input w-full h-10 px-3 text-right text-sm font-bold tabular-nums" name="items[{{ $idx }}][selling_price]" type="number" step="0.01" min="0" value="{{ old("items.{$idx}.selling_price", $item->selling_price) }}" required></td>
+<td class="px-4 py-3"><input class="qty-input arch-input w-full h-10 px-3 text-right text-sm font-bold tabular-nums" name="items[{{ $idx }}][quantity]" type="number" min="1" value="{{ old("items.{$idx}.quantity", $item->quantity) }}" required></td>
+<td class="px-4 py-3 text-right"><span class="amount-display text-sm font-bold tabular-nums" style="color:#2B3437;">{{ number_format($amount, 2) }}</span></td>
+<td class="px-4 py-3 text-right"><span class="vat-display text-sm tabular-nums" style="color:#5E5E5E;">{{ number_format($vat, 2) }}</span></td>
+<td class="px-4 py-3"><button type="button" class="remove-row p-1.5 transition-colors" style="color:#5E5E5E;" onmouseover="this.style.color='#9F403D'" onmouseout="this.style.color='#5E5E5E'" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button></td>
 </tr>
 @endforeach
-{{-- Empty row for adding --}}
-<tr class="line-item" style="border-top:1px solid rgba(68,71,72,0.15);">
+<tr class="line-item" style="border-top:1px solid #EAECEE;">
 <td class="px-4 py-3">
-<select class="product-select arch-select w-full h-10 pl-3 pr-8 text-sm font-medium text-white appearance-none" name="items[{{ $sale->items->count() }}][product_id]">
+<select class="product-select arch-select w-full h-10 pl-3 pr-8 text-sm font-bold appearance-none" name="items[{{ $sale->items->count() }}][product_id]">
 <option value="">Select product</option>
 @foreach($products as $p)
-<option value="{{ $p->id }}" data-price="{{ $p->selling_price ?? $p->cost_price }}" data-stock="{{ $p->stock_quantity }}">{{ $p->name }} ({{ $p->sku }})</option>
+<option value="{{ $p->id }}" data-price="{{ $p->selling_price ?? $p->cost_price }}" data-stock="{{ $p->stock_quantity }}">{{ $p->name }} (Article #{{ $p->sku }})</option>
 @endforeach
 </select>
 </td>
-<td class="px-4 py-3"><input class="price-input arch-input w-full h-10 px-3 text-right text-sm font-medium text-white tabular-nums" name="items[{{ $sale->items->count() }}][selling_price]" type="number" step="0.01" min="0" value="0"></td>
-<td class="px-4 py-3"><input class="qty-input arch-input w-full h-10 px-3 text-right text-sm font-medium text-white tabular-nums" name="items[{{ $sale->items->count() }}][quantity]" type="number" min="1" value="1"></td>
-<td class="px-4 py-3 text-right"><span class="amount-display text-sm font-bold text-white tabular-nums">0.00</span></td>
-<td class="px-4 py-3 text-right"><span class="vat-display text-sm tabular-nums" style="color:#C4C7C8;">0.00</span></td>
-<td class="px-4 py-3"><button type="button" class="remove-row p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFB4AB'" onmouseout="this.style.color='#8e9192'" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button></td>
+<td class="px-4 py-3"><input class="price-input arch-input w-full h-10 px-3 text-right text-sm font-bold tabular-nums" name="items[{{ $sale->items->count() }}][selling_price]" type="number" step="0.01" min="0" value="0"></td>
+<td class="px-4 py-3"><input class="qty-input arch-input w-full h-10 px-3 text-right text-sm font-bold tabular-nums" name="items[{{ $sale->items->count() }}][quantity]" type="number" min="1" value="1"></td>
+<td class="px-4 py-3 text-right"><span class="amount-display text-sm font-bold tabular-nums" style="color:#2B3437;">0.00</span></td>
+<td class="px-4 py-3 text-right"><span class="vat-display text-sm tabular-nums" style="color:#5E5E5E;">0.00</span></td>
+<td class="px-4 py-3"><button type="button" class="remove-row p-1.5 transition-colors" style="color:#5E5E5E;" onmouseover="this.style.color='#9F403D'" onmouseout="this.style.color='#5E5E5E'" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button></td>
 </tr>
 </tbody>
 </table>
 </div>
 
-<button type="button" id="add-row" class="mt-3 h-9 px-4 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='#FFFFFF'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(68,71,72,0.4)'">
+<button type="button" id="add-row" class="mt-3 h-9 px-4 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#2B3437;border:1px solid #5E5E5E;border-radius:0;letter-spacing:0.05em;background:transparent;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">
 <span class="material-symbols-outlined" style="font-size:16px;">add</span>ADD ROW
 </button>
 
-<div style="margin-top:2rem;border-top:1px solid rgba(68,71,72,0.2);padding-top:1.5rem;">
+<div style="margin-top:2rem;border-top:1px solid #D3D8DE;padding-top:1.5rem;">
 <div class="flex justify-end">
 <div style="min-width:220px;" class="flex flex-col gap-2">
-<div class="flex justify-between text-sm"><span style="color:#8e9192;">Subtotal</span><span class="text-white font-bold tabular-nums" id="subtotal-display">0.00</span></div>
-<div class="flex justify-between text-sm"><span style="color:#8e9192;">VAT (15%)</span><span class="text-white font-bold tabular-nums" id="tax-display">0.00</span></div>
-<div class="flex justify-between text-base font-black" style="padding-top:0.75rem;border-top:1px solid rgba(68,71,72,0.2);"><span class="text-white">Total</span><span class="text-white tabular-nums">{{ $currencySymbol ?? '$' }} <span id="total-display">0.00</span></span></div>
+<div class="flex justify-between text-sm font-bold"><span style="color:#5E5E5E;">Subtotal</span><span class="tabular-nums" style="color:#2B3437;" id="subtotal-display">0.00</span></div>
+<div class="flex justify-between text-sm font-bold"><span style="color:#5E5E5E;">VAT (15%)</span><span class="tabular-nums" style="color:#2B3437;" id="tax-display">0.00</span></div>
+<div class="flex justify-between text-base font-bold" style="padding-top:0.75rem;border-top:1px solid #D3D8DE;"><span style="color:#2B3437;">Total</span><span class="tabular-nums" style="color:#2B3437;">{{ $currencySymbol ?? '$' }} <span id="total-display">0.00</span></span></div>
 </div>
 </div>
 </div>
 
-<div class="flex flex-wrap items-center gap-3" style="margin-top:2rem;">
-<button type="submit" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.background='#C6C6C7'" onmouseout="this.style.background='#FFFFFF'">
+<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid #D3D8DE;" class="flex flex-wrap items-center gap-3">
+<button type="submit" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#5E5E5E;color:#F8F8F8;border-radius:0;letter-spacing:0.05em;" onmouseover="this.style.opacity='0.92'" onmouseout="this.style.opacity='1'">
 <span class="material-symbols-outlined" style="font-size:16px;">save</span>UPDATE SALE
 </button>
-<a href="{{ route('sales.show', $sale) }}" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(142,145,146,0.2);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='rgba(255,255,255,0.3)'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(142,145,146,0.2)'">CANCEL</a>
+<a href="{{ route('sales.show', $sale) }}" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#2B3437;border:1px solid #5E5E5E;border-radius:0;letter-spacing:0.05em;background:transparent;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">CANCEL</a>
 </div>
 </form>
 </div>
-
-{{-- Danger Zone --}}
-<div style="background:rgba(255,180,171,0.04);border-radius:0.5rem;padding:1.5rem 2rem;">
-<div class="flex items-center justify-between gap-4 flex-wrap">
-<div>
-<p class="text-xs font-bold uppercase" style="letter-spacing:0.1em;color:#FFB4AB;">Danger Zone</p>
-<p class="text-xs font-medium mt-1" style="color:#8e9192;">Permanently delete this sale. Stock will be restored.</p>
 </div>
+
+<div style="border:1px solid #9F403D;background:#FFFFFF;">
+<div style="padding:1rem 1.5rem;border-bottom:1px solid #D3D8DE;background:#F8F9FA;">
+<p class="text-[10px] font-bold uppercase" style="letter-spacing:0.05em;color:#9F403D;">Hazard — Danger Zone</p>
+</div>
+<div style="padding:1.5rem 2rem;" class="flex items-center justify-between gap-4 flex-wrap">
+<p class="text-xs font-bold" style="color:#5E5E5E;line-height:1.5;">Permanently delete this sale. Stock will be restored and the related receivable removed.</p>
 <form method="POST" action="{{ route('sales.destroy', $sale) }}" onsubmit="return confirm('Delete this sale? Stock will be restored and the related receivable removed.');">
 @csrf @method('DELETE')
-<button type="submit" class="h-9 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="color:#FFB4AB;border:1px solid rgba(255,180,171,0.2);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.background='rgba(255,180,171,0.08)';this.style.borderColor='#FFB4AB'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,180,171,0.2)'">
+<button type="submit" class="h-9 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="color:#9F403D;border:1px solid #9F403D;border-radius:0;letter-spacing:0.05em;background:transparent;" onmouseover="this.style.background='#F8F9FA'" onmouseout="this.style.background='transparent'">
 <span class="material-symbols-outlined" style="font-size:16px;">delete</span>DELETE SALE
 </button>
 </form>
 </div>
 </div>
 
-<div class="text-center text-[10px] uppercase font-medium pb-4" style="margin-top:1rem;letter-spacing:0.15em;color:#8e9192;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
+<div class="text-center text-[10px] uppercase font-bold pb-4" style="letter-spacing:0.05em;color:#5E5E5E;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
 </div>
 </div>
 </main>

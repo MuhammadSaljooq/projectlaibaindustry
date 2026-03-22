@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Receivable;
@@ -15,6 +16,7 @@ class ReceivableController extends Controller
     public function index(): View
     {
         $receivables = Receivable::query()
+            ->withCount('sales')
             ->orderByDesc('date')
             ->paginate(15);
 
@@ -26,7 +28,13 @@ class ReceivableController extends Controller
             ')
             ->first();
 
-        return view('receivables.index', compact('receivables', 'totals'));
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('receivables.index', [
+            'receivables'    => $receivables,
+            'totals'         => $totals,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function create(): RedirectResponse
@@ -48,7 +56,13 @@ class ReceivableController extends Controller
 
     public function edit(Receivable $receivable): View
     {
-        return view('receivables.edit', ['receivable' => $receivable]);
+        $receivable->load(['sales' => fn ($q) => $q->orderByDesc('date')->orderByDesc('id')]);
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('receivables.edit', [
+            'receivable'     => $receivable,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function update(Request $request, Receivable $receivable): RedirectResponse
@@ -75,11 +89,20 @@ class ReceivableController extends Controller
                 : null;
 
             if ($customer) {
+                $salesCount = $receivable->sales()->count();
+                $reference  = $receivable->customer_code
+                    ? ($salesCount > 1
+                        ? 'AR / ' . $receivable->customer_code . ' (multiple invoices)'
+                        : ($receivable->invoice_number
+                            ? $receivable->invoice_number
+                            : 'AR / ' . $receivable->customer_code))
+                    : ($receivable->invoice_number ?: 'Walk-in / payment received');
+
                 CustomerLedgerEntry::create([
                     'customer_id' => $customer->id,
                     'date'        => now(),
                     'description' => 'Payment Received',
-                    'reference'   => $receivable->invoice_number,
+                    'reference'   => $reference,
                     'debit'       => 0,
                     'credit'      => $payment,
                     'source_type' => 'payment_received',

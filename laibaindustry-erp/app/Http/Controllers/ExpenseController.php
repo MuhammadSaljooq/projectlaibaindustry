@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\Expense;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,9 +32,12 @@ class ExpenseController extends Controller
 
         $totalAmount = Expense::query()->sum('amount');
 
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
         return view('expenses.index', [
-            'expenses' => $expenses,
-            'totalAmount' => $totalAmount,
+            'expenses'       => $expenses,
+            'totalAmount'    => $totalAmount,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -59,7 +63,9 @@ class ExpenseController extends Controller
 
     public function create(): View
     {
-        return view('expenses.create');
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('expenses.create', ['currencySymbol' => $currencySymbol]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -83,7 +89,12 @@ class ExpenseController extends Controller
 
     public function edit(Expense $expense): View
     {
-        return view('expenses.edit', ['expense' => $expense]);
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('expenses.edit', [
+            'expense'        => $expense,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function update(Request $request, Expense $expense): RedirectResponse

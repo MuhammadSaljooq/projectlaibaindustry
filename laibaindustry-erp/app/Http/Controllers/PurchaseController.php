@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePurchaseRequest;
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Payable;
@@ -55,7 +56,13 @@ class PurchaseController extends Controller
             ')
             ->first();
 
-        return view('purchases.index', compact('items', 'totals'));
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('purchases.index', [
+            'items'            => $items,
+            'totals'           => $totals,
+            'currencySymbol'   => $currencySymbol,
+        ]);
     }
 
     public function export(): StreamedResponse
@@ -90,8 +97,12 @@ class PurchaseController extends Controller
     public function create(): View
     {
         $customers = Customer::query()->orderBy('customer_name')->get();
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
-        return view('purchases.create', compact('customers'));
+        return view('purchases.create', [
+            'customers'      => $customers,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function store(StorePurchaseRequest $request): RedirectResponse
@@ -218,16 +229,25 @@ class PurchaseController extends Controller
     public function show(Purchase $purchase): View
     {
         $purchase->load(['items', 'currency']);
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
-        return view('purchases.show', compact('purchase'));
+        return view('purchases.show', [
+            'purchase'       => $purchase,
+            'currencySymbol'   => $currencySymbol,
+        ]);
     }
 
     public function edit(Purchase $purchase): View
     {
         $purchase->load('items');
         $customers = Customer::query()->orderBy('customer_name')->get();
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
-        return view('purchases.edit', compact('purchase', 'customers'));
+        return view('purchases.edit', [
+            'purchase'       => $purchase,
+            'customers'      => $customers,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function update(StorePurchaseRequest $request, Purchase $purchase): RedirectResponse

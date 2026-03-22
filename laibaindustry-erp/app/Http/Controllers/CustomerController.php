@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -53,7 +54,9 @@ class CustomerController extends Controller
 
     public function create(): View
     {
-        return view('customers.create');
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('customers.create', ['currencySymbol' => $currencySymbol]);
     }
 
     public function store(StoreCustomerRequest $request): RedirectResponse
@@ -72,7 +75,12 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer): View
     {
-        return view('customers.edit', ['customer' => $customer]);
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('customers.edit', [
+            'customer'       => $customer,
+            'currencySymbol' => $currencySymbol,
+        ]);
     }
 
     public function update(UpdateCustomerRequest $request, Customer $customer): RedirectResponse
@@ -167,13 +175,16 @@ class CustomerController extends Controller
             }
         }
 
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
         return [
-            'customer'       => $customer,
-            'openingBalance' => $openingBalance,
-            'ledgerRows'     => $ledgerRows,
-            'totalDebit'     => $totalDebit,
-            'totalCredit'    => $totalCredit,
-            'closingBalance' => $runningBalance,
+            'customer'        => $customer,
+            'openingBalance'  => $openingBalance,
+            'ledgerRows'      => $ledgerRows,
+            'totalDebit'      => $totalDebit,
+            'totalCredit'     => $totalCredit,
+            'closingBalance'  => $runningBalance,
+            'currencySymbol'  => $currencySymbol,
         ];
     }
 
