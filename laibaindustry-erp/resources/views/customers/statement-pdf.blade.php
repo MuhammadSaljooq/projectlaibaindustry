@@ -92,6 +92,12 @@
             border-bottom: 1px solid #e5e5e5;
             vertical-align: top;
         }
+        table.ledger thead {
+            display: table-header-group;
+        }
+        table.ledger tbody tr {
+            page-break-inside: avoid;
+        }
         table.ledger tr.opening {
             background: #f5f5f5;
         }
@@ -221,7 +227,7 @@
 
 <div class="footer">
     <p>This statement is computer-generated and requires no signature.</p>
-    <p>© {{ date('Y') }} {{ config('app.name', 'Laiba Safety') }}. All rights reserved.</p>
+    <p>© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 
 </body>

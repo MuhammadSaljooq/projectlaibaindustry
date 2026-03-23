@@ -31,7 +31,6 @@ Add customer
 <div class="flex flex-col gap-4">
 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 <div class="flex flex-col gap-1 min-w-0">
-<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">CLIENT_DIR_07</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Customers</h1>
 </div>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Directory · @if(auth()->user()->role !== 'viewer') click row to edit @else statement from actions @endif</p>
@@ -64,7 +63,7 @@ Add customer
 <p class="st-label mb-2">This page</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $customers->count() }}</p>
 </div>
-<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Active records</p>
 <p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $customers->total() }}</p>
 </div>
@@ -171,7 +170,7 @@ No results
 @endif
 </div>
 
-<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 </div>
 </main>

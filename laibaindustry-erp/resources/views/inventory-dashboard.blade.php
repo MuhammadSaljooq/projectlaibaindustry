@@ -35,7 +35,6 @@ Add item
 <div class="flex flex-col gap-4">
 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 <div class="flex flex-col gap-1 min-w-0">
-<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">INV_STOCK_09</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Inventory</h1>
 </div>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Stock ledger · cost-based valuation</p>
@@ -68,7 +67,7 @@ Add item
 <p class="st-label mb-2">Low stock alerts</p>
 <p class="text-2xl font-bold font-mono tabular-nums {{ ($lowStockCount ?? 0) > 0 ? 'text-[#9F403D]' : 'text-[#2B3437]' }}">{{ number_format($lowStockCount ?? 0) }}</p>
 </div>
-<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Inventory value</p>
 <p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($totalValue ?? 0, 0) }}</p>
 </div>
@@ -84,14 +83,14 @@ Add item
 </div>
 <div class="min-w-[200px]">
 <label class="st-label block mb-2" for="inv-cat">Category</label>
-<div class="relative">
-<select class="st-select w-full h-10 pl-3 pr-10 text-sm appearance-none cursor-pointer" id="inv-cat" name="category_id">
+<div class="relative isolate">
+<select class="st-select w-full h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="inv-cat" name="category_id">
 <option value="">All categories</option>
 @foreach($categories ?? [] as $cat)
 <option value="{{ $cat->id }}" {{ (string) request('category_id') === (string) $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
 @endforeach
 </select>
-<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] text-[20px]">expand_more</span>
+<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
 </div>
 </div>
 <div class="flex flex-wrap gap-2">
@@ -220,7 +219,7 @@ No results
 @endif
 </div>
 
-<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 </div>
 </main>

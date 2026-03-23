@@ -7,7 +7,7 @@
 <body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'receivables'])
 
-<main class="stitch-ui flex-1 flex flex-col h-full overflow-hidden relative bg-[#F8F9FA]">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
@@ -23,7 +23,6 @@
 <div class="flex flex-col gap-4">
 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 <div class="flex flex-col gap-1 min-w-0">
-<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">AR_LEDGER_05</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Receivables</h1>
 </div>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Accounts receivable · read / record payment</p>
@@ -56,7 +55,7 @@
 <p class="st-label mb-2">Total Received</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_received ?? 0, 2) }}</p>
 </div>
-<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label mb-2 text-[#5E5E5E]">Outstanding</p>
 <p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_remaining ?? 0, 2) }}</p>
 </div>
@@ -154,7 +153,7 @@ No results
 @endif
 </div>
 
-<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 </div>
 </main>

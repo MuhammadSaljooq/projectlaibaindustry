@@ -33,7 +33,6 @@ CSV export
 <div class="flex flex-col gap-4">
 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 <div class="flex flex-col gap-1 min-w-0">
-<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">VAT_LEDGER_18</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Value added tax</h1>
 </div>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Output · input · net · current filters</p>
@@ -57,7 +56,7 @@ CSV export
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($filteredPurchaseVat ?? 0, 2) }}</p>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mt-2">Purchases</p>
 </div>
-<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Net VAT <span class="font-normal normal-case text-[#586064]">(filtered)</span></p>
 <p class="text-2xl font-black font-mono tabular-nums {{ ($filteredNetVat ?? 0) < 0 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($filteredNetVat ?? 0, 2) }}</p>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mt-2">{{ ($filteredNetVat ?? 0) >= 0 ? 'Payable' : 'Refundable' }}</p>
@@ -189,7 +188,7 @@ No results
 @endif
 </div>
 
-<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 </div>
 </main>

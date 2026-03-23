@@ -23,7 +23,6 @@
 <div class="flex flex-col gap-4">
 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 <div class="flex flex-col gap-1 min-w-0">
-<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">RECORDS_LOG_04</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Purchases</h1>
 </div>
 <div class="flex flex-wrap items-center gap-3 shrink-0">
@@ -69,7 +68,7 @@ New Purchase
 <p class="st-label mb-2">VAT (15%)</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_vat ?? 0, 2) }}</p>
 </div>
-<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label mb-2 text-[#5E5E5E]">Total Purchases</p>
 <p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_purchases ?? 0, 2) }}</p>
 </div>
@@ -201,7 +200,7 @@ No results
 </div>
 </div>
 
-<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 </div>
 </main>

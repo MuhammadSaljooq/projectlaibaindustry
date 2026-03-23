@@ -36,16 +36,20 @@
 <span class="hidden sm:inline">Customers</span>
 </a>
 </div>
-<div class="flex items-center gap-2">
+<div class="flex items-center gap-2 flex-wrap justify-end">
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('customers.edit', $customer) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
 <span class="material-symbols-outlined text-[18px]">edit</span>
 <span class="hidden sm:inline">Edit</span>
 </a>
 @endif
-<button type="button" onclick="window.print()" class="st-btn-primary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
-<span class="material-symbols-outlined text-[18px]">download</span>
-<span class="hidden sm:inline">PDF / Print</span>
+<a href="{{ route('customers.statement.pdf', $customer) }}" class="st-btn-primary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+<span class="hidden sm:inline">Download PDF</span>
+</a>
+<button type="button" onclick="window.print()" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span class="hidden sm:inline">Print</span>
 </button>
 </div>
 </header>
@@ -72,6 +76,33 @@
 @if (session('error'))
 <div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
 {{ session('error') }}
+</div>
+@endif
+
+@if(auth()->user()->role !== 'viewer')
+<div class="no-print st-paper border border-[#ABB3B7] p-5 md:p-6 bg-white">
+<p class="st-label mb-3">Email statement</p>
+@if(filled($customer->email))
+<form method="POST" action="{{ route('customers.statement.email', $customer) }}" class="flex flex-col gap-4 max-w-xl">
+@csrf
+<div>
+<p class="text-[11px] font-bold uppercase tracking-widest text-[#586064] mb-1">Recipient</p>
+<p class="text-sm font-semibold text-[#2B3437] break-all">{{ $customer->email }}</p>
+</div>
+<div>
+<label class="st-label block mb-2" for="email_message">Optional message</label>
+<textarea class="st-input w-full min-h-[88px] px-3 py-2 text-sm" id="email_message" name="message" maxlength="2000" placeholder="Short note to include in the email body…">{{ old('message') }}</textarea>
+<p class="text-[10px] text-[#586064] mt-1">Max 2000 characters. PDF is attached automatically.</p>
+</div>
+<button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2 text-[10px] w-fit">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+Email statement
+</button>
+</form>
+@else
+<p class="text-sm text-[#9F403D] mb-3">This customer has no email address. Add one on the customer record to send statements by email.</p>
+<a href="{{ route('customers.edit', $customer) }}" class="st-btn-secondary h-9 px-4 inline-flex items-center gap-2 text-[10px]">Edit customer</a>
+@endif
 </div>
 @endif
 
@@ -127,7 +158,7 @@
 <p class="text-2xl font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}</p>
 <p class="text-xs mt-2 text-[#586064]">Payments received + purchases</p>
 </div>
-<div class="p-5 border-2 border-[#5E5E5E] -m-px">
+<div class="p-5 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Net balance</p>
 <p class="text-2xl font-black font-mono tabular-nums text-[#5E5E5E]">
 {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
@@ -252,10 +283,10 @@ $badge = match($row['source_type']) {
 </div>
 </div>
 
-<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2 no-print">© {{ date('Y') }} Nexus ERP Inc.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2 no-print">© 2026 Laiba Safety. All rights reserved.</p>
 <div class="print-title hidden text-center pt-6 text-[8pt] text-[#666]">
 <p>This statement is computer-generated.</p>
-<p>© {{ date('Y') }} Laiba Safety. All rights reserved.</p>
+<p>© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 
 </div>

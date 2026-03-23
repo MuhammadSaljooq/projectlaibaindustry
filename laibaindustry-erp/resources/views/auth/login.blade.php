@@ -97,7 +97,7 @@
 
     {{-- Footer --}}
     <div class="mt-8 text-center text-xs text-gray-500">
-        <p>© {{ date('Y') }} Laiba Safety. All rights reserved.</p>
+        <p>© 2026 Laiba Safety. All rights reserved.</p>
     </div>
 </div>
 </div>

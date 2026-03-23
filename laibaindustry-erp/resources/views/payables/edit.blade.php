@@ -83,7 +83,7 @@ $isPaid = $balance <= 0;
 <p class="st-label mb-2">Paid</p>
 <p class="text-lg font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($payable->received, 2) }}</p>
 </div>
-<div class="p-4 border-2 border-[#5E5E5E] -m-px sm:-my-px sm:-mr-px">
+<div class="p-4 border-2 border-[#5E5E5E] max-sm:m-0 -m-px sm:-my-px sm:-mr-px">
 <p class="st-label st-label--primary mb-2">Balance</p>
 <p class="text-lg font-black font-mono tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($balance, 2) }}</p>
 </div>
@@ -132,7 +132,7 @@ All payables
 @endif
 </div>
 
-<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
 </div>
 </div>
 </main>

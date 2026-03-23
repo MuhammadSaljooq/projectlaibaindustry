@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
 use App\Models\Currency;
+use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\Payable;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Receivable;
 use App\Models\Sale;
-use App\Models\SaleItem;
 use App\Models\VatEntry;
-use Carbon\Carbon;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -20,11 +19,30 @@ class DashboardController extends Controller
     {
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
-        $totalRevenue = Sale::sum('total_amount');
-        $openInvoicesCount = Receivable::whereRaw('amount > received')->count();
-        $totalCustomers = Customer::count();
-        $totalExpenses = Expense::sum('amount');
-        $netProfit = SaleItem::sum('profit') - $totalExpenses;
+        $totalSales = (float) Sale::query()->sum('total_amount');
+        $salesCount = Sale::query()->count();
+        $totalPurchases = (float) Purchase::query()->sum('total_amount');
+        $purchasesCount = Purchase::query()->count();
+        $totalExpenses = (float) Expense::query()->sum('amount');
+        $totalCustomers = Customer::query()->count();
+        $productCount = Product::query()->count();
+        $lowStockCount = Product::query()->lowStock()->count();
+
+        $receivableTotals = Receivable::query()
+            ->selectRaw('
+                COALESCE(SUM(amount), 0)                   AS total_amount,
+                COALESCE(SUM(received), 0)                 AS total_received,
+                COALESCE(SUM(amount) - SUM(received), 0)   AS total_remaining
+            ')
+            ->first();
+
+        $payableTotals = Payable::query()
+            ->selectRaw('
+                COALESCE(SUM(amount), 0)                   AS total_amount,
+                COALESCE(SUM(received), 0)                 AS total_received,
+                COALESCE(SUM(amount) - SUM(received), 0)   AS total_outstanding
+            ')
+            ->first();
 
         $vatTotals = VatEntry::query()
             ->selectRaw("
@@ -32,127 +50,116 @@ class DashboardController extends Controller
                 COALESCE(SUM(CASE WHEN type = 'purchase' THEN vat_amount ELSE 0 END), 0) AS purchase_vat
             ")
             ->first();
-        $netVat = (float) $vatTotals->sales_vat - (float) $vatTotals->purchase_vat;
+        $salesVat = (float) $vatTotals->sales_vat;
+        $purchaseVat = (float) $vatTotals->purchase_vat;
+        $netVat = $salesVat - $purchaseVat;
 
-        $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth();
-        $salesByMonth = Sale::query()
-            ->where('date', '>=', $sixMonthsAgo)
-            ->get()
-            ->groupBy(fn ($s) => $s->date->format('Y-m'))
-            ->map(fn ($group) => $group->sum('total_amount'))
-            ->toArray();
+        $m = fn (float $n, int $d = 2): string => $currencySymbol.number_format($n, $d);
+        $m0 = fn (float $n): string => $currencySymbol.number_format($n, 0);
 
-        $chartLabels = [];
-        $chartValues = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $m = Carbon::now()->subMonths($i);
-            $key = $m->format('Y-m');
-            $chartLabels[] = $m->format('M');
-            $chartValues[] = (float) ($salesByMonth[$key] ?? 0);
-        }
-
-        $chartMax = max(1, max($chartValues));
-        $trend = $this->computeTrend($chartValues);
-        $salesOverviewTotal = array_sum($chartValues);
-
-        $lowStockProducts = Product::lowStock()->orderBy('stock_quantity')->take(5)->get();
-
-        $profitMargin = $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 1) : 0;
-
-        $recentSales = Sale::with('items')
-            ->orderByDesc('date')
-            ->take(5)
-            ->get();
-
-        $recentPurchases = Purchase::orderByDesc('date')->take(3)->get();
-        $recentExpenses = Expense::orderByDesc('date')->take(3)->get();
-
-        $transactions = collect();
-        foreach ($recentSales as $sale) {
-            $transactions->push((object) [
-                'type' => 'sale',
-                'icon' => 'receipt',
-                'label' => "Sale #{$sale->invoice_number} - " . ($sale->customer_name ?: 'Walk-in'),
-                'detail' => $sale->date->format('M d, Y') . ' • Sale',
-                'amount' => '+' . $currencySymbol . ' ' . number_format($sale->total_amount, 2),
-                'amountClass' => 'text-emerald-400',
-                'status' => 'Completed',
-                'statusClass' => 'text-emerald-400/70',
-                'sortDate' => $sale->date,
-            ]);
-        }
-        foreach ($recentPurchases as $purchase) {
-            $transactions->push((object) [
-                'type' => 'purchase',
-                'icon' => 'shopping_bag',
-                'label' => "Purchase #{$purchase->invoice_number} - " . ($purchase->customer_name ?: 'Supplier'),
-                'detail' => $purchase->date->format('M d, Y') . ' • Purchase',
-                'amount' => '-' . $currencySymbol . ' ' . number_format($purchase->total_amount, 2),
-                'amountClass' => 'text-white',
-                'status' => 'Completed',
-                'statusClass' => 'text-[#8e9192]',
-                'sortDate' => $purchase->date,
-            ]);
-        }
-        foreach ($recentExpenses as $expense) {
-            $transactions->push((object) [
-                'type' => 'expense',
+        $sections = [
+            [
+                'title' => 'Inventory',
+                'icon' => 'inventory_2',
+                'route' => route('inventory.dashboard', absolute: false),
+                'link_label' => 'View inventory',
+                'metrics' => [
+                    ['label' => 'Products', 'value' => (string) $productCount],
+                    ['label' => 'Low stock items', 'value' => (string) $lowStockCount],
+                ],
+                'actions' => [],
+            ],
+            [
+                'title' => 'Sales',
+                'icon' => 'payments',
+                'route' => route('sales.index', absolute: false),
+                'link_label' => 'View sales',
+                'metrics' => [
+                    ['label' => 'Total sales', 'value' => $m($totalSales)],
+                    ['label' => 'Sale records', 'value' => (string) $salesCount],
+                ],
+                'actions' => [
+                    ['label' => 'Export CSV', 'route' => route('sales.export', absolute: false), 'style' => 'secondary'],
+                ],
+            ],
+            [
+                'title' => 'Customers',
+                'icon' => 'group',
+                'route' => route('customers.index', absolute: false),
+                'link_label' => 'View customers',
+                'metrics' => [
+                    ['label' => 'Total customers', 'value' => (string) $totalCustomers],
+                ],
+                'actions' => [],
+            ],
+            [
+                'title' => 'Receivable',
                 'icon' => 'account_balance_wallet',
-                'label' => $expense->type,
-                'detail' => $expense->date->format('M d, Y') . ' • Operating Expense',
-                'amount' => '-' . $currencySymbol . ' ' . number_format($expense->amount, 2),
-                'amountClass' => 'text-white',
-                'status' => 'Completed',
-                'statusClass' => 'text-[#8e9192]',
-                'sortDate' => $expense->date,
-            ]);
-        }
-        $transactions = $transactions->sortByDesc('sortDate')->take(6)->values();
-
-        $activities = collect();
-        foreach ($recentSales as $sale) {
-            $activities->push((object) [
-                'type' => 'sale',
+                'route' => route('receivables.index', absolute: false),
+                'link_label' => 'View receivables',
+                'metrics' => [
+                    ['label' => 'Total invoiced', 'value' => $m((float) $receivableTotals->total_amount)],
+                    ['label' => 'Total received', 'value' => $m((float) $receivableTotals->total_received)],
+                    ['label' => 'Outstanding', 'value' => $m((float) $receivableTotals->total_remaining)],
+                ],
+                'actions' => [],
+            ],
+            [
+                'title' => 'Purchases',
+                'icon' => 'shopping_cart',
+                'route' => route('purchases.index', absolute: false),
+                'link_label' => 'View purchases',
+                'metrics' => [
+                    ['label' => 'Total purchases', 'value' => $m($totalPurchases)],
+                    ['label' => 'Purchase records', 'value' => (string) $purchasesCount],
+                ],
+                'actions' => [
+                    ['label' => 'Export CSV', 'route' => route('purchases.export', absolute: false), 'style' => 'secondary'],
+                ],
+            ],
+            [
+                'title' => 'Payables',
+                'icon' => 'account_balance',
+                'route' => route('payables.index', absolute: false),
+                'link_label' => 'View payables',
+                'metrics' => [
+                    ['label' => 'Total payable', 'value' => $m((float) $payableTotals->total_amount)],
+                    ['label' => 'Amount paid', 'value' => $m((float) $payableTotals->total_received)],
+                    ['label' => 'Outstanding', 'value' => $m((float) $payableTotals->total_outstanding)],
+                ],
+                'actions' => [],
+            ],
+            [
+                'title' => 'Expenses',
                 'icon' => 'receipt_long',
-                'iconBg' => 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400',
-                'message' => "Sale #{$sale->invoice_number} for " . ($sale->customer_name ?: 'Walk-in') . ' - ' . $currencySymbol . ' ' . number_format($sale->total_amount, 2),
-                'time' => $sale->date->diffForHumans(),
-            ]);
-        }
-        $activities = $activities->take(5)->values();
+                'route' => route('expenses.index', absolute: false),
+                'link_label' => 'View expenses',
+                'metrics' => [
+                    ['label' => 'Total expenses', 'value' => $m($totalExpenses)],
+                ],
+                'actions' => [
+                    ['label' => 'Export CSV', 'route' => route('expenses.export', absolute: false), 'style' => 'secondary'],
+                ],
+            ],
+            [
+                'title' => 'VAT',
+                'icon' => 'percent',
+                'route' => route('vat.index', absolute: false),
+                'link_label' => 'View VAT',
+                'metrics' => [
+                    ['label' => 'Sales VAT', 'value' => $m0($salesVat)],
+                    ['label' => 'Purchase VAT', 'value' => $m0($purchaseVat)],
+                    ['label' => 'Net VAT', 'value' => $m0($netVat)],
+                ],
+                'actions' => [
+                    ['label' => 'Review export', 'route' => route('vat.export', absolute: false), 'style' => 'secondary'],
+                ],
+            ],
+        ];
 
         return view('dashboard', [
             'currencySymbol' => $currencySymbol,
-            'totalRevenue' => $totalRevenue,
-            'openInvoicesCount' => $openInvoicesCount,
-            'totalCustomers' => $totalCustomers,
-            'totalExpenses' => $totalExpenses,
-            'netProfit' => $netProfit,
-            'profitMargin' => $profitMargin,
-            'salesVat' => (float) $vatTotals->sales_vat,
-            'purchaseVat' => (float) $vatTotals->purchase_vat,
-            'netVat' => $netVat,
-            'transactions' => $transactions,
-            'chartLabels' => $chartLabels,
-            'chartValues' => $chartValues,
-            'chartMax' => $chartMax,
-            'trend' => $trend,
-            'salesOverviewTotal' => $salesOverviewTotal,
-            'lowStockProducts' => $lowStockProducts,
-            'activities' => $activities,
+            'sections' => $sections,
         ]);
-    }
-
-    private function computeTrend(array $values): ?float
-    {
-        if (count($values) < 2) {
-            return null;
-        }
-        $first = $values[0];
-        $last = $values[count($values) - 1];
-        if ($first == 0) {
-            return $last > 0 ? 100 : null;
-        }
-        return round((($last - $first) / $first) * 100, 1);
     }
 }

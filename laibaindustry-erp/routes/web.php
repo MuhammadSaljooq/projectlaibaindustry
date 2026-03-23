@@ -28,16 +28,18 @@ Route::middleware('guest')->group(function () {
     Route::view('/forgot-password', 'auth.forgot-password')->name('password.request');
     Route::post('/forgot-password', function (Request $request) {
         $request->validate(['email' => ['required', 'email']]);
+
         return redirect()->away(route('password.reset', ['token' => 'demo-token'], absolute: false))
             ->with('status', 'If the email exists, reset instructions have been sent.');
     })->name('password.email');
     Route::view('/reset-password/{token}', 'auth.reset-password')->name('password.reset');
     Route::post('/reset-password', function (Request $request) {
         $request->validate([
-            'token'    => ['required', 'string'],
-            'email'    => ['required', 'email'],
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', 'min:8'],
         ]);
+
         return redirect()->away(route('login', absolute: false))
             ->with('status', 'Password has been reset.');
     })->name('password.update');
@@ -55,6 +57,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::get('customers/{customer}/statement/pdf', [CustomerController::class, 'statementPdf'])->name('customers.statement.pdf');
+    Route::post('customers/{customer}/statement/email', [CustomerController::class, 'emailStatement'])->name('customers.statement.email');
     Route::resource('payables', PayableController::class);
     Route::resource('expenses', ExpenseController::class);
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
