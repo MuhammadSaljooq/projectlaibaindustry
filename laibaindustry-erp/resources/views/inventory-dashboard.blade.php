@@ -1,191 +1,171 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 @include('partials.frontend-head', ['title' => 'Inventory - Laiba Safety'])
+@include('partials.stitch-design')
 <style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
 </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'products'])
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
-
-{{-- Header Bar --}}
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
+<h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Inventory</h2>
 </div>
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('products.create') }}" class="h-9 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;">
-<span class="material-symbols-outlined" style="font-size:14px;">add</span>
-ADD ITEM
+<a href="{{ route('products.create') }}" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px]">add</span>
+Add item
 </a>
 @endif
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
-<div class="max-w-[1400px] mx-auto flex flex-col" style="gap:2rem;">
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
+<div class="max-w-[1400px] mx-auto flex flex-col gap-8">
 
-{{-- Page Heading --}}
-<div>
-<span class="text-[11px] font-medium uppercase block mb-2" style="letter-spacing:0.2em;color:#8e9192;">Stock Management</span>
-<h2 class="text-white font-black" style="font-size:2.5rem;letter-spacing:-0.02em;line-height:1.1;">Inventory</h2>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+<div class="flex flex-col gap-1 min-w-0">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">INV_STOCK_09</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Inventory</h1>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Stock ledger · cost-based valuation</p>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-{{-- Flash Messages --}}
+<div class="sm:hidden">
+<p class="st-label">Module</p>
+<p class="text-xl font-black uppercase tracking-tight text-[#2B3437]">Inventory</p>
+</div>
+
 @if (session('success'))
-<div style="background:rgba(255,255,255,0.05);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium text-white">
-<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;color:#FFFFFF;">check_circle</span>
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
 {{ session('success') }}
 </div>
 @endif
 @if (session('error'))
-<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium" >
-<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;color:#FFB4AB;">error</span>
-<span style="color:#FFB4AB;">{{ session('error') }}</span>
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+{{ session('error') }}
 </div>
 @endif
 
-{{-- Stat Cards --}}
-<div class="grid grid-cols-12" style="gap:1.5rem;">
-
-{{-- Total Items --}}
-<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
-<div class="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity">
-<span class="material-symbols-outlined" style="font-size:4rem;">inventory_2</span>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Total items</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($totalItems ?? 0) }}</p>
 </div>
-<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:#C4C7C8;">Total Items</p>
-<h3 class="text-white font-black tabular-nums" style="font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-0.03em;margin-bottom:0.5rem;">{{ number_format($totalItems ?? 0) }}</h3>
-<p class="text-sm font-medium" style="color:#8e9192;">Products in catalogue</p>
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Low stock alerts</p>
+<p class="text-2xl font-bold font-mono tabular-nums {{ ($lowStockCount ?? 0) > 0 ? 'text-[#9F403D]' : 'text-[#2B3437]' }}">{{ number_format($lowStockCount ?? 0) }}</p>
 </div>
-
-{{-- Low Stock Alerts --}}
-<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
-<div class="absolute top-0 right-0 p-4 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity">
-<span class="material-symbols-outlined" style="font-size:4rem;">warning</span>
+<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<p class="st-label st-label--primary mb-2">Inventory value</p>
+<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($totalValue ?? 0, 0) }}</p>
 </div>
-<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:#C4C7C8;">Low Stock Alerts</p>
-<h3 class="font-black tabular-nums" style="font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-0.03em;margin-bottom:0.5rem;color:{{ ($lowStockCount ?? 0) > 0 ? '#FFB4AB' : '#FFFFFF' }};">{{ number_format($lowStockCount ?? 0) }}</h3>
-<p class="text-sm font-medium" style="color:#8e9192;">Items need restocking</p>
 </div>
 
-{{-- Total Value (Hero Inverted White) --}}
-<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:linear-gradient(135deg,#FFFFFF,#C6C6C7);border-radius:0.5rem;padding:1.5rem;">
-<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1rem;color:rgba(42,49,49,0.5);">Total Inventory Value</p>
-<h3 class="font-black tabular-nums" style="font-size:clamp(1.25rem,2.5vw,1.75rem);letter-spacing:-0.02em;margin-bottom:0.5rem;color:#1a1c1c;word-break:break-all;">{{ $currencySymbol }} {{ number_format($totalValue ?? 0, 0) }}</h3>
-<p class="text-sm font-medium" style="color:rgba(42,49,49,0.45);">Cost-based valuation</p>
+<form method="GET" action="{{ route('inventory.dashboard') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<div class="flex-1 min-w-[200px]">
+<label class="st-label block mb-2" for="inv-search">Search</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="inv-search" type="text" name="search" value="{{ request('search') }}" placeholder="Name, article no.…">
 </div>
-
 </div>
-
-{{-- Search & Filter Bar --}}
-<form method="GET" action="{{ route('inventory.dashboard') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style="background:#1B1B1B;border-radius:0.5rem;padding:1.25rem 1.5rem;">
-<div class="relative flex-1 min-w-0">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none" style="font-size:18px;color:#8e9192;">search</span>
-<input class="w-full h-10 pl-10 pr-4 text-sm font-medium text-white placeholder-[#C4C7C8]/50 outline-none transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;" name="search" type="text" placeholder="Search by name, SKU..." value="{{ request('search') }}" onfocus="this.style.borderColor='#FFFFFF';this.style.boxShadow='0 0 0 2px rgba(255,255,255,0.1)'" onblur="this.style.borderColor='rgba(68,71,72,0.4)';this.style.boxShadow='none'"/>
-</div>
-<div class="relative shrink-0 sm:w-48">
-<select class="w-full h-10 pl-3 pr-10 text-sm font-medium text-white outline-none appearance-none cursor-pointer transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;" name="category_id" onfocus="this.style.borderColor='#FFFFFF'" onblur="this.style.borderColor='rgba(68,71,72,0.4)'">
-<option value="" style="background:#1B1B1B;">All Categories</option>
-<option value="all" style="background:#1B1B1B;" {{ request('category_id') === 'all' ? 'selected' : '' }}>All Categories</option>
+<div class="min-w-[200px]">
+<label class="st-label block mb-2" for="inv-cat">Category</label>
+<div class="relative">
+<select class="st-select w-full h-10 pl-3 pr-10 text-sm appearance-none cursor-pointer" id="inv-cat" name="category_id">
+<option value="">All categories</option>
 @foreach($categories ?? [] as $cat)
-<option value="{{ $cat->id }}" style="background:#1B1B1B;" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+<option value="{{ $cat->id }}" {{ (string) request('category_id') === (string) $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
 @endforeach
 </select>
-<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none" style="font-size:18px;color:#8e9192;">expand_more</span>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] text-[20px]">expand_more</span>
 </div>
-<button type="submit" class="h-10 px-5 text-[11px] font-bold uppercase flex items-center justify-center gap-2 active:scale-[0.98] transition-all shrink-0" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;">
-<span class="material-symbols-outlined" style="font-size:14px;">filter_list</span>
-FILTER
+</div>
+<div class="flex flex-wrap gap-2">
+<button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+Filter
 </button>
 @if(request('search') || request('category_id'))
-<a href="{{ route('inventory.dashboard') }}" class="h-10 px-4 text-[11px] font-bold uppercase flex items-center justify-center gap-1 transition-all shrink-0" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='#FFFFFF'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(68,71,72,0.4)'">
-CLEAR
+<a href="{{ route('inventory.dashboard') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">close</span>
+Clear
 </a>
 @endif
+</div>
 </form>
 
-{{-- Products Table --}}
-<div style="background:#1B1B1B;border-radius:0.5rem;overflow:hidden;">
+<div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
+<div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Product stock ledger</h3>
+<p class="text-[11px] text-[#586064] mt-1">Article no. · category · stock status · edit from actions</p>
+</div>
 
-{{-- Table Header --}}
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse" style="min-width:700px;">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse min-w-[900px]">
 <thead>
-<tr style="background:#0E0E0E;">
-<th class="px-6 py-4 text-[10px] font-bold uppercase" style="letter-spacing:0.15em;color:#8e9192;">Item</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase" style="letter-spacing:0.15em;color:#8e9192;">SKU</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase" style="letter-spacing:0.15em;color:#8e9192;">Category</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;">Stock</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;">Unit Price</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-center" style="letter-spacing:0.15em;color:#8e9192;">Status</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;">Actions</th>
+<tr class="st-thead">
+<th class="st-th px-4 py-3">Item</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Article no.</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Category</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Stock</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Unit price</th>
+<th class="st-th px-4 py-3 text-center whitespace-nowrap">Status</th>
+<th class="st-th px-4 py-3 text-right w-36"></th>
 </tr>
 </thead>
 <tbody>
 @forelse($products ?? [] as $product)
-<tr class="group transition-colors" style="border-top:1px solid rgba(68,71,72,0.15);" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'">
-<td class="px-6 py-4">
-<div class="flex items-center gap-3">
-<div class="flex items-center justify-center shrink-0" style="width:2.5rem;height:2.5rem;background:#353535;border-radius:0.25rem;">
-<span class="material-symbols-outlined" style="font-size:16px;color:#C4C7C8;">inventory_2</span>
+<tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
+    @if(auth()->user()->role !== 'viewer') data-product-edit-url="{{ route('products.edit', $product) }}" role="link" tabindex="0" aria-label="Edit {{ e($product->name) }}" @endif>
+<td class="st-td px-4 py-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="h-9 w-9 shrink-0 border border-[#ABB3B7] bg-[#EAEFF1] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#586064] text-[18px]">inventory_2</span>
 </div>
 <div class="min-w-0">
-<p class="text-sm font-bold text-white truncate">{{ $product->name }}</p>
-<p class="text-xs truncate" style="color:#8e9192;margin-top:0.125rem;">{{ Str::limit($product->description, 40) ?: '-' }}</p>
+<p class="text-sm font-bold text-[#2B3437] truncate">{{ $product->name }}</p>
+<p class="text-xs text-[#586064] truncate mt-0.5">{{ \Illuminate\Support\Str::limit($product->description ?? '', 48) ?: '—' }}</p>
 </div>
 </div>
 </td>
-<td class="px-6 py-4">
-<span class="text-sm font-medium tabular-nums" style="color:#C4C7C8;">{{ $product->sku }}</span>
-</td>
-<td class="px-6 py-4">
-<span class="text-xs font-bold uppercase px-2 py-1" style="background:#353535;border-radius:0.25rem;color:#C4C7C8;letter-spacing:0.03em;">{{ $product->category->name ?? '-' }}</span>
-</td>
-<td class="px-6 py-4 text-right">
-<span class="text-sm font-black tabular-nums" style="color:{{ $product->stock_quantity <= 0 ? '#FFB4AB' : ($product->stock_quantity <= ($product->reorder_level ?? 10) ? '#FFB4AB' : '#FFFFFF') }};">{{ $product->stock_quantity }}</span>
-</td>
-<td class="px-6 py-4 text-right">
-<span class="text-sm font-bold tabular-nums text-white whitespace-nowrap">{{ $currencySymbol }} {{ number_format($product->selling_price ?? $product->cost_price ?? 0, 2) }}</span>
-</td>
-<td class="px-6 py-4 text-center">
+<td class="st-td px-4 py-3 text-sm font-mono tabular-nums text-[#586064]">{{ $product->sku }}</td>
+<td class="st-td px-4 py-3 text-xs font-bold uppercase tracking-wide text-[#586064]">{{ optional($product->category)->name ?? '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums {{ $product->stock_quantity <= 0 ? 'text-[#9F403D]' : ($product->stock_quantity <= ($product->reorder_level ?? 10) ? 'text-[#9F403D]' : 'text-[#2B3437]') }}">{{ $product->stock_quantity }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($product->selling_price ?? $product->cost_price ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-center">
 @if ($product->stock_quantity <= 0)
-<span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1" style="background:rgba(255,180,171,0.08);color:#FFB4AB;border-radius:0.25rem;letter-spacing:0.05em;">
-<span style="width:5px;height:5px;border-radius:50%;background:#FFB4AB;display:inline-block;"></span>
-Out of Stock
-</span>
+<span class="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-1 border border-[#9F403D] text-[#9F403D]">Out</span>
 @elseif ($product->stock_quantity <= ($product->reorder_level ?? 10))
-<span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1" style="background:rgba(255,180,171,0.08);color:#FFB4AB;border-radius:0.25rem;letter-spacing:0.05em;">
-<span style="width:5px;height:5px;border-radius:50%;background:#FFB4AB;display:inline-block;"></span>
-Low Stock
-</span>
+<span class="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-1 border border-[#9F403D] text-[#9F403D]">Low</span>
 @else
-<span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1" style="background:rgba(255,255,255,0.05);color:#C4C7C8;border-radius:0.25rem;letter-spacing:0.05em;">
-<span style="width:5px;height:5px;border-radius:50%;background:#FFFFFF;display:inline-block;"></span>
-In Stock
-</span>
+<span class="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-1 border border-[#ABB3B7] text-[#586064]">OK</span>
 @endif
 </td>
-<td class="px-6 py-4 text-right">
+<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
 @if(auth()->user()->role !== 'viewer')
-<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-<a href="{{ route('products.edit', $product) }}" class="p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFFFFF';this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.color='#8e9192';this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:18px;">edit</span>
+<div class="flex items-center justify-end gap-1 flex-wrap">
+<a href="{{ route('products.edit', $product) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="Edit">
+<span class="material-symbols-outlined text-[18px]">edit</span>
 </a>
 <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline-flex" onsubmit="return confirm('Delete this product?');">
 @csrf
 @method('DELETE')
-<button type="submit" class="p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFB4AB';this.style.background='rgba(255,180,171,0.08)'" onmouseout="this.style.color='#8e9192';this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
+<span class="material-symbols-outlined text-[18px]">delete</span>
 </button>
 </form>
 </div>
@@ -194,11 +174,10 @@ In Stock
 </tr>
 @empty
 <tr>
-<td colspan="7" class="px-6 py-16 text-center">
-<span class="material-symbols-outlined block" style="font-size:3rem;color:#353535;margin-bottom:1rem;">inventory_2</span>
-<p class="text-sm font-medium" style="color:#8e9192;">No products found.</p>
+<td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No products found</p>
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('products.create') }}" class="inline-block text-[11px] font-bold uppercase text-white" style="margin-top:1rem;letter-spacing:-0.02em;border-bottom:1px solid #FFFFFF;padding-bottom:0.25rem;">Add First Product</a>
+<a href="{{ route('products.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add first product</a>
 @endif
 </td>
 </tr>
@@ -207,46 +186,63 @@ In Stock
 </table>
 </div>
 
-{{-- Pagination --}}
-<div class="flex flex-col sm:flex-row items-center justify-between gap-4" style="padding:1rem 1.5rem;background:#0E0E0E;">
-<p class="text-xs font-medium" style="color:#8e9192;">
+@if(isset($products) && $products->hasPages())
+<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
+<p class="text-xs text-[#586064] uppercase tracking-wide">
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $products->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->total() }}</span>
+</p>
+<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
+@if (!$products->onFirstPage())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $products->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
+@endif
+@foreach ($products->getUrlRange(max(1, $products->currentPage() - 2), min($products->lastPage(), $products->currentPage() + 2)) ?: [1 => $products->url(1)] as $page => $url)
+@if ($page == $products->currentPage())
+<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
+@else
+<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
+@endif
+@endforeach
+@if ($products->hasMorePages())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $products->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
+@endif
+</nav>
+</div>
+@else
+<div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
+<p class="text-xs text-[#586064] uppercase tracking-wide">
 @if(isset($products) && $products->total() > 0)
-Showing <span class="text-white font-bold">{{ $products->firstItem() }}</span> to <span class="text-white font-bold">{{ $products->lastItem() }}</span> of <span class="text-white font-bold">{{ $products->total() }}</span> results
+Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->total() }}</span> results
 @else
 No results
 @endif
 </p>
-@if(isset($products) && $products->hasPages())
-<nav class="flex items-center gap-1" aria-label="Pagination">
-@if (!$products->onFirstPage())
-<a class="p-1.5 transition-colors" style="color:#C4C7C8;border-radius:0.25rem;" href="{{ $products->previousPageUrl() }}" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:18px;">chevron_left</span>
-</a>
-@endif
-@foreach ($products->getUrlRange(max(1, $products->currentPage() - 2), min($products->lastPage(), $products->currentPage() + 2)) ?: [1 => $products->url(1)] as $page => $url)
-@if ($page == $products->currentPage())
-<span class="px-3 py-1.5 text-xs font-bold" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;">{{ $page }}</span>
-@else
-<a class="px-3 py-1.5 text-xs font-medium transition-colors" style="color:#C4C7C8;border-radius:0.375rem;" href="{{ $url }}" onmouseover="this.style.background='#2A2A2A';this.style.color='#FFFFFF'" onmouseout="this.style.background='transparent';this.style.color='#C4C7C8'">{{ $page }}</a>
-@endif
-@endforeach
-@if ($products->hasMorePages())
-<a class="p-1.5 transition-colors" style="color:#C4C7C8;border-radius:0.25rem;" href="{{ $products->nextPageUrl() }}" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:18px;">chevron_right</span>
-</a>
-@endif
-</nav>
+</div>
 @endif
 </div>
 
-</div>
-
-{{-- Footer --}}
-<div class="text-center text-[10px] uppercase font-medium pb-4" style="margin-top:2rem;letter-spacing:0.15em;color:#8e9192;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
-
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
 </div>
 </main>
-
+@if(auth()->user()->role !== 'viewer')
+<script>
+(function () {
+    document.querySelectorAll('tr[data-product-edit-url]').forEach(function (row) {
+        var url = row.getAttribute('data-product-edit-url');
+        if (!url) return;
+        row.addEventListener('click', function (e) {
+            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
+            window.location.href = url;
+        });
+        row.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
+            e.preventDefault();
+            window.location.href = url;
+        });
+    });
+})();
+</script>
+@endif
 </body>
 </html>

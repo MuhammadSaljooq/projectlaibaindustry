@@ -1,152 +1,148 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'New Sale - Laiba Safety'])
-<style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
-input::placeholder { color: rgba(196,199,200,0.5) !important; }
-.arch-input, .arch-select { background-color:#1B1B1B !important; border:1px solid rgba(68,71,72,0.4) !important; border-radius:0.375rem !important; color:#FFFFFF !important; color-scheme:dark; }
-.arch-input:focus, .arch-select:focus { border-color:#FFFFFF !important; box-shadow:0 0 0 2px rgba(255,255,255,0.1) !important; outline:none !important; --tw-ring-shadow:none !important; }
-.arch-select option { background:#1B1B1B; color:#FFFFFF; }
-</style>
+@include('partials.frontend-head', ['title' => 'New Sale - ERP'])
+@include('partials.stitch-design')
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'sales'])
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
-
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;" type="button" data-sidebar-toggle aria-label="Toggle menu"><span class="material-symbols-outlined">menu</span></button>
-<a href="{{ route('sales.index') }}" class="flex items-center gap-2 transition-colors" style="color:#C4C7C8;" onmouseover="this.style.color='#FFFFFF'" onmouseout="this.style.color='#C4C7C8'">
-<span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-<span class="text-sm font-medium hidden sm:inline">Back to Sales</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
+</button>
+<a href="{{ route('sales.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="hidden sm:inline">Sales</span>
 </a>
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
-<div class="max-w-4xl mx-auto flex flex-col" style="gap:2rem;">
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
+<div class="max-w-4xl mx-auto flex flex-col gap-8">
 
-<div>
-<span class="text-[11px] font-medium uppercase block mb-2" style="letter-spacing:0.2em;color:#8e9192;">New Transaction</span>
-<h2 class="text-white font-black" style="font-size:2rem;letter-spacing:-0.02em;line-height:1.1;">Create Sale</h2>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">SALE_ENTRY_12</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Create sale</h1>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
 @if ($errors->any())
-<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:1rem 1.25rem;">
-<p class="text-xs font-bold uppercase mb-2" style="color:#FFB4AB;letter-spacing:0.1em;">Please fix the following</p>
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+<p class="st-label st-label--error mb-2">Please fix the following</p>
+<ul class="list-disc list-inside space-y-0.5">
 @foreach ($errors->all() as $err)
-<p class="text-sm font-medium" style="color:#FFB4AB;margin-top:0.25rem;">{{ $err }}</p>
+<li>{{ $err }}</li>
 @endforeach
+</ul>
 </div>
 @endif
 @if (session('error'))
-<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium"><span style="color:#FFB4AB;">{{ session('error') }}</span></div>
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">{{ session('error') }}</div>
 @endif
 
-<div style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
 <form method="POST" action="{{ route('sales.store') }}" id="sale-form" novalidate>
 @csrf
 
-<p class="text-[10px] font-bold uppercase mb-6" style="letter-spacing:0.15em;color:#8e9192;">Sale Details</p>
+<p class="st-label mb-6">Sale details</p>
 
-<div style="margin-bottom:1.5rem;">
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="customer_select">Customer</label>
-<select class="arch-select w-full h-11 pl-4 pr-10 text-sm font-medium text-white appearance-none cursor-pointer" id="customer_select">
+<div class="space-y-4 mb-6">
+<label class="st-label block mb-2" for="customer_select">Customer</label>
+<select class="st-select w-full pl-4 pr-10 py-2 text-sm appearance-none bg-no-repeat bg-[length:1rem] bg-[right_0.75rem_center]" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23586064%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E');" id="customer_select">
 <option value="">Select or add new customer</option>
 @foreach($customers ?? [] as $c)
 <option value="{{ $c->id }}" data-code="{{ e($c->customer_code) }}" data-name="{{ e($c->customer_name) }}">{{ $c->customer_name }} ({{ $c->customer_code }})</option>
 @endforeach
 </select>
-<p class="mt-1.5 text-xs" style="color:#8e9192;">Select existing or fill in below manually</p>
+<p class="text-xs text-[#586064] mt-2">Select existing or fill in below manually</p>
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2" style="gap:1.5rem;margin-bottom:1.5rem;">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="date">Date <span style="color:#FFB4AB;">*</span></label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="date" name="date" type="datetime-local" value="{{ old('date', now()->format('Y-m-d\TH:i')) }}" required style="color-scheme:dark;">
+<label class="st-label block mb-2" for="date">Date <span class="text-[#9F403D]">*</span></label>
+<input class="st-input w-full h-11 px-4 text-sm" id="date" name="date" type="datetime-local" value="{{ old('date', now()->format('Y-m-d\TH:i')) }}" required>
 </div>
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="invoice_number">Invoice Number <span style="color:#FFB4AB;">*</span></label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number') }}" maxlength="100" required placeholder="e.g. INV-2024-001">
+<label class="st-label block mb-2" for="invoice_number">Invoice number <span class="text-[#9F403D]">*</span></label>
+<input class="st-input w-full h-11 px-4 text-sm" id="invoice_number" name="invoice_number" type="text" value="{{ old('invoice_number') }}" maxlength="100" required placeholder="e.g. INV-2024-001">
 </div>
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="customer_code">Customer Code</label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code') }}" maxlength="100" placeholder="Auto-filled from selection">
+<label class="st-label block mb-2" for="customer_code">Customer code</label>
+<input class="st-input w-full h-11 px-4 text-sm" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code') }}" maxlength="100" placeholder="Auto-filled from selection">
 </div>
 <div>
-<label class="block text-[10px] font-bold uppercase mb-2" style="letter-spacing:0.15em;color:#C4C7C8;" for="customer_name">Customer Name</label>
-<input class="arch-input w-full h-11 px-4 text-sm font-medium text-white" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name') }}" maxlength="255" placeholder="Auto-filled from selection">
+<label class="st-label block mb-2" for="customer_name">Customer name</label>
+<input class="st-input w-full h-11 px-4 text-sm" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name') }}" maxlength="255" placeholder="Auto-filled from selection">
 </div>
 </div>
 
-<div style="margin:2rem 0;border-top:1px solid rgba(68,71,72,0.2);"></div>
+<p class="st-label mb-4">Line items</p>
 
-<p class="text-[10px] font-bold uppercase mb-4" style="letter-spacing:0.15em;color:#8e9192;">Line Items</p>
-
-<div class="overflow-x-auto" style="margin:0 -0.5rem;">
-<table class="w-full text-left border-collapse" style="min-width:600px;">
+<div class="overflow-x-auto -mx-2 sm:mx-0 border border-[#ABB3B7]">
+<table class="w-full text-left border-collapse min-w-[600px]">
 <thead>
-<tr style="background:#0E0E0E;">
-<th class="px-4 py-3 text-[10px] font-bold uppercase" style="letter-spacing:0.15em;color:#8e9192;">Product</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:110px;">Price</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:80px;">Qty</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:100px;">Amount</th>
-<th class="px-4 py-3 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:100px;">VAT 15%</th>
-<th class="px-4 py-3" style="width:48px;"></th>
+<tr class="st-thead">
+<th class="st-th px-4 py-3">Product</th>
+<th class="st-th px-4 py-3 text-right w-[110px]">Price</th>
+<th class="st-th px-4 py-3 text-right w-20">Qty</th>
+<th class="st-th px-4 py-3 text-right w-[100px]">Amount</th>
+<th class="st-th px-4 py-3 text-right w-[100px]">VAT 15%</th>
+<th class="st-th px-4 py-3 w-12"></th>
 </tr>
 </thead>
 <tbody id="line-items">
-<tr class="line-item" style="border-top:1px solid rgba(68,71,72,0.15);">
-<td class="px-4 py-3">
-<select class="product-select arch-select w-full h-10 pl-3 pr-8 text-sm font-medium text-white appearance-none" name="items[0][product_id]" required>
+<tr class="line-item st-tr">
+<td class="st-td px-4 py-3">
+<select class="product-select st-select w-full h-10 pl-3 pr-9 text-sm appearance-none bg-no-repeat bg-[length:1rem] bg-[right_0.5rem_center]" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23586064%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E');" name="items[0][product_id]" required>
 <option value="">Select product</option>
 @foreach($products as $p)
 <option value="{{ $p->id }}" data-price="{{ $p->selling_price ?? $p->cost_price }}" data-stock="{{ $p->stock_quantity }}">{{ $p->name }} ({{ $p->sku }})</option>
 @endforeach
 </select>
 </td>
-<td class="px-4 py-3"><input class="price-input arch-input w-full h-10 px-3 text-right text-sm font-medium text-white tabular-nums" name="items[0][selling_price]" type="number" step="0.01" min="0" value="0" required></td>
-<td class="px-4 py-3"><input class="qty-input arch-input w-full h-10 px-3 text-right text-sm font-medium text-white tabular-nums" name="items[0][quantity]" type="number" min="1" value="1" required></td>
-<td class="px-4 py-3 text-right"><span class="amount-display text-sm font-bold text-white tabular-nums">0.00</span></td>
-<td class="px-4 py-3 text-right"><span class="vat-display text-sm tabular-nums" style="color:#C4C7C8;">0.00</span></td>
-<td class="px-4 py-3"><button type="button" class="remove-row p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFB4AB'" onmouseout="this.style.color='#8e9192'" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button></td>
+<td class="st-td px-4 py-3"><input class="price-input st-input w-full h-10 px-3 text-sm text-right font-mono tabular-nums" name="items[0][selling_price]" type="number" step="0.01" min="0" value="0" required></td>
+<td class="st-td px-4 py-3"><input class="qty-input st-input w-full h-10 px-3 text-sm text-right font-mono tabular-nums" name="items[0][quantity]" type="number" min="1" value="1" required></td>
+<td class="st-td px-4 py-3 text-right"><span class="amount-display text-sm font-bold font-mono tabular-nums text-[#2B3437]">0.00</span></td>
+<td class="st-td px-4 py-3 text-right"><span class="vat-display text-sm font-mono tabular-nums text-[#586064]">0.00</span></td>
+<td class="st-td px-4 py-3">
+<button type="button" class="remove-row p-2 text-[#586064] hover:text-[#9F403D] border border-transparent hover:border-[#ABB3B7]" title="Remove row">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
 </tr>
 </tbody>
 </table>
 </div>
 
-<button type="button" id="add-row" class="mt-3 h-9 px-4 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='#FFFFFF'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(68,71,72,0.4)'">
-<span class="material-symbols-outlined" style="font-size:16px;">add</span>ADD ROW
+<button type="button" id="add-row" class="st-btn-secondary mt-3 h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+Add row
 </button>
 
-{{-- Totals --}}
-<div style="margin-top:2rem;border-top:1px solid rgba(68,71,72,0.2);padding-top:1.5rem;">
-<div class="flex justify-end">
-<div style="min-width:220px;" class="flex flex-col gap-2">
-<div class="flex justify-between text-sm"><span style="color:#8e9192;">Subtotal</span><span class="text-white font-bold tabular-nums" id="subtotal-display">0.00</span></div>
-<div class="flex justify-between text-sm"><span style="color:#8e9192;">VAT (15%)</span><span class="text-white font-bold tabular-nums" id="tax-display">0.00</span></div>
-<div class="flex justify-between text-base font-black" style="padding-top:0.75rem;border-top:1px solid rgba(68,71,72,0.2);"><span class="text-white">Total</span><span class="text-white tabular-nums">$<span id="total-display">0.00</span></span></div>
-</div>
+<div class="flex justify-end pt-6 border-t border-[#ABB3B7] mt-6">
+<div class="text-right space-y-2 min-w-[220px]">
+<div class="flex justify-between gap-8 text-sm text-[#586064]"><span>Subtotal</span><span id="subtotal-display" class="font-bold font-mono tabular-nums text-[#2B3437]">0.00</span></div>
+<div class="flex justify-between gap-8 text-sm text-[#586064]"><span>VAT (15%)</span><span id="tax-display" class="font-bold font-mono tabular-nums text-[#2B3437]">0.00</span></div>
+<div class="flex justify-between gap-8 text-base font-black text-[#2B3437] border-t border-[#ABB3B7] pt-2"><span>Total</span><span class="font-mono tabular-nums">$<span id="total-display">0.00</span></span></div>
 </div>
 </div>
 
-{{-- Actions --}}
-<div class="flex flex-wrap items-center gap-3" style="margin-top:2rem;">
-<button type="submit" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.background='#C6C6C7'" onmouseout="this.style.background='#FFFFFF'">
-<span class="material-symbols-outlined" style="font-size:16px;">save</span>SAVE SALE
+<div class="flex flex-wrap items-center gap-3 mt-8">
+<button type="submit" class="st-btn-primary h-11 px-6 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+Save sale
 </button>
-<a href="{{ route('sales.index') }}" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(142,145,146,0.2);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='rgba(255,255,255,0.3)'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(142,145,146,0.2)'">CANCEL</a>
+<a href="{{ route('sales.index') }}" class="st-btn-secondary h-11 px-6 inline-flex items-center">Cancel</a>
 </div>
 </form>
 </div>
 
-<div class="text-center text-[10px] uppercase font-medium pb-4" style="margin-top:1rem;letter-spacing:0.15em;color:#8e9192;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
 </div>
 </main>

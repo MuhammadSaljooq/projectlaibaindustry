@@ -1,85 +1,66 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 @include('partials.frontend-head', ['title' => 'Add Product - Laiba Safety'])
-<style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
-input::placeholder, select option[value=""] { color: rgba(196,199,200,0.5); }
-input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
-</style>
+@include('partials.stitch-design')
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'products'])
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
-
-{{-- Header --}}
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<a href="{{ route('inventory.dashboard') }}" class="flex items-center gap-2 transition-colors" style="color:#C4C7C8;" onmouseover="this.style.color='#FFFFFF'" onmouseout="this.style.color='#C4C7C8'">
-<span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-<span class="text-sm font-medium hidden sm:inline">Back to Inventory</span>
+<a href="{{ route('inventory.dashboard') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="hidden sm:inline">Inventory</span>
 </a>
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
-<div class="max-w-2xl mx-auto flex flex-col" style="gap:2rem;">
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
+<div class="max-w-4xl mx-auto flex flex-col gap-8">
 
-{{-- Page Heading --}}
-<div>
-<span class="text-[11px] font-medium uppercase block mb-2" style="letter-spacing:0.2em;color:#8e9192;">New Entry</span>
-<h2 class="text-white font-black" style="font-size:2rem;letter-spacing:-0.02em;line-height:1.1;">Add Product</h2>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">PROD_ENTRY_10</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Add product</h1>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-{{-- Validation Errors --}}
 @if ($errors->any())
-<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:1rem 1.25rem;">
-<p class="text-xs font-bold uppercase mb-2" style="color:#FFB4AB;letter-spacing:0.1em;">Please fix the following</p>
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+<p class="st-label st-label--error mb-2">Please fix the following</p>
+<ul class="list-disc list-inside space-y-0.5">
 @foreach ($errors->all() as $error)
-<p class="text-sm font-medium" style="color:#FFB4AB;margin-top:0.25rem;">{{ $error }}</p>
+<li>{{ $error }}</li>
 @endforeach
+</ul>
 </div>
 @endif
 
-{{-- Form Card --}}
-<div style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
-
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
 <form method="POST" action="{{ route('products.store') }}">
 @csrf
-
-{{-- Section Label --}}
-<p class="text-[10px] font-bold uppercase mb-6" style="letter-spacing:0.15em;color:#8e9192;">Product Details</p>
-
+<p class="st-label mb-6">Product details</p>
 @include('products.partials.form')
 
-{{-- Action Buttons --}}
-<div class="flex flex-wrap items-center gap-3" style="margin-top:2rem;">
-<button type="submit" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.background='#C6C6C7'" onmouseout="this.style.background='#FFFFFF'">
-<span class="material-symbols-outlined" style="font-size:16px;">save</span>
-SAVE PRODUCT
+<div class="flex flex-wrap items-center gap-3 mt-8 pt-6 border-t border-[#ABB3B7]">
+<button type="submit" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+Save product
 </button>
-<a href="{{ route('inventory.dashboard') }}" class="h-11 px-6 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(142,145,146,0.2);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='rgba(255,255,255,0.3)'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(142,145,146,0.2)'">
-CANCEL
-</a>
+<a href="{{ route('inventory.dashboard') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2">Cancel</a>
 </div>
 </form>
-
 </div>
 
-{{-- Footer --}}
-<div class="text-center text-[10px] uppercase font-medium pb-4" style="margin-top:1rem;letter-spacing:0.15em;color:#8e9192;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
-
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
 </div>
 </main>
-
 </body>
 </html>

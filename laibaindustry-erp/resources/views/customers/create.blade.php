@@ -1,69 +1,56 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Add Customer - Laiba Safety'])
-<style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
-input::placeholder, textarea::placeholder { color: rgba(196,199,200,0.5) !important; }
-.arch-input { background-color:#1B1B1B !important; border:1px solid rgba(68,71,72,0.4) !important; border-radius:0.375rem !important; color:#FFFFFF !important; color-scheme:dark; }
-.arch-input:focus { border-color:#FFFFFF !important; box-shadow:0 0 0 2px rgba(255,255,255,0.1) !important; outline:none !important; --tw-ring-shadow:none !important; }
-</style>
+@include('partials.frontend-head', ['title' => 'Add Customer - ERP'])
+@include('partials.stitch-design')
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'customers'])
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
-
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<a href="{{ route('customers.index') }}" class="flex items-center gap-2 text-sm font-medium transition-colors duration-150" style="color:#8e9192;" onmouseenter="this.style.color='#FFFFFF'" onmouseleave="this.style.color='#8e9192'">
-<span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-Back to Customers
+<a href="{{ route('customers.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="hidden sm:inline">Customers</span>
 </a>
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto no-scrollbar">
-<div class="max-w-[900px] mx-auto px-6 md:px-8 py-8 flex flex-col gap-8">
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
+<div class="max-w-[900px] mx-auto flex flex-col gap-8">
 
-<div>
-<p class="text-xs font-medium uppercase tracking-[0.15em] mb-2" style="color:#8e9192;">New Record</p>
-<h1 class="text-4xl font-bold tracking-tight" style="color:#FFFFFF;letter-spacing:-0.02em;">Add Customer</h1>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">RECORD_ENTRY_08</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Add Customer</h1>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-<div class="rounded-lg p-6 md:p-8" style="background:#1B1B1B;">
-<p class="text-xs font-semibold uppercase tracking-[0.15em] mb-6" style="color:#8e9192;">Customer Details</p>
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
+<p class="st-label mb-6">Customer details</p>
 
 <form method="POST" action="{{ route('customers.store') }}">
 @csrf
 @include('customers.partials.form')
 
-<div class="flex flex-wrap items-center gap-3 mt-8 pt-6" style="border-top:1px solid rgba(68,71,72,0.2);">
-<button type="submit" class="h-11 px-6 inline-flex items-center gap-2 text-sm font-bold rounded-md transition-all duration-200 whitespace-nowrap" style="background:#FFFFFF;color:#2F3131;" onmouseenter="this.style.background='#C6C6C7'" onmouseleave="this.style.background='#FFFFFF'">
-<span class="material-symbols-outlined" style="font-size:18px;color:#2F3131;">save</span>
-SAVE CUSTOMER
+<div class="flex flex-wrap items-center gap-3 mt-8 pt-6 border-t border-[#ABB3B7]">
+<button type="submit" class="st-btn-primary h-11 px-6 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+Save customer
 </button>
-<a href="{{ route('customers.index') }}" class="h-11 px-6 inline-flex items-center text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);" onmouseenter="this.style.borderColor='#8e9192';this.style.color='#FFFFFF'" onmouseleave="this.style.borderColor='rgba(68,71,72,0.4)';this.style.color='#C4C7C8'">
-CANCEL
-</a>
+<a href="{{ route('customers.index') }}" class="st-btn-secondary h-11 px-6 inline-flex items-center">Cancel</a>
 </div>
 </form>
 </div>
 
-<footer class="pt-4 pb-8 text-center">
-<p class="text-xs" style="color:rgba(142,145,146,0.4);">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</p>
-</footer>
-
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
 </div>
-
 </main>
 </body>
 </html>

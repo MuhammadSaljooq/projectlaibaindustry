@@ -2,37 +2,58 @@
 <html lang="en">
 <head>
 @include('partials.frontend-head', ['title' => 'Settings - ERP'])
+@include('partials.stitch-design')
+<style>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'settings'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">Settings</h2>
+<h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Settings</h2>
 </div>
 </header>
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[900px] mx-auto flex flex-col gap-6">
+
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
+<div class="max-w-4xl mx-auto flex flex-col gap-8">
+
+<div class="flex flex-col gap-4">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+<div class="flex flex-col gap-1 min-w-0">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">CFG_GEN_22</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Settings</h1>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Regional · currency default</p>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
+</div>
+
 <div class="sm:hidden">
-<h2 class="text-2xl font-bold text-slate-800 dark:text-white">Settings</h2>
+<p class="st-label">Module</p>
+<p class="text-xl font-black uppercase tracking-tight text-[#2B3437]">Settings</p>
 </div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
 {{ session('success') }}
 </div>
 @endif
 @if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
 {{ session('error') }}
 </div>
 @endif
 @if ($errors->any())
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-<ul class="list-disc list-inside">
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+<p class="st-label st-label--error mb-2">Please fix the following</p>
+<ul class="list-disc list-inside space-y-0.5">
 @foreach ($errors->all() as $error)
 <li>{{ $error }}</li>
 @endforeach
@@ -40,63 +61,85 @@
 </div>
 @endif
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-<div class="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">
-<div class="p-2 bg-primary/10 text-primary rounded-lg shrink-0">
-<span class="material-symbols-outlined text-[22px]">tune</span>
+<div class="st-paper border border-[#ABB3B7] bg-white overflow-hidden flex flex-col">
+<div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1] flex items-start gap-4">
+<div class="h-10 w-10 shrink-0 border border-[#ABB3B7] bg-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[#5E5E5E] text-[22px]">tune</span>
 </div>
 <div class="min-w-0">
-<h3 class="text-base font-semibold text-slate-800 dark:text-white">General</h3>
-<p class="text-sm text-slate-500 dark:text-slate-400">Language, currency, timezone, and VAT</p>
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">General</h3>
+<p class="text-[11px] text-[#586064] mt-1">Timezone, language, VAT reference, and default reporting currency.</p>
 </div>
 </div>
+
 <form method="POST" action="{{ route('settings.update') }}">
 @csrf
-<div class="p-5 sm:p-6">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 max-w-2xl">
-<div class="flex flex-col gap-1.5">
-<label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="timezone">Timezone</label>
-<select class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary min-w-0" id="timezone" name="timezone" disabled>
+<div class="p-6 md:p-8">
+<p class="text-[11px] text-[#586064] border border-[#ABB3B7] bg-[#F8F9FA] px-3 py-2 mb-6">
+<strong class="text-[#2B3437]">Note:</strong> Saving updates the <strong class="text-[#5E5E5E]">default currency</strong> only. Other controls below are for display / future use.
+</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl">
+<div>
+<label class="st-label block mb-2" for="timezone">Timezone</label>
+<div class="relative isolate">
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-not-allowed opacity-70" id="timezone" name="timezone" disabled>
 <option value="UTC">UTC</option>
-<option value="America/New_York">America/New York</option>
-<option value="Europe/London">Europe/London</option>
-<option value="Asia/Karachi">Asia/Karachi</option>
-<option value="Asia/Riyadh">Asia/Riyadh</option>
+<option value="America/New_York">America / New York</option>
+<option value="Europe/London">Europe / London</option>
+<option value="Asia/Karachi">Asia / Karachi</option>
+<option value="Asia/Riyadh">Asia / Riyadh</option>
 </select>
+<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
 </div>
-<div class="flex flex-col gap-1.5">
-<label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="language">Language</label>
-<select class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary min-w-0" id="language" name="language">
+</div>
+
+<div>
+<label class="st-label block mb-2" for="language">Language</label>
+<div class="relative isolate">
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="language" name="language">
 <option value="en">English</option>
 <option value="ar">العربية (Arabic)</option>
 <option value="ur">Urdu</option>
 <option value="fr">Français (French)</option>
 </select>
+<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
 </div>
-<div class="flex flex-col gap-1.5">
-<label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="currency">Currency</label>
-<select class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary min-w-0" id="currency" name="currency">
-<option value="SAR" {{ ($defaultCurrencyCode ?? 'USD') === 'SAR' ? 'selected' : '' }}>SAR (Saudi Riyal)</option>
-<option value="USD" {{ ($defaultCurrencyCode ?? 'USD') === 'USD' ? 'selected' : '' }}>USD (US Dollar)</option>
-<option value="EUR" {{ ($defaultCurrencyCode ?? 'USD') === 'EUR' ? 'selected' : '' }}>EUR (Euro)</option>
-<option value="GBP" {{ ($defaultCurrencyCode ?? 'USD') === 'GBP' ? 'selected' : '' }}>GBP (British Pound)</option>
-<option value="PKR" {{ ($defaultCurrencyCode ?? 'USD') === 'PKR' ? 'selected' : '' }}>PKR (Pakistani Rupee)</option>
-<option value="AED" {{ ($defaultCurrencyCode ?? 'USD') === 'AED' ? 'selected' : '' }}>AED (UAE Dirham)</option>
+</div>
+
+<div>
+<label class="st-label block mb-2" for="currency">Default currency</label>
+<div class="relative isolate">
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="currency" name="currency" required>
+<option value="SAR" {{ ($defaultCurrencyCode ?? 'USD') === 'SAR' ? 'selected' : '' }}>SAR — Saudi Riyal</option>
+<option value="USD" {{ ($defaultCurrencyCode ?? 'USD') === 'USD' ? 'selected' : '' }}>USD — US Dollar</option>
+<option value="EUR" {{ ($defaultCurrencyCode ?? 'USD') === 'EUR' ? 'selected' : '' }}>EUR — Euro</option>
+<option value="GBP" {{ ($defaultCurrencyCode ?? 'USD') === 'GBP' ? 'selected' : '' }}>GBP — British Pound</option>
+<option value="PKR" {{ ($defaultCurrencyCode ?? 'USD') === 'PKR' ? 'selected' : '' }}>PKR — Pakistani Rupee</option>
+<option value="AED" {{ ($defaultCurrencyCode ?? 'USD') === 'AED' ? 'selected' : '' }}>AED — UAE Dirham</option>
 </select>
-</div>
-<div class="flex flex-col gap-1.5">
-<label class="text-sm font-medium text-slate-700 dark:text-slate-300" for="vat_percent">VAT (%)</label>
-<input class="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary min-w-0" id="vat_percent" name="vat_percent" type="number" min="0" max="100" step="0.01" value="15" placeholder="e.g. 15">
+<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
 </div>
 </div>
-<div class="mt-6">
-<button type="submit" class="h-10 px-5 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors">Save settings</button>
+
+<div>
+<label class="st-label block mb-2" for="vat_percent">VAT reference (%)</label>
+<input class="st-input w-full h-10 px-3 text-sm tabular-nums opacity-70" id="vat_percent" name="vat_percent" type="number" min="0" max="100" step="0.01" value="15" placeholder="e.g. 15" disabled title="Not persisted — VAT rate is configured in application logic">
+</div>
+</div>
+
+<div class="mt-8 pt-6 border-t border-[#ABB3B7]">
+<button type="submit" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+Save settings
+</button>
 </div>
 </div>
 </form>
 </div>
 
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
+</div>
 </div>
 </main>
 </body>

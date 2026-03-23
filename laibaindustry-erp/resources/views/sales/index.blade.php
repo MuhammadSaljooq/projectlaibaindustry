@@ -1,111 +1,129 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Sales - Laiba Safety'])
-<style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
-</style>
+@include('partials.frontend-head', ['title' => 'Sales - ERP'])
+@include('partials.stitch-design')
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'sales'])
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
-
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
+<h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Sales</h2>
 </div>
-<div class="flex items-center gap-3">
-<a href="{{ route('sales.export') }}" class="h-9 px-4 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='#FFFFFF'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(68,71,72,0.4)'">
-<span class="material-symbols-outlined" style="font-size:14px;">download</span>
+<div class="flex items-center gap-2 flex-wrap justify-end">
+<a href="{{ route('sales.export') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">download</span>
 CSV
 </a>
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('sales.create') }}" class="h-9 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;">
-<span class="material-symbols-outlined" style="font-size:14px;">add</span>
-NEW SALE
+<a href="{{ route('sales.create') }}" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px]">add</span>
+New sale
 </a>
 @endif
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
-<div class="max-w-[1400px] mx-auto flex flex-col" style="gap:2rem;">
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
+<div class="max-w-[1400px] mx-auto flex flex-col gap-8">
 
-{{-- Heading --}}
-<div>
-<span class="text-[11px] font-medium uppercase block mb-2" style="letter-spacing:0.2em;color:#8e9192;">Revenue Tracking</span>
-<h2 class="text-white font-black" style="font-size:2.5rem;letter-spacing:-0.02em;line-height:1.1;">Sales</h2>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+<div class="flex flex-col gap-1 min-w-0">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">REV_LEDGER_11</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Sales</h1>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Line items · click row to open</p>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-{{-- Flash --}}
+<div class="sm:hidden">
+<p class="st-label">Module</p>
+<p class="text-xl font-black uppercase tracking-tight text-[#2B3437]">Sales</p>
+</div>
+
 @if (session('success'))
-<div style="background:rgba(255,255,255,0.05);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium text-white">
-<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;">check_circle</span>{{ session('success') }}
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
+{{ session('success') }}
 </div>
 @endif
 @if (session('error'))
-<div style="background:rgba(255,180,171,0.08);border-radius:0.5rem;padding:0.75rem 1.25rem;" class="text-sm font-medium">
-<span class="material-symbols-outlined align-middle" style="font-size:16px;margin-right:0.5rem;color:#FFB4AB;">error</span><span style="color:#FFB4AB;">{{ session('error') }}</span>
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+{{ session('error') }}
 </div>
 @endif
 
-{{-- Stat Cards --}}
-<div class="grid grid-cols-12" style="gap:1.5rem;">
-<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
-<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:#C4C7C8;">Subtotal</p>
-<h3 class="text-white font-black tabular-nums" style="font-size:clamp(1.75rem,4vw,2.5rem);letter-spacing:-0.03em;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_subtotal ?? 0, 2) }}</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Subtotal</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_subtotal ?? 0, 2) }}</p>
 </div>
-<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
-<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:#C4C7C8;">VAT (15%)</p>
-<h3 class="text-white font-black tabular-nums" style="font-size:clamp(1.75rem,4vw,2.5rem);letter-spacing:-0.03em;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_vat ?? 0, 2) }}</h3>
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">VAT (15%)</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_vat ?? 0, 2) }}</p>
 </div>
-<div class="col-span-12 md:col-span-4 relative overflow-hidden group" style="background:linear-gradient(135deg,#FFFFFF,#C6C6C7);border-radius:0.5rem;padding:2rem;">
-<p class="text-[10px] font-semibold uppercase" style="letter-spacing:0.15em;margin-bottom:1.5rem;color:rgba(42,49,49,0.5);">Total Sales</p>
-<h3 class="font-black tabular-nums" style="font-size:clamp(1.75rem,4vw,2.5rem);letter-spacing:-0.03em;color:#1a1c1c;">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_sales ?? 0, 2) }}</h3>
+<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<p class="st-label st-label--primary mb-2">Total sales</p>
+<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_sales ?? 0, 2) }}</p>
 </div>
 </div>
 
-{{-- Search & Filter --}}
-<form method="GET" action="{{ route('sales.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style="background:#1B1B1B;border-radius:0.5rem;padding:1.25rem 1.5rem;">
-<div class="relative flex-1 min-w-0">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none" style="font-size:18px;color:#8e9192;">search</span>
-<input class="w-full h-10 pl-10 pr-4 text-sm font-medium text-white placeholder-[#C4C7C8]/50 outline-none transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;" name="search" type="text" placeholder="Search invoice, customer, product..." value="{{ request('search') }}" onfocus="this.style.borderColor='#FFFFFF';this.style.boxShadow='0 0 0 2px rgba(255,255,255,0.1)'" onblur="this.style.borderColor='rgba(68,71,72,0.4)';this.style.boxShadow='none'"/>
+<form method="GET" action="{{ route('sales.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<div class="flex-1 min-w-[200px]">
+<label class="st-label block mb-2" for="s-search">Search</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="s-search" type="text" name="search" value="{{ request('search') }}" placeholder="Invoice, customer, product…">
 </div>
-<div class="flex items-center gap-3 shrink-0">
-<input class="h-10 px-3 text-sm font-medium text-white outline-none transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;color-scheme:dark;" name="from" type="date" value="{{ request('from') }}" onfocus="this.style.borderColor='#FFFFFF'" onblur="this.style.borderColor='rgba(68,71,72,0.4)'"/>
-<input class="h-10 px-3 text-sm font-medium text-white outline-none transition-all" style="background:transparent;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;color-scheme:dark;" name="to" type="date" value="{{ request('to') }}" onfocus="this.style.borderColor='#FFFFFF'" onblur="this.style.borderColor='rgba(68,71,72,0.4)'"/>
 </div>
-<button type="submit" class="h-10 px-5 text-[11px] font-bold uppercase flex items-center justify-center gap-2 active:scale-[0.98] transition-all shrink-0" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;">
-<span class="material-symbols-outlined" style="font-size:14px;">filter_list</span>FILTER
+<div class="min-w-[140px]">
+<label class="st-label block mb-2" for="s-from">From</label>
+<input class="st-input w-full h-10 px-3 text-sm" id="s-from" type="date" name="from" value="{{ request('from') }}">
+</div>
+<div class="min-w-[140px]">
+<label class="st-label block mb-2" for="s-to">To</label>
+<input class="st-input w-full h-10 px-3 text-sm" id="s-to" type="date" name="to" value="{{ request('to') }}">
+</div>
+<div class="flex flex-wrap gap-2">
+<button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+Filter
 </button>
 @if(request('search') || request('from') || request('to'))
-<a href="{{ route('sales.index') }}" class="h-10 px-4 text-[11px] font-bold uppercase flex items-center justify-center transition-all shrink-0" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;" onmouseover="this.style.color='#FFFFFF'" onmouseout="this.style.color='#C4C7C8'">CLEAR</a>
+<a href="{{ route('sales.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">close</span>
+Clear
+</a>
 @endif
+</div>
 </form>
 
-{{-- Table --}}
-<div style="background:#1B1B1B;border-radius:0.5rem;overflow:hidden;">
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse" style="min-width:900px;">
+<div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
+<div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Sales line ledger</h3>
+<p class="text-[11px] text-[#586064] mt-1">Per-line revenue · view or delete from actions</p>
+</div>
+
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse min-w-[900px]">
 <thead>
-<tr style="background:#0E0E0E;">
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Date</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Customer</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Invoice</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap" style="letter-spacing:0.15em;color:#8e9192;">Product</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Price</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Qty</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Amount</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">VAT</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase whitespace-nowrap text-right" style="letter-spacing:0.15em;color:#8e9192;">Total</th>
-<th class="px-4 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;width:100px;"></th>
+<tr class="st-thead">
+<th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
+<th class="st-th px-4 py-3 whitespace-nowrap max-w-[160px]">Customer</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
+<th class="st-th px-4 py-3">Product</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Price</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Qty</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Amount</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Total</th>
+<th class="st-th px-4 py-3 text-right w-28"></th>
 </tr>
 </thead>
 <tbody>
@@ -115,34 +133,35 @@ $sale = $item->sale;
 $amount = $item->selling_price * $item->quantity;
 $vat = $item->tax_applied ?? 0;
 $subtotal = $amount + $vat;
+$showLabel = $sale ? 'View sale ' . ($sale->invoice_number ?: '#' . $sale->id) : '';
 @endphp
-<tr class="group transition-colors {{ $sale ? 'cursor-pointer' : '' }}" style="border-top:1px solid rgba(68,71,72,0.15);"
-    onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'"
-    @if($sale) onclick="window.location.href='{{ route('sales.show', $sale) }}'" @endif>
-<td class="px-4 py-4 text-sm whitespace-nowrap" style="color:#C4C7C8;">{{ $sale ? $sale->date->format('Y-m-d') : '-' }}</td>
-<td class="px-4 py-4 text-sm font-medium text-white truncate" style="max-width:160px;">{{ $sale?->customer_name ?: ($sale?->customer_code ?: '-') }}</td>
-<td class="px-4 py-4 text-sm font-bold text-white">
+<tr class="st-tr @if($sale) cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
+    @if($sale) data-sale-show-url="{{ route('sales.show', $sale) }}" role="link" tabindex="0" aria-label="{{ e($showLabel) }}" @endif>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $sale ? $sale->date->format('Y-m-d') : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437] truncate max-w-[160px]">{{ $sale?->customer_name ?: ($sale?->customer_code ?: '—') }}</td>
+<td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
 @if($sale)
-<a href="{{ route('sales.show', $sale) }}" class="hover:underline" style="text-decoration-color:#444748;" onclick="event.stopPropagation();">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>
-@else - @endif
+<a href="{{ route('sales.show', $sale) }}" class="text-[#5E5E5E] hover:underline" onclick="event.stopPropagation()">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>
+@else — @endif
 </td>
-<td class="px-4 py-4 text-sm" style="color:#C4C7C8;">{{ $item->product?->name ?: 'Product #' . $item->product_id }}</td>
-<td class="px-4 py-4 text-sm tabular-nums text-right text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($item->selling_price, 2) }}</td>
-<td class="px-4 py-4 text-sm tabular-nums text-right" style="color:#C4C7C8;">{{ number_format($item->quantity) }}</td>
-<td class="px-4 py-4 text-sm tabular-nums text-right text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($amount, 2) }}</td>
-<td class="px-4 py-4 text-sm tabular-nums text-right whitespace-nowrap" style="color:#C4C7C8;">{{ $currencySymbol ?? '$' }} {{ number_format($vat, 2) }}</td>
-<td class="px-4 py-4 text-sm font-bold tabular-nums text-right text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($subtotal, 2) }}</td>
-<td class="px-4 py-4 text-right" onclick="event.stopPropagation();">
+<td class="st-td px-4 py-3 text-sm text-[#586064]">{{ $item->product?->name ?: 'Product #' . $item->product_id }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($item->selling_price, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#586064]">{{ number_format($item->quantity) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($vat, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($subtotal, 2) }}</td>
+<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
 @if($sale)
-<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-<a href="{{ route('sales.show', $sale) }}" class="p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFFFFF';this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.color='#8e9192';this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:18px;">visibility</span>
+<div class="flex items-center justify-end gap-1 flex-wrap">
+<a href="{{ route('sales.show', $sale) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
 </a>
 @if(auth()->user()->role !== 'viewer')
 <form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline-flex" onsubmit="return confirm('Delete this sale? Stock will be restored.');">
-@csrf @method('DELETE')
-<button type="submit" class="p-1.5 transition-colors" style="color:#8e9192;border-radius:0.25rem;" onmouseover="this.style.color='#FFB4AB';this.style.background='rgba(255,180,171,0.08)'" onmouseout="this.style.color='#8e9192';this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+@csrf
+@method('DELETE')
+<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
+<span class="material-symbols-outlined text-[18px]">delete</span>
 </button>
 </form>
 @endif
@@ -152,11 +171,10 @@ $subtotal = $amount + $vat;
 </tr>
 @empty
 <tr>
-<td colspan="10" class="px-6 py-16 text-center">
-<span class="material-symbols-outlined block" style="font-size:3rem;color:#353535;margin-bottom:1rem;">receipt</span>
-<p class="text-sm font-medium" style="color:#8e9192;">No sales recorded yet.</p>
+<td colspan="10" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No sales recorded yet</p>
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('sales.create') }}" class="inline-block text-[11px] font-bold uppercase text-white" style="margin-top:1rem;border-bottom:1px solid #FFFFFF;padding-bottom:0.25rem;">Create First Sale</a>
+<a href="{{ route('sales.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Create first sale</a>
 @endif
 </td>
 </tr>
@@ -165,36 +183,61 @@ $subtotal = $amount + $vat;
 </table>
 </div>
 
-{{-- Pagination --}}
-<div class="flex flex-col sm:flex-row items-center justify-between gap-4" style="padding:1rem 1.5rem;background:#0E0E0E;">
-<p class="text-xs font-medium" style="color:#8e9192;">
-@if($items->total() > 0)
-Showing <span class="text-white font-bold">{{ $items->firstItem() }}</span> to <span class="text-white font-bold">{{ $items->lastItem() }}</span> of <span class="text-white font-bold">{{ $items->total() }}</span> line items
-@else No results @endif
-</p>
 @if($items->hasPages())
-<nav class="flex items-center gap-1" aria-label="Pagination">
+<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
+<p class="text-xs text-[#586064] uppercase tracking-wide">
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $items->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->total() }}</span> line items
+</p>
+<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
 @if (!$items->onFirstPage())
-<a class="p-1.5 transition-colors" style="color:#C4C7C8;border-radius:0.25rem;" href="{{ $items->previousPageUrl() }}" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:18px;">chevron_left</span></a>
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $items->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
 @endif
 @foreach ($items->getUrlRange(max(1, $items->currentPage() - 2), min($items->lastPage(), $items->currentPage() + 2)) ?: [1 => $items->url(1)] as $page => $url)
 @if ($page == $items->currentPage())
-<span class="px-3 py-1.5 text-xs font-bold" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;">{{ $page }}</span>
+<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
 @else
-<a class="px-3 py-1.5 text-xs font-medium transition-colors" style="color:#C4C7C8;border-radius:0.375rem;" href="{{ $url }}" onmouseover="this.style.background='#2A2A2A';this.style.color='#FFFFFF'" onmouseout="this.style.background='transparent';this.style.color='#C4C7C8'">{{ $page }}</a>
+<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
 @endif
 @endforeach
 @if ($items->hasMorePages())
-<a class="p-1.5 transition-colors" style="color:#C4C7C8;border-radius:0.25rem;" href="{{ $items->nextPageUrl() }}" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:18px;">chevron_right</span></a>
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $items->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
 @endif
 </nav>
+</div>
+@else
+<div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
+<p class="text-xs text-[#586064] uppercase tracking-wide">
+@if($items->total() > 0)
+Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->total() }}</span> results
+@else
+No results
+@endif
+</p>
+</div>
 @endif
 </div>
-</div>
 
-<div class="text-center text-[10px] uppercase font-medium pb-4" style="margin-top:2rem;letter-spacing:0.15em;color:#8e9192;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
 </div>
 </main>
+<script>
+(function () {
+    document.querySelectorAll('tr[data-sale-show-url]').forEach(function (row) {
+        var url = row.getAttribute('data-sale-show-url');
+        if (!url) return;
+        row.addEventListener('click', function (e) {
+            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
+            window.location.href = url;
+        });
+        row.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
+            e.preventDefault();
+            window.location.href = url;
+        });
+    });
+})();
+</script>
 </body>
 </html>

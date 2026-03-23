@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Currency;
 use App\Models\Expense;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,16 +25,21 @@ class ExpenseController extends Controller
             $query->whereDate('date', '<=', $to);
         }
 
+        $filteredTotal = (clone $query)->sum('amount');
+
         $expenses = $query
             ->orderByDesc('date')
             ->paginate(25)
             ->appends(request()->query());
 
         $totalAmount = Expense::query()->sum('amount');
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         return view('expenses.index', [
             'expenses' => $expenses,
             'totalAmount' => $totalAmount,
+            'filteredTotal' => $filteredTotal,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 

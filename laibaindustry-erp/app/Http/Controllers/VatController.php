@@ -29,6 +29,10 @@ class VatController extends Controller
             $query->whereDate('date', '<=', $to);
         }
 
+        $filteredSalesVat = (clone $query)->where('type', 'sale')->sum('vat_amount');
+        $filteredPurchaseVat = (clone $query)->where('type', 'purchase')->sum('vat_amount');
+        $filteredNetVat = (float) $filteredSalesVat - (float) $filteredPurchaseVat;
+
         $entries = $query
             ->orderByDesc('date')
             ->paginate(25)
@@ -43,7 +47,14 @@ class VatController extends Controller
 
         $totals->net_vat = (float) $totals->sales_vat - (float) $totals->purchase_vat;
 
-        return view('vat.index', compact('entries', 'totals', 'currencySymbol'));
+        return view('vat.index', compact(
+            'entries',
+            'totals',
+            'currencySymbol',
+            'filteredSalesVat',
+            'filteredPurchaseVat',
+            'filteredNetVat'
+        ));
     }
 
     public function export(): StreamedResponse

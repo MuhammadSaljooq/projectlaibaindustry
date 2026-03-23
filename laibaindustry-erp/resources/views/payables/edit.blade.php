@@ -2,35 +2,43 @@
 <html lang="en">
 <head>
 @include('partials.frontend-head', ['title' => 'Record Payment - ERP'])
+@include('partials.stitch-design')
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'payables'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<a href="{{ route('payables.index') }}" class="p-2 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors hidden sm:flex items-center gap-1">
-<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+<a href="{{ route('payables.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="hidden sm:inline">Payables</span>
 </a>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">Record Payment</h2>
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1400px] mx-auto flex flex-col gap-6">
-<div class="sm:hidden">
-<h2 class="text-2xl font-bold text-slate-800 dark:text-white">Record Payment</h2>
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
+<div class="max-w-4xl mx-auto flex flex-col gap-8">
+
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">AP_PAY_24</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Record payment</h1>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
 @if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
 {{ session('error') }}
 </div>
 @endif
 @if ($errors->any())
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+<p class="st-label st-label--error mb-2">Please fix the following</p>
 <ul class="list-disc list-inside space-y-0.5">
 @foreach ($errors->all() as $err)
 <li>{{ $err }}</li>
@@ -40,52 +48,44 @@
 @endif
 
 @php
-$balance = max(0, (float)$payable->amount - (float)$payable->received);
-$isPaid  = $balance <= 0;
+$balance = max(0, (float) $payable->amount - (float) $payable->received);
+$isPaid = $balance <= 0;
 @endphp
 
-<div class="max-w-lg">
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white max-w-2xl">
+<p class="st-label mb-6">Payable details</p>
 
-<h3 class="text-base font-semibold text-slate-800 dark:text-white mb-5">Payable Details</h3>
-
-<div class="space-y-3 text-sm mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+<div class="space-y-3 text-sm mb-6 pb-6 border-b border-[#ABB3B7]">
 <div class="flex items-center justify-between gap-4">
-<span class="text-slate-500 dark:text-slate-400">Date</span>
-<span class="font-medium text-slate-900 dark:text-white">{{ $payable->date->format('Y-m-d') }}</span>
+<span class="st-label !mb-0">Date</span>
+<span class="font-semibold text-[#2B3437]">{{ $payable->date->format('Y-m-d') }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">
-<span class="text-slate-500 dark:text-slate-400">Invoice Number</span>
-<span class="font-medium text-slate-900 dark:text-white">{{ $payable->invoice_number ?: '-' }}</span>
+<span class="st-label !mb-0">Invoice</span>
+<span class="font-semibold text-[#2B3437]">{{ $payable->invoice_number ?: '—' }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">
-<span class="text-slate-500 dark:text-slate-400">Customer Name</span>
-<span class="font-medium text-slate-900 dark:text-white">{{ $payable->customer_name ?: '-' }}</span>
+<span class="st-label !mb-0">Name</span>
+<span class="font-semibold text-[#2B3437] text-right">{{ $payable->customer_name ?: '—' }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">
-<span class="text-slate-500 dark:text-slate-400">Customer Code</span>
-<span class="font-medium text-slate-900 dark:text-white">{{ $payable->customer_code ?: '-' }}</span>
+<span class="st-label !mb-0">Code</span>
+<span class="font-mono text-[#586064]">{{ $payable->customer_code ?: '—' }}</span>
 </div>
 </div>
 
-<div class="grid grid-cols-3 gap-3 mb-6">
-<div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 text-center">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Amount</p>
-<p class="text-base font-bold text-slate-900 dark:text-white font-mono tabular-nums">
-{{ $currencySymbol ?? '$' }} {{ number_format($payable->amount, 2) }}
-</p>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white sm:divide-x sm:divide-[#ABB3B7] mb-8">
+<div class="p-4 border-b sm:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Bill</p>
+<p class="text-lg font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($payable->amount, 2) }}</p>
 </div>
-<div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 text-center">
-<p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Already Paid</p>
-<p class="text-base font-bold text-emerald-700 dark:text-emerald-300 font-mono tabular-nums">
-{{ $currencySymbol ?? '$' }} {{ number_format($payable->received, 2) }}
-</p>
+<div class="p-4 border-b sm:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Paid</p>
+<p class="text-lg font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($payable->received, 2) }}</p>
 </div>
-<div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-center">
-<p class="text-xs font-semibold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-1">Balance Due</p>
-<p class="text-base font-bold text-amber-700 dark:text-amber-400 font-mono tabular-nums">
-{{ $currencySymbol ?? '$' }} {{ number_format($balance, 2) }}
-</p>
+<div class="p-4 border-2 border-[#5E5E5E] -m-px sm:-my-px sm:-mr-px">
+<p class="st-label st-label--primary mb-2">Balance</p>
+<p class="text-lg font-black font-mono tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($balance, 2) }}</p>
 </div>
 </div>
 
@@ -93,14 +93,11 @@ $isPaid  = $balance <= 0;
 <form method="POST" action="{{ route('payables.update', $payable) }}" novalidate>
 @csrf
 @method('PUT')
-<div class="space-y-4">
 <div>
-<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5" for="payment">
-Payment amount <span class="text-red-500">*</span>
-</label>
-<div class="relative">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">{{ $currencySymbol ?? '$' }}</span>
-<input class="w-full h-11 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 pl-7 pr-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary text-right font-mono"
+<label class="st-label block mb-2" for="payment">Payment amount <span class="text-[#9F403D]">*</span></label>
+<div class="relative max-w-md">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#586064] pointer-events-none">{{ $currencySymbol }}</span>
+<input class="st-input w-full h-10 pl-8 pr-3 text-sm font-mono text-right tabular-nums @error('payment') !border-[#9F403D] @enderror"
     id="payment"
     name="payment"
     type="number"
@@ -111,40 +108,31 @@ Payment amount <span class="text-red-500">*</span>
     placeholder="{{ number_format($balance, 2) }}"
     required>
 </div>
-<p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-Maximum payment: <strong>{{ $currencySymbol ?? '$' }} {{ number_format($balance, 2) }}</strong>
-</p>
-</div>
+<p class="mt-2 text-xs text-[#586064]">Maximum: <strong class="font-mono text-[#2B3437]">{{ $currencySymbol }} {{ number_format($balance, 2) }}</strong></p>
+@error('payment')<p class="mt-1.5 text-xs text-[#9F403D] font-medium">{{ $message }}</p>@enderror
 </div>
 
-<div class="flex flex-wrap gap-3 mt-6">
-<button type="submit"
-    class="h-10 px-5 bg-primary hover:bg-blue-600 text-white text-sm font-bold rounded-lg transition-colors whitespace-nowrap inline-flex items-center gap-2">
+<div class="flex flex-wrap gap-3 mt-8 pt-6 border-t border-[#ABB3B7]">
+<button type="submit" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2">
 <span class="material-symbols-outlined text-[18px]">payments</span>
-Record Payment
+Record payment
 </button>
-<a href="{{ route('payables.index') }}"
-    class="h-10 px-5 inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">
-Cancel
-</a>
+<a href="{{ route('payables.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2">Cancel</a>
 </div>
 </form>
 @else
-<div class="flex items-center gap-2 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400">check_circle</span>
-<p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">This payable has been fully paid.</p>
+<div class="border border-[#ABB3B7] bg-[#F8F9FA] px-4 py-4 flex items-start gap-3">
+<span class="material-symbols-outlined text-[#5E5E5E] text-[24px] shrink-0">check_circle</span>
+<p class="text-sm font-semibold text-[#2B3437]">This payable is fully paid.</p>
 </div>
-<a href="{{ route('payables.index') }}"
-    class="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-primary hover:underline">
+<a href="{{ route('payables.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2 mt-6 w-fit">
 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-Back to Payables
+All payables
 </a>
 @endif
-
-</div>
 </div>
 
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
 </div>
 </main>

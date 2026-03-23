@@ -1,144 +1,145 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Sale #' . ($sale->invoice_number ?: $sale->id) . ' - Laiba Safety'])
-<style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
-</style>
+@include('partials.frontend-head', ['title' => 'Sale #' . ($sale->invoice_number ?: $sale->id) . ' - ERP'])
+@include('partials.stitch-design')
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'sales'])
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
-
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10" style="background:#1B1B1B;">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;" type="button" data-sidebar-toggle aria-label="Toggle menu"><span class="material-symbols-outlined">menu</span></button>
-<a href="{{ route('sales.index') }}" class="flex items-center gap-2 transition-colors" style="color:#C4C7C8;" onmouseover="this.style.color='#FFFFFF'" onmouseout="this.style.color='#C4C7C8'">
-<span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-<span class="text-sm font-medium hidden sm:inline">Back to Sales</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
+</button>
+<a href="{{ route('sales.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="hidden sm:inline">Sales</span>
 </a>
 </div>
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('sales.edit', $sale) }}" class="h-9 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.background='#C6C6C7'" onmouseout="this.style.background='#FFFFFF'">
-<span class="material-symbols-outlined" style="font-size:14px;">edit</span>EDIT
+<a href="{{ route('sales.edit', $sale) }}" class="st-btn-primary h-9 px-4 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span class="hidden sm:inline">Edit</span>
 </a>
 @endif
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
-<div class="max-w-[900px] mx-auto flex flex-col" style="gap:2rem;">
+@php $symbol = $sale->currency && $sale->currency->symbol ? $sale->currency->symbol : ($currencySymbol ?? '$'); @endphp
 
-{{-- Heading --}}
-<div class="flex flex-wrap items-start justify-between gap-4">
-<div>
-<span class="text-[11px] font-medium uppercase block mb-2" style="letter-spacing:0.2em;color:#8e9192;">Sale Record</span>
-<h2 class="text-white font-black" style="font-size:2rem;letter-spacing:-0.02em;line-height:1.1;">{{ $sale->invoice_number ?: '#' . $sale->id }}</h2>
-<p class="text-sm font-medium" style="color:#C4C7C8;margin-top:0.5rem;">{{ $sale->date->format('l, F j, Y \a\t g:i A') }}</p>
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
+<div class="max-w-[900px] mx-auto flex flex-col gap-8">
+
+<div class="flex flex-col gap-4">
+<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+<div class="flex flex-col gap-1 min-w-0">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">SALE_VIEW_14</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">{{ $sale->invoice_number ?: '#' . $sale->id }}</h1>
+<p class="text-sm text-[#586064] mt-1">{{ $sale->date->format('l, F j, Y \a\t g:i A') }}</p>
 </div>
-<span class="text-[10px] font-bold uppercase px-3 py-1.5" style="letter-spacing:0.1em;background:rgba(255,255,255,0.05);color:#C4C7C8;border-radius:0.25rem;">{{ ucfirst($sale->status) }}</span>
+<span class="text-[10px] font-bold uppercase tracking-wider border border-[#ABB3B7] px-3 py-1.5 bg-[#F8F9FA] text-[#586064] shrink-0 self-start">{{ ucfirst($sale->status) }}</span>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-{{-- Customer Info --}}
-<div style="background:#1B1B1B;border-radius:0.5rem;padding:2rem;">
-<p class="text-[10px] font-bold uppercase mb-4" style="letter-spacing:0.15em;color:#8e9192;">Customer Information</p>
-<div class="grid grid-cols-1 sm:grid-cols-2" style="gap:1.5rem;">
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
+<p class="st-label mb-6">Customer</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 <div>
-<p class="text-[10px] font-bold uppercase mb-1" style="letter-spacing:0.15em;color:#C4C7C8;">Name</p>
-<p class="text-sm font-bold text-white">{{ $sale->customer_name ?: $sale->customer_code ?: 'Walk-in' }}</p>
+<p class="st-label mb-1">Name</p>
+<p class="text-sm font-bold text-[#2B3437]">{{ $sale->customer_name ?: $sale->customer_code ?: 'Walk-in' }}</p>
 </div>
 @if($sale->customer_code)
 <div>
-<p class="text-[10px] font-bold uppercase mb-1" style="letter-spacing:0.15em;color:#C4C7C8;">Code</p>
-<p class="text-sm font-medium text-white tabular-nums">{{ $sale->customer_code }}</p>
+<p class="st-label mb-1">Code</p>
+<p class="text-sm font-mono font-semibold text-[#2B3437]">{{ $sale->customer_code }}</p>
 </div>
 @endif
 @if($sale->invoice_number)
 <div>
-<p class="text-[10px] font-bold uppercase mb-1" style="letter-spacing:0.15em;color:#C4C7C8;">Invoice</p>
-<p class="text-sm font-medium text-white tabular-nums">{{ $sale->invoice_number }}</p>
+<p class="st-label mb-1">Invoice</p>
+<p class="text-sm font-mono font-semibold text-[#2B3437]">{{ $sale->invoice_number }}</p>
 </div>
 @endif
 </div>
 </div>
 
-{{-- Line Items Table --}}
-@php $symbol = $sale->currency && $sale->currency->symbol ? $sale->currency->symbol : ($currencySymbol ?? '$'); @endphp
-
-<div style="background:#1B1B1B;border-radius:0.5rem;overflow:hidden;">
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse" style="min-width:520px;">
+<div class="st-paper border border-[#ABB3B7] bg-white overflow-hidden flex flex-col">
+<div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Line items</h3>
+</div>
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse min-w-[520px]">
 <thead>
-<tr style="background:#0E0E0E;">
-<th class="px-6 py-4 text-[10px] font-bold uppercase" style="letter-spacing:0.15em;color:#8e9192;width:40px;">#</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase" style="letter-spacing:0.15em;color:#8e9192;">Product</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;">Qty</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;">Unit Price</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;">Tax</th>
-<th class="px-6 py-4 text-[10px] font-bold uppercase text-right" style="letter-spacing:0.15em;color:#8e9192;">Line Total</th>
+<tr class="st-thead">
+<th class="st-th px-4 py-3 w-10">#</th>
+<th class="st-th px-4 py-3">Product</th>
+<th class="st-th px-4 py-3 text-right">Qty</th>
+<th class="st-th px-4 py-3 text-right">Unit price</th>
+<th class="st-th px-4 py-3 text-right">Tax</th>
+<th class="st-th px-4 py-3 text-right">Line total</th>
 </tr>
 </thead>
 <tbody>
 @foreach($sale->items as $index => $item)
 @php $lineTotal = ($item->selling_price * $item->quantity) + ($item->tax_applied ?? 0); @endphp
-<tr class="transition-colors" style="border-top:1px solid rgba(68,71,72,0.15);" onmouseover="this.style.background='#2A2A2A'" onmouseout="this.style.background='transparent'">
-<td class="px-6 py-4 text-sm tabular-nums" style="color:#8e9192;">{{ $index + 1 }}</td>
-<td class="px-6 py-4">
-<p class="text-sm font-bold text-white">{{ $item->product ? $item->product->name : 'Product #' . $item->product_id }}</p>
+<tr class="st-tr">
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $index + 1 }}</td>
+<td class="st-td px-4 py-3">
+<p class="text-sm font-bold text-[#2B3437]">{{ $item->product ? $item->product->name : 'Product #' . $item->product_id }}</p>
 @if($item->product?->sku)
-<p class="text-xs" style="color:#8e9192;margin-top:0.125rem;">{{ $item->product->sku }}</p>
+<p class="text-xs text-[#586064] mt-0.5"><span class="font-bold uppercase tracking-wide">Article no.</span> {{ $item->product->sku }}</p>
 @endif
 </td>
-<td class="px-6 py-4 text-sm tabular-nums text-right" style="color:#C4C7C8;">{{ number_format($item->quantity) }}</td>
-<td class="px-6 py-4 text-sm tabular-nums text-right text-white whitespace-nowrap">{{ $symbol }} {{ number_format($item->selling_price, 2) }}</td>
-<td class="px-6 py-4 text-sm tabular-nums text-right whitespace-nowrap" style="color:#C4C7C8;">{{ $symbol }} {{ number_format($item->tax_applied ?? 0, 2) }}</td>
-<td class="px-6 py-4 text-sm font-bold tabular-nums text-right text-white whitespace-nowrap">{{ $symbol }} {{ number_format($lineTotal, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#586064]">{{ number_format($item->quantity) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $symbol }} {{ number_format($item->selling_price, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $symbol }} {{ number_format($item->tax_applied ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $symbol }} {{ number_format($lineTotal, 2) }}</td>
 </tr>
 @endforeach
 </tbody>
 </table>
 </div>
 
-{{-- Summary --}}
-<div style="padding:1.5rem 2rem;background:#0E0E0E;">
+<div class="px-5 py-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <div class="flex justify-end">
-<div style="min-width:240px;" class="flex flex-col gap-2">
-<div class="flex justify-between text-sm"><span style="color:#8e9192;">Subtotal</span><span class="text-white font-bold tabular-nums">{{ $symbol }} {{ number_format($sale->subtotal, 2) }}</span></div>
-<div class="flex justify-between text-sm"><span style="color:#8e9192;">Tax ({{ number_format($sale->tax_rate ?? 0, 0) }}%)</span><span class="text-white font-bold tabular-nums">{{ $symbol }} {{ number_format($sale->tax_amount ?? 0, 2) }}</span></div>
+<div class="min-w-[240px] space-y-2">
+<div class="flex justify-between text-sm text-[#586064]"><span>Subtotal</span><span class="font-bold font-mono tabular-nums text-[#2B3437]">{{ $symbol }} {{ number_format($sale->subtotal, 2) }}</span></div>
+<div class="flex justify-between text-sm text-[#586064]"><span>Tax ({{ number_format($sale->tax_rate ?? 0, 0) }}%)</span><span class="font-bold font-mono tabular-nums text-[#2B3437]">{{ $symbol }} {{ number_format($sale->tax_amount ?? 0, 2) }}</span></div>
 @if((float)($sale->discount_amount ?? 0) > 0)
-<div class="flex justify-between text-sm"><span style="color:#8e9192;">Discount</span><span class="font-bold tabular-nums" style="color:#FFB4AB;">−{{ $symbol }} {{ number_format($sale->discount_amount, 2) }}</span></div>
+<div class="flex justify-between text-sm text-[#586064]"><span>Discount</span><span class="font-bold font-mono tabular-nums text-[#9F403D]">−{{ $symbol }} {{ number_format($sale->discount_amount, 2) }}</span></div>
 @endif
-<div class="flex justify-between text-lg font-black" style="padding-top:0.75rem;border-top:1px solid rgba(68,71,72,0.2);"><span class="text-white">Total</span><span class="text-white tabular-nums">{{ $symbol }} {{ number_format($sale->total_amount, 2) }}</span></div>
+<div class="flex justify-between text-base font-black text-[#2B3437] border-t border-[#ABB3B7] pt-2"><span>Total</span><span class="font-mono tabular-nums">{{ $symbol }} {{ number_format($sale->total_amount, 2) }}</span></div>
 </div>
 </div>
 </div>
 </div>
 
-{{-- Actions --}}
 <div class="flex flex-wrap items-center gap-3">
-<a href="{{ route('sales.index') }}" class="h-10 px-5 text-[11px] font-bold uppercase flex items-center gap-2 transition-all" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.color='#FFFFFF';this.style.borderColor='#FFFFFF'" onmouseout="this.style.color='#C4C7C8';this.style.borderColor='rgba(68,71,72,0.4)'">
-<span class="material-symbols-outlined" style="font-size:16px;">list</span>ALL SALES
+<a href="{{ route('sales.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">list</span>
+All sales
 </a>
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('sales.edit', $sale) }}" class="h-10 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="background:#FFFFFF;color:#2F3131;border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.background='#C6C6C7'" onmouseout="this.style.background='#FFFFFF'">
-<span class="material-symbols-outlined" style="font-size:16px;">edit</span>EDIT SALE
+<a href="{{ route('sales.edit', $sale) }}" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+Edit sale
 </a>
 <form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline-flex" onsubmit="return confirm('Delete this sale? Stock will be restored and the related receivable removed.');">
-@csrf @method('DELETE')
-<button type="submit" class="h-10 px-5 text-[11px] font-bold uppercase flex items-center gap-2 active:scale-[0.98] transition-all" style="color:#FFB4AB;border:1px solid rgba(255,180,171,0.2);border-radius:0.375rem;letter-spacing:0.05em;" onmouseover="this.style.background='rgba(255,180,171,0.08)';this.style.borderColor='#FFB4AB'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(255,180,171,0.2)'">
-<span class="material-symbols-outlined" style="font-size:16px;">delete</span>DELETE
+@csrf
+@method('DELETE')
+<button type="submit" class="h-10 px-5 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+Delete
 </button>
 </form>
 @endif
 </div>
 
-<div class="text-center text-[10px] uppercase font-medium pb-4" style="margin-top:1rem;letter-spacing:0.15em;color:#8e9192;">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</div>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
 </div>
 </main>

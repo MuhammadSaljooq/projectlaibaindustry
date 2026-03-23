@@ -2,135 +2,124 @@
 <html lang="en">
 <head>
 @include('partials.frontend-head', ['title' => 'Payables - ERP'])
+@include('partials.stitch-design')
+<style>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'payables'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">Payables</h2>
-</div>
-<div class="flex items-center gap-4">
-<div class="relative hidden sm:block">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[20px]">search</span>
-<input class="h-9 pl-10 pr-4 text-sm bg-slate-50 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary/50 w-64 placeholder-slate-400 text-slate-700 dark:text-slate-200 transition-all" placeholder="Global search..." type="text" disabled>
-</div>
-<button class="p-2 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-full relative transition-colors" type="button">
-<span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#1a2632]"></span>
-</button>
+<h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Payables</h2>
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1400px] mx-auto flex flex-col gap-6">
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth no-scrollbar">
+<div class="max-w-[1400px] mx-auto flex flex-col gap-8">
+
+<div class="flex flex-col gap-4">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+<div class="flex flex-col gap-1 min-w-0">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">AP_LEDGER_23</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Payables</h1>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Supplier AP · @if(auth()->user()->role !== 'viewer') click open balance to pay @else read-only @endif</p>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
+</div>
+
 <div class="sm:hidden">
-<h2 class="text-2xl font-bold text-slate-800 dark:text-white">Payables</h2>
+<p class="st-label">Module</p>
+<p class="text-xl font-black uppercase tracking-tight text-[#2B3437]">Payables</p>
 </div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
 {{ session('success') }}
 </div>
 @endif
 @if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
 {{ session('error') }}
 </div>
 @endif
 
-{{-- Summary cards --}}
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Payable</p>
-<p class="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">
-<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_amount ?? 0, 2) }}</span>
-</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Total payable</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_amount ?? 0, 2) }}</p>
 </div>
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount Paid</p>
-<p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-1">
-<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_received ?? 0, 2) }}</span>
-</p>
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Amount paid</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_received ?? 0, 2) }}</p>
 </div>
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Outstanding Balance</p>
-<p class="text-2xl font-bold text-primary font-mono mt-1">
-<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_outstanding ?? 0, 2) }}</span>
-</p>
+<div class="p-6 border-2 border-[#5E5E5E] -m-px">
+<p class="st-label st-label--primary mb-2">Outstanding</p>
+<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_outstanding ?? 0, 2) }}</p>
 </div>
 </div>
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-1 min-h-[400px]">
-<div class="p-5 border-b border-slate-200 dark:border-slate-700">
-<h3 class="text-base font-semibold text-slate-800 dark:text-white">Payables</h3>
-<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Automatically created from purchases. Record payments via the action button.</p>
+<div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
+<div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Accounts payable ledger</h3>
+<p class="text-[11px] text-[#586064] mt-1">From purchases · record payment or delete (admin/manager)</p>
 </div>
 
-<div class="overflow-x-auto w-full -mx-4 sm:mx-0">
-<table class="w-full text-left border-collapse min-w-[860px]">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse min-w-[960px]">
 <thead>
-<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Date</th>
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Invoice Number</th>
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Customer Name</th>
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Customer Code</th>
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Amount</th>
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Amount Paid</th>
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right whitespace-nowrap">Balance</th>
-<th class="px-5 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-36"></th>
+<tr class="st-thead">
+<th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
+<th class="st-th px-4 py-3">Customer name</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Code</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Paid</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Balance</th>
+<th class="st-th px-4 py-3 text-right w-44"></th>
 </tr>
 </thead>
-<tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+<tbody>
 @forelse($payables as $p)
-@php $balance = (float)$p->amount - (float)$p->received; @endphp
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ $p->date->format('Y-m-d') }}</td>
-<td class="px-5 py-3.5 text-sm font-medium text-slate-900 dark:text-white">{{ $p->invoice_number ?: '-' }}</td>
-<td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ $p->customer_name ?: '-' }}</td>
-<td class="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ $p->customer_code ?: '-' }}</td>
-<td class="px-5 py-3.5 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap">
-<span class="tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($p->amount, 2) }}</span>
-</td>
-<td class="px-5 py-3.5 text-sm font-mono text-right whitespace-nowrap">
-<span class="tabular-nums {{ (float)$p->received > 0 ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400' }}">
-{{ $currencySymbol ?? '$' }} {{ number_format($p->received, 2) }}
-</span>
-</td>
-<td class="px-5 py-3.5 text-sm font-mono font-bold text-right whitespace-nowrap">
-<span class="tabular-nums {{ $balance > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
-{{ $currencySymbol ?? '$' }} {{ number_format($balance, 2) }}
-</span>
-</td>
-            <td class="px-5 py-3.5 text-right">
-<div class="inline-flex items-center justify-end gap-2">
+@php $balance = (float) $p->amount - (float) $p->received; @endphp
+<tr class="st-tr @if(auth()->user()->role !== 'viewer' && $balance > 0) cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
+    @if(auth()->user()->role !== 'viewer' && $balance > 0) data-payable-edit-url="{{ route('payables.edit', $p) }}" role="link" tabindex="0" aria-label="Record payment {{ e($p->invoice_number ?: '#' . $p->id) }}" @endif>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $p->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $p->invoice_number ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm text-[#586064] truncate max-w-[200px]">{{ $p->customer_name ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $p->customer_code ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($p->amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums {{ (float) $p->received > 0 ? 'text-[#2B3437] font-semibold' : 'text-[#586064]' }}">{{ $currencySymbol }} {{ number_format($p->received, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums {{ $balance > 0 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($balance, 2) }}</td>
+<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
+<div class="inline-flex items-center justify-end gap-1 flex-wrap">
 @if($balance > 0)
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('payables.edit', $p) }}"
-   class="h-8 px-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-primary hover:bg-blue-600 rounded-lg transition-colors whitespace-nowrap">
-<span class="material-symbols-outlined text-[15px]">payments</span>
-Record payment
+<a href="{{ route('payables.edit', $p) }}" class="st-btn-primary h-9 px-3 text-[10px] inline-flex items-center gap-1.5 whitespace-nowrap">
+<span class="material-symbols-outlined text-[16px]">payments</span>
+Pay
 </a>
 @else
-<span class="text-xs text-slate-500 dark:text-slate-400">—</span>
+<span class="text-xs text-[#586064]">—</span>
 @endif
 @else
-<span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-<span class="material-symbols-outlined text-[15px]">check_circle</span>
+<span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#5E5E5E] border border-[#ABB3B7] px-2 py-1">
+<span class="material-symbols-outlined text-[14px]">check</span>
 Paid
 </span>
 @endif
 @if(in_array(auth()->user()->role, ['admin', 'manager']))
-<form method="POST" action="{{ route('payables.destroy', $p) }}"
-      onsubmit="return confirm('Delete this payable entry? This cannot be undone.');">
+<form method="POST" action="{{ route('payables.destroy', $p) }}" class="inline-flex" onsubmit="return confirm('Delete this payable? This cannot be undone.');">
 @csrf
 @method('DELETE')
-<button type="submit"
-    class="h-8 w-8 inline-flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-    title="Delete payable">
+<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
 <span class="material-symbols-outlined text-[18px]">delete</span>
 </button>
 </form>
@@ -140,9 +129,10 @@ Paid
 </tr>
 @empty
 <tr>
-<td colspan="8" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
-No payables yet. Payables are created automatically when you save a purchase.
-<a href="{{ route('purchases.create') }}" class="text-primary font-medium hover:underline ml-1">Create a purchase</a>
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No payables yet</p>
+<p class="mb-3">Created when you save a purchase.</p>
+<a href="{{ route('purchases.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">New purchase</a>
 </td>
 </tr>
 @endforelse
@@ -150,43 +140,63 @@ No payables yet. Payables are created automatically when you save a purchase.
 </table>
 </div>
 
-<div class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-<p class="text-sm text-slate-500 dark:text-slate-400">
+@if($payables->hasPages())
+<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
+<p class="text-xs text-[#586064] uppercase tracking-wide">
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->total() }}</span>
+</p>
+<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
+@if (!$payables->onFirstPage())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $payables->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
+@endif
+@foreach ($payables->getUrlRange(max(1, $payables->currentPage() - 2), min($payables->lastPage(), $payables->currentPage() + 2)) ?: [1 => $payables->url(1)] as $page => $url)
+@if ($page == $payables->currentPage())
+<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
+@else
+<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
+@endif
+@endforeach
+@if ($payables->hasMorePages())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $payables->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
+@endif
+</nav>
+</div>
+@else
+<div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
+<p class="text-xs text-[#586064] uppercase tracking-wide">
 @if($payables->total() > 0)
-Showing <span class="font-medium text-slate-900 dark:text-white">{{ $payables->firstItem() }}</span>
-to <span class="font-medium text-slate-900 dark:text-white">{{ $payables->lastItem() }}</span>
-of <span class="font-medium text-slate-900 dark:text-white">{{ $payables->total() }}</span> results
+Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->total() }}</span> results
 @else
 No results
 @endif
 </p>
-@if($payables->hasPages())
-<nav class="flex items-center gap-1" aria-label="Pagination">
-@if (!$payables->onFirstPage())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $payables->previousPageUrl() }}">
-<span class="material-symbols-outlined text-[20px]">chevron_left</span>
-</a>
-@endif
-@foreach ($payables->getUrlRange(max(1, $payables->currentPage() - 2), min($payables->lastPage(), $payables->currentPage() + 2)) ?: [1 => $payables->url(1)] as $page => $url)
-@if ($page == $payables->currentPage())
-<span class="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white">{{ $page }}</span>
-@else
-<a class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($payables->hasMorePages())
-<a class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" href="{{ $payables->nextPageUrl() }}">
-<span class="material-symbols-outlined text-[20px]">chevron_right</span>
-</a>
-@endif
-</nav>
-@endif
 </div>
+@endif
 </div>
 
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
 </div>
 </main>
+@if(auth()->user()->role !== 'viewer')
+<script>
+(function () {
+    document.querySelectorAll('tr[data-payable-edit-url]').forEach(function (row) {
+        var url = row.getAttribute('data-payable-edit-url');
+        if (!url) return;
+        row.addEventListener('click', function (e) {
+            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
+            window.location.href = url;
+        });
+        row.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
+            e.preventDefault();
+            window.location.href = url;
+        });
+    });
+})();
+</script>
+@endif
 </body>
 </html>

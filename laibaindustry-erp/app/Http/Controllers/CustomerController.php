@@ -158,7 +158,8 @@ class CustomerController extends Controller
                 $ledgerRows[] = [
                     'date'            => $entry->date,
                     'description'     => $entry->description,
-                    'reference'       => $entry->reference,
+                    // Statement column shows customer account code (not invoice / internal reference).
+                    'reference'       => $customer->customer_code,
                     'debit'           => $debit,
                     'credit'          => $credit,
                     'running_balance' => $runningBalance,

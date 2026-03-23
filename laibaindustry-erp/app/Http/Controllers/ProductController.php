@@ -49,15 +49,19 @@ class ProductController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'sku' => ['required', 'string', 'max:100', 'unique:products,sku'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'cost_price' => ['required', 'numeric', 'min:0'],
-            'selling_price' => ['nullable', 'numeric', 'min:0'],
-            'stock_quantity' => ['nullable', 'integer', 'min:0'],
-            'reorder_level' => ['nullable', 'integer', 'min:0'],
-        ]);
+        $validated = $request->validate(
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'sku' => ['required', 'string', 'max:100', 'unique:products,sku'],
+                'category_id' => ['required', 'exists:categories,id'],
+                'cost_price' => ['required', 'numeric', 'min:0'],
+                'selling_price' => ['nullable', 'numeric', 'min:0'],
+                'stock_quantity' => ['nullable', 'integer', 'min:0'],
+                'reorder_level' => ['nullable', 'integer', 'min:0'],
+            ],
+            [],
+            ['sku' => 'article no.']
+        );
         $validated['stock_quantity'] = $validated['stock_quantity'] ?? 0;
         $validated['reorder_level'] = $validated['reorder_level'] ?? 10;
         Product::create($validated);
@@ -72,15 +76,19 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'sku' => ['required', 'string', 'max:100', 'unique:products,sku,' . $product->id],
-            'category_id' => ['required', 'exists:categories,id'],
-            'cost_price' => ['required', 'numeric', 'min:0'],
-            'selling_price' => ['nullable', 'numeric', 'min:0'],
-            'stock_quantity' => ['nullable', 'integer', 'min:0'],
-            'reorder_level' => ['nullable', 'integer', 'min:0'],
-        ]);
+        $validated = $request->validate(
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'sku' => ['required', 'string', 'max:100', 'unique:products,sku,' . $product->id],
+                'category_id' => ['required', 'exists:categories,id'],
+                'cost_price' => ['required', 'numeric', 'min:0'],
+                'selling_price' => ['nullable', 'numeric', 'min:0'],
+                'stock_quantity' => ['nullable', 'integer', 'min:0'],
+                'reorder_level' => ['nullable', 'integer', 'min:0'],
+            ],
+            [],
+            ['sku' => 'article no.']
+        );
         $validated['stock_quantity'] = $validated['stock_quantity'] ?? 0;
         $validated['reorder_level'] = $validated['reorder_level'] ?? 10;
         $product->update($validated);

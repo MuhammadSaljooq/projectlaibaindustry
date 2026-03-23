@@ -2,32 +2,34 @@
 <html lang="en">
 <head>
 @include('partials.frontend-head', ['title' => 'Purchase #' . $purchase->id . ' - ERP'])
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+@include('purchases.partials.stitch-design')
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'purchases'])
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<header class="h-16 bg-white dark:bg-[#1a2632] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 z-10">
+<main class="purchases-stitch flex-1 flex flex-col h-full overflow-hidden relative bg-[#F8F9FA]">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<a href="{{ route('purchases.index') }}" class="p-2 text-slate-500 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors hidden sm:flex items-center gap-1">
+<a href="{{ route('purchases.index') }}" class="p-2 text-[#586064] hover:bg-[#F1F4F6] border border-transparent hover:border-[#ABB3B7] hidden sm:flex items-center" aria-label="Back to purchases">
 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
 </a>
-<h2 class="text-xl font-bold text-slate-800 dark:text-white hidden sm:block">
-Purchase {{ $purchase->invoice_number ?: '#' . $purchase->id }}
+<h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase truncate max-w-[50vw]">
+{{ $purchase->invoice_number ?: 'Purchase #' . $purchase->id }}
 </h2>
 </div>
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('purchases.edit', $purchase) }}" class="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-blue-600 hover:bg-primary/5 rounded-lg border border-primary/30 transition-colors whitespace-nowrap">
+<a href="{{ route('purchases.edit', $purchase) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-1.5 whitespace-nowrap">
 <span class="material-symbols-outlined text-[18px]">edit</span>
 <span class="hidden sm:inline">Edit</span>
 </a>
 <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirm('Delete this purchase? This cannot be undone.');">
 @csrf
 @method('DELETE')
-<button type="submit" class="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 transition-colors whitespace-nowrap">
+<button type="submit" class="h-9 px-3 inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">
 <span class="material-symbols-outlined text-[18px]">delete</span>
 <span class="hidden sm:inline">Delete</span>
 </button>
@@ -36,91 +38,93 @@ Purchase {{ $purchase->invoice_number ?: '#' . $purchase->id }}
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1000px] mx-auto flex flex-col gap-6">
+<div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth">
+<div class="max-w-[1000px] mx-auto flex flex-col gap-8">
+
+<div class="flex flex-col gap-4">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+<div class="flex flex-col gap-1 min-w-0">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">RECORD_VIEW_03</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">{{ $purchase->invoice_number ?: 'Purchase #' . $purchase->id }}</h1>
+<p class="text-sm text-[#586064] mt-1">{{ $purchase->date->format('F j, Y H:i') }}</p>
+</div>
+<a href="{{ route('purchases.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 shrink-0">
+<span class="material-symbols-outlined text-[18px]">list</span>
+Ledger
+</a>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
+</div>
 
 @if (session('success'))
-<div class="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
 {{ session('success') }}
 </div>
 @endif
 @if (session('error'))
-<div class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
 {{ session('error') }}
 </div>
 @endif
 
-<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-<div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4 mb-8 pb-8 border-b border-[#ABB3B7]">
 <div>
-<h3 class="text-lg font-bold text-slate-900 dark:text-white">
-{{ $purchase->invoice_number ?: 'Purchase #' . $purchase->id }}
-</h3>
-<p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{{ $purchase->date->format('F j, Y H:i') }}</p>
-</div>
-<a href="{{ route('purchases.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-[18px]">arrow_back</span>
-Back to Purchases
-</a>
-</div>
-
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
-<div>
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Customer Code</p>
-<p class="text-sm text-slate-900 dark:text-white">{{ $purchase->customer_code ?: '-' }}</p>
+<p class="st-label mb-1">Customer Code</p>
+<p class="text-sm font-semibold text-[#2B3437]">{{ $purchase->customer_code ?: '—' }}</p>
 </div>
 <div>
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Customer Name</p>
-<p class="text-sm text-slate-900 dark:text-white">{{ $purchase->customer_name ?: '-' }}</p>
+<p class="st-label mb-1">Customer Name</p>
+<p class="text-sm font-semibold text-[#2B3437]">{{ $purchase->customer_name ?: '—' }}</p>
 </div>
 <div>
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Invoice Number</p>
-<p class="text-sm text-slate-900 dark:text-white">{{ $purchase->invoice_number ?: '-' }}</p>
+<p class="st-label mb-1">Invoice Number</p>
+<p class="text-sm font-semibold text-[#2B3437]">{{ $purchase->invoice_number ?: '—' }}</p>
 </div>
 <div>
-<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Date</p>
-<p class="text-sm text-slate-900 dark:text-white">{{ $purchase->date->format('Y-m-d H:i') }}</p>
+<p class="st-label mb-1">Date</p>
+<p class="text-sm font-mono text-[#2B3437]">{{ $purchase->date->format('Y-m-d H:i') }}</p>
 </div>
 </div>
 
-<div class="overflow-x-auto -mx-6 px-6">
+<div class="overflow-x-auto -mx-2 sm:mx-0 border border-[#ABB3B7]">
 <table class="w-full text-left border-collapse min-w-[600px]">
 <thead>
-<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Product Name</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Price</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Qty</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Amount</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">VAT 15%</th>
-<th class="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Subtotal</th>
+<tr class="st-thead">
+<th class="st-th px-4 py-3">Product Name</th>
+<th class="st-th px-4 py-3 text-right">Price</th>
+<th class="st-th px-4 py-3 text-right">Qty</th>
+<th class="st-th px-4 py-3 text-right">Amount</th>
+<th class="st-th px-4 py-3 text-right">VAT 15%</th>
+<th class="st-th px-4 py-3 text-right">Subtotal</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+<tbody>
 @foreach($purchase->items as $item)
-<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-<td class="px-4 py-3 text-sm text-slate-900 dark:text-white">{{ $item->product_name }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($item->price, 2) }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300">{{ number_format($item->quantity) }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-900 dark:text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($item->amount, 2) }}</td>
-<td class="px-4 py-3 text-sm font-mono text-right text-slate-600 dark:text-slate-300 whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($item->vat_amount, 2) }}</td>
-<td class="px-4 py-3 text-sm font-mono font-medium text-right text-slate-900 dark:text-white whitespace-nowrap">{{ $currencySymbol ?? '$' }} {{ number_format($item->subtotal, 2) }}</td>
+<tr class="st-tr">
+<td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $item->product_name }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($item->price, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#586064]">{{ number_format($item->quantity) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($item->amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($item->vat_amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($item->subtotal, 2) }}</td>
 </tr>
 @endforeach
 </tbody>
 </table>
 </div>
 
-<div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
-<div class="text-right space-y-1.5 min-w-[240px]">
-<div class="flex items-center justify-between gap-8 text-sm text-slate-600 dark:text-slate-400">
+<div class="mt-6 pt-6 border-t border-[#ABB3B7] flex justify-end">
+<div class="text-right space-y-2 min-w-[260px]">
+<div class="flex items-center justify-between gap-8 text-sm text-[#586064]">
 <span>Subtotal (excl. VAT)</span>
-<span class="font-bold text-slate-900 dark:text-white font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($purchase->subtotal, 2) }}</span>
+<span class="font-bold text-[#2B3437] font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($purchase->subtotal, 2) }}</span>
 </div>
-<div class="flex items-center justify-between gap-8 text-sm text-slate-600 dark:text-slate-400">
+<div class="flex items-center justify-between gap-8 text-sm text-[#586064]">
 <span>VAT (15%)</span>
-<span class="font-bold text-slate-900 dark:text-white font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($purchase->vat_amount, 2) }}</span>
+<span class="font-bold text-[#2B3437] font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($purchase->vat_amount, 2) }}</span>
 </div>
-<div class="flex items-center justify-between gap-8 text-lg font-bold text-slate-900 dark:text-white border-t border-slate-200 dark:border-slate-700 pt-1.5">
+<div class="flex items-center justify-between gap-8 text-base font-black text-[#2B3437] border-t border-[#ABB3B7] pt-2">
 <span>Total</span>
 <span class="font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($purchase->total_amount, 2) }}</span>
 </div>
@@ -128,8 +132,8 @@ Back to Purchases
 </div>
 </div>
 
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© {{ date('Y') }} Nexus ERP Inc.</p>
 </div>
-<div class="mt-8 text-center text-xs text-slate-400 pb-4">© {{ date('Y') }} Nexus ERP Inc. All rights reserved.</div>
 </div>
 </main>
 </body>

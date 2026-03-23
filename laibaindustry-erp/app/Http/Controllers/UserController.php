@@ -19,7 +19,10 @@ class UserController extends Controller
             ->orderBy('name')
             ->paginate(15);
 
-        return view('users.index', ['users' => $users]);
+        return view('users.index', [
+            'users' => $users,
+            'adminCount' => User::where('role', 'admin')->count(),
+        ]);
     }
 
     public function create(): View

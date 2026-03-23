@@ -164,7 +164,7 @@
         <tr>
             <th style="width: 14%;">Date</th>
             <th style="width: 28%;">Description</th>
-            <th style="width: 18%;">Reference</th>
+            <th style="width: 18%;">Customer code</th>
             <th class="amt" style="width: 13%;">Debit</th>
             <th class="amt" style="width: 13%;">Credit</th>
             <th class="amt" style="width: 14%;">Balance</th>
@@ -175,7 +175,7 @@
         <tr class="opening">
             <td>{{ $customer->opening_balance_date ? $customer->opening_balance_date->format('d/m/Y') : '—' }}</td>
             <td>Opening Balance</td>
-            <td>—</td>
+            <td style="font-family: 'DejaVu Sans Mono', monospace;">{{ $customer->customer_code ?: '—' }}</td>
             <td class="amt dash">—</td>
             <td class="amt dash">—</td>
             <td class="amt {{ $openingBalance > 0 ? 'balance-dr' : ($openingBalance < 0 ? 'balance-cr' : '') }}">

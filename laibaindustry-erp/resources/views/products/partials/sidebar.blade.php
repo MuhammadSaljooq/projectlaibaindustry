@@ -1,15 +1,15 @@
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 opacity-0 pointer-events-none transition-opacity duration-300 md:hidden" aria-hidden="true"></div>
-<aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-64 flex flex-col h-full shrink-0 z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto no-scrollbar" style="background:#1B1B1B;font-family:'Inter',sans-serif;">
-<div class="flex flex-col h-full">
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-20 opacity-0 pointer-events-none transition-opacity duration-200 md:hidden" aria-hidden="true"></div>
+<aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-64 flex flex-col h-full shrink-0 z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out overflow-y-auto no-scrollbar bg-white border-r border-[#ABB3B7] text-[#2B3437]">
+<div class="flex flex-col h-full font-[Inter,system-ui,sans-serif]">
 
 {{-- Brand --}}
-<div style="padding:1.5rem 1rem 1rem 1rem;">
-<h1 class="text-white font-black uppercase" style="font-size:1.35rem;letter-spacing:-0.03em;line-height:1.2;">Laiba Safety</h1>
-<p class="uppercase font-medium" style="font-size:10px;letter-spacing:0.15em;color:rgba(196,199,200,0.5);margin-top:0.25rem;">Admin Console</p>
+<div class="px-4 pt-6 pb-4 border-b border-[#ABB3B7]">
+<h1 class="text-[#2B3437] font-black uppercase tracking-tighter text-xl leading-tight">Laiba Safety</h1>
+<p class="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">Admin Console</p>
 </div>
 
 {{-- Nav Links --}}
-<div class="flex-1 flex flex-col gap-0.5 px-3 overflow-y-auto no-scrollbar" style="padding-top:0.5rem;">
+<div class="flex-1 flex flex-col gap-0.5 px-2 py-3 overflow-y-auto no-scrollbar">
 
 @php
 $navItems = [
@@ -28,44 +28,43 @@ $active = $activeNav ?? '';
 
 @foreach($navItems as $item)
 @if($active === $item['key'])
-<a class="flex items-center gap-3 px-3 py-2.5 text-white font-bold transition-all duration-200" style="background:#2A2A2A;border-radius:0.375rem;border-left:2px solid #FFFFFF;" href="{{ $item['route'] }}">
-<span class="material-symbols-outlined" style="font-size:20px;">{{ $item['icon'] }}</span>
-<span class="text-sm tracking-tight">{{ $item['label'] }}</span>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#2B3437] font-bold bg-[#EAEFF1] border-l-2 border-[#5E5E5E] rounded-none transition-colors" href="{{ $item['route'] }}">
+<span class="material-symbols-outlined text-[20px] text-[#5E5E5E]">{{ $item['icon'] }}</span>
+<span class="text-[11px] font-bold uppercase tracking-tight">{{ $item['label'] }}</span>
 </a>
 @else
-<a class="flex items-center gap-3 px-3 py-2.5 font-medium transition-all duration-200" style="color:#C4C7C8;border-radius:0.375rem;border-left:2px solid transparent;" href="{{ $item['route'] }}" onmouseover="this.style.color='#FFFFFF';this.style.background='rgba(42,42,42,0.5)'" onmouseout="this.style.color='#C4C7C8';this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:20px;">{{ $item['icon'] }}</span>
+<a class="flex items-center gap-3 px-3 py-2.5 font-medium text-[#586064] border-l-2 border-transparent rounded-none hover:bg-[#F1F4F6] hover:text-[#2B3437] transition-colors" href="{{ $item['route'] }}">
+<span class="material-symbols-outlined text-[20px]">{{ $item['icon'] }}</span>
 <span class="text-sm tracking-tight">{{ $item['label'] }}</span>
 </a>
 @endif
 @endforeach
 
-{{-- Separator --}}
-<div style="margin:1.5rem 0;border-top:1px solid rgba(68,71,72,0.2);"></div>
+<div class="my-4 border-t border-[#ABB3B7]"></div>
 
 {{-- System Section --}}
 @if(in_array(auth()->user()->role ?? '', ['admin', 'manager']))
 @if($active === 'users')
-<a class="flex items-center gap-3 px-3 py-2.5 text-white font-bold transition-all duration-200" style="background:#2A2A2A;border-radius:0.375rem;border-left:2px solid #FFFFFF;" href="{{ route('users.index', absolute: false) }}">
-<span class="material-symbols-outlined" style="font-size:20px;">person</span>
-<span class="text-sm tracking-tight">Users</span>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#2B3437] font-bold bg-[#EAEFF1] border-l-2 border-[#5E5E5E] rounded-none transition-colors" href="{{ route('users.index', absolute: false) }}">
+<span class="material-symbols-outlined text-[20px] text-[#5E5E5E]">person</span>
+<span class="text-[11px] font-bold uppercase tracking-tight">Users</span>
 </a>
 @else
-<a class="flex items-center gap-3 px-3 py-2.5 font-medium transition-all duration-200" style="color:#C4C7C8;border-radius:0.375rem;border-left:2px solid transparent;" href="{{ route('users.index', absolute: false) }}" onmouseover="this.style.color='#FFFFFF';this.style.background='rgba(42,42,42,0.5)'" onmouseout="this.style.color='#C4C7C8';this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:20px;">person</span>
+<a class="flex items-center gap-3 px-3 py-2.5 font-medium text-[#586064] border-l-2 border-transparent rounded-none hover:bg-[#F1F4F6] hover:text-[#2B3437] transition-colors" href="{{ route('users.index', absolute: false) }}">
+<span class="material-symbols-outlined text-[20px]">person</span>
 <span class="text-sm tracking-tight">Users</span>
 </a>
 @endif
 @endif
 
 @if($active === 'settings')
-<a class="flex items-center gap-3 px-3 py-2.5 text-white font-bold transition-all duration-200" style="background:#2A2A2A;border-radius:0.375rem;border-left:2px solid #FFFFFF;" href="{{ route('settings.index', absolute: false) }}">
-<span class="material-symbols-outlined" style="font-size:20px;">settings</span>
-<span class="text-sm tracking-tight">Settings</span>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#2B3437] font-bold bg-[#EAEFF1] border-l-2 border-[#5E5E5E] rounded-none transition-colors" href="{{ route('settings.index', absolute: false) }}">
+<span class="material-symbols-outlined text-[20px] text-[#5E5E5E]">settings</span>
+<span class="text-[11px] font-bold uppercase tracking-tight">Settings</span>
 </a>
 @else
-<a class="flex items-center gap-3 px-3 py-2.5 font-medium transition-all duration-200" style="color:#C4C7C8;border-radius:0.375rem;border-left:2px solid transparent;" href="{{ route('settings.index', absolute: false) }}" onmouseover="this.style.color='#FFFFFF';this.style.background='rgba(42,42,42,0.5)'" onmouseout="this.style.color='#C4C7C8';this.style.background='transparent'">
-<span class="material-symbols-outlined" style="font-size:20px;">settings</span>
+<a class="flex items-center gap-3 px-3 py-2.5 font-medium text-[#586064] border-l-2 border-transparent rounded-none hover:bg-[#F1F4F6] hover:text-[#2B3437] transition-colors" href="{{ route('settings.index', absolute: false) }}">
+<span class="material-symbols-outlined text-[20px]">settings</span>
 <span class="text-sm tracking-tight">Settings</span>
 </a>
 @endif
@@ -73,25 +72,37 @@ $active = $activeNav ?? '';
 </div>
 
 {{-- User Profile Footer --}}
-<div style="padding:0.75rem;margin-top:auto;">
-<form method="POST" action="{{ route('logout', absolute: false) }}" class="flex items-center gap-3 cursor-pointer transition-colors" style="padding:0.5rem;background:rgba(42,42,42,0.3);border-radius:0.5rem;">
+<div class="mt-auto p-3 border-t border-[#ABB3B7] bg-[#F8F9FA]">
+<form method="POST" action="{{ route('logout', absolute: false) }}" class="flex items-center gap-3 p-2 border border-[#ABB3B7] bg-white">
 @csrf
-<div class="shrink-0 overflow-hidden" style="width:2.5rem;height:2.5rem;border-radius:0.25rem;background:#353535;">
-<div class="w-full h-full bg-cover bg-center" style="filter:grayscale(100%);background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuAEFlpSGGEtjXJFRGVokTYO__I__d_7SuNR3lkmM_BQHu_oa0EpS7JWyL_U7kUhobpswzGKWvS54W9s91mr_xuCVO1iqywaCpcOpuOBOsUfxCrEC5n6z5Nywk70Wgm-r0VmjCd7XCD6jg5XYVxVj-MBhD5hIg2je7C9JC4cTjsi0-0ClU5NTO7Xxr1bZ66IkdWjupwQH4dkj6Qvv0JTgZrD-swCniaApQKvCJDzNLL1e4wtfDFCVbY74UDqzmpIOAEKmVRnZU6o_w8');"></div>
+<div class="shrink-0 w-10 h-10 border border-[#ABB3B7] bg-[#EAEFF1] flex items-center justify-center text-xs font-bold text-[#586064]">
+{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
 </div>
 <div class="flex-1 min-w-0 text-left">
-<p class="text-sm font-bold text-white truncate">{{ auth()->user()->name }}</p>
-<p class="truncate uppercase font-medium" style="font-size:10px;letter-spacing:-0.02em;color:#C4C7C8;">{{ ucfirst(auth()->user()->role) }}</p>
+<p class="text-sm font-bold text-[#2B3437] truncate">{{ auth()->user()->name }}</p>
+<p class="truncate text-[10px] font-bold uppercase tracking-wider text-[#586064]">{{ ucfirst(auth()->user()->role) }}</p>
 </div>
-<button type="submit" class="material-symbols-outlined shrink-0" style="color:#C4C7C8;font-size:18px;" title="Logout">logout</button>
+<button type="submit" class="material-symbols-outlined shrink-0 text-[#586064] hover:text-[#2B3437] text-[18px] p-1 border border-transparent hover:border-[#ABB3B7]" title="Logout">logout</button>
 </form>
 </div>
 
 </div>
 </aside>
 <style>
-#sidebar .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24}
-.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+#sidebar .material-symbols-outlined {
+  font-family:'Material Symbols Outlined','Material Icons',sans-serif;
+  font-weight:normal;
+  font-style:normal;
+  line-height:1;
+  letter-spacing:normal;
+  text-transform:none;
+  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
+  -webkit-font-smoothing:antialiased;
+  display:inline-block;
+  vertical-align:middle;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 <script>
 (function(){var s=document.getElementById('sidebar'),o=document.getElementById('sidebar-overlay');function open(){s?.classList.remove('-translate-x-full');o?.classList.remove('opacity-0','pointer-events-none');document.body.style.overflow='hidden'}function close(){s?.classList.add('-translate-x-full');o?.classList.add('opacity-0','pointer-events-none');document.body.style.overflow=''}document.querySelectorAll('[data-sidebar-toggle]').forEach(function(b){b.addEventListener('click',function(){s?.classList.contains('-translate-x-full')?open():close()})});o?.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();

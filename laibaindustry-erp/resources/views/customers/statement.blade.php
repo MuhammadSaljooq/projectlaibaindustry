@@ -1,183 +1,173 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Statement — ' . $customer->customer_name . ' - Laiba Safety'])
+@include('partials.frontend-head', ['title' => 'Statement — ' . $customer->customer_name . ' - ERP'])
+@include('partials.stitch-design')
 <style>
-body { background-color: #131313; color: #e2e2e2; font-family: 'Inter', sans-serif; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; font-size: 1.25rem; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-::selection { background: #FFFFFF; color: #131313; }
 @media print {
-    @page { margin: 20mm; }
-    * { color: #000 !important; background: #fff !important; border-color: #ccc !important; box-shadow: none !important; }
-    body { overflow: visible !important; height: auto !important; display: block !important; font-size: 10pt !important; }
-    .no-print, nav, header, footer, [data-sidebar-toggle] { display: none !important; }
-    main { overflow: visible !important; height: auto !important; position: static !important; width: 100% !important; }
-    .no-scrollbar { overflow: visible !important; height: auto !important; }
-    [style*="background:#1B1B1B"], [style*="background:#0E0E0E"], [style*="background:#131313"] { background: #fff !important; }
-    [style*="background:#FFFFFF"] { background: #f5f5f5 !important; }
-    [style*="color:#FFFFFF"], [style*="color:#C4C7C8"], [style*="color:#8e9192"], [style*="color:#e2e2e2"] { color: #000 !important; }
-    table { border-collapse: collapse !important; }
-    th, td { border: 1px solid #ddd !important; padding: 6px 8px !important; }
-    tr:hover { background: transparent !important; }
+    @page { margin: 16mm; }
+    .no-print, [data-sidebar-toggle] { display: none !important; }
+    #sidebar-overlay { display: none !important; }
+    aside#sidebar { display: none !important; }
+    body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; }
+    main.stitch-ui { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; }
+    .statement-print-root { padding: 0 !important; }
+    .st-paper, .st-tr, .st-td, .st-th { border-color: #ccc !important; }
+    .st-thead, tr[style*="background"] { background: #f0f0f0 !important; }
+    * { box-shadow: none !important; }
+    table { break-inside: auto; }
+    tr { break-inside: avoid; break-after: auto; }
     .print-title { display: block !important; }
 }
 </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 <div class="no-print">@include('products.partials.sidebar', ['activeNav' => 'customers'])</div>
 
-<main class="flex-1 flex flex-col h-full overflow-hidden relative" style="background:#131313;">
+<main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
 
-<header class="h-16 flex items-center justify-between px-6 md:px-8 shrink-0 z-10 no-print" style="background:#1B1B1B;">
+<header class="no-print h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 hover:text-white rounded-md" style="color:#8e9192;background:transparent;" type="button" data-sidebar-toggle aria-label="Toggle menu">
-<span class="material-symbols-outlined">menu</span>
+<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<a href="{{ route('customers.index') }}" class="flex items-center gap-2 text-sm font-medium transition-colors duration-150" style="color:#8e9192;" onmouseenter="this.style.color='#FFFFFF'" onmouseleave="this.style.color='#8e9192'">
-<span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
-Back to Customers
+<a href="{{ route('customers.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="hidden sm:inline">Customers</span>
 </a>
 </div>
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('customers.edit', $customer) }}" class="h-10 px-4 inline-flex items-center gap-2 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);" onmouseenter="this.style.borderColor='#8e9192';this.style.color='#FFFFFF'" onmouseleave="this.style.borderColor='rgba(68,71,72,0.4)';this.style.color='#C4C7C8'">
-<span class="material-symbols-outlined" style="font-size:18px;">edit</span>
-EDIT
+<a href="{{ route('customers.edit', $customer) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span class="hidden sm:inline">Edit</span>
 </a>
 @endif
-<button onclick="window.print()" class="h-10 px-4 inline-flex items-center gap-2 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap" style="color:#C4C7C8;border:1px solid rgba(68,71,72,0.4);" onmouseenter="this.style.borderColor='#8e9192';this.style.color='#FFFFFF'" onmouseleave="this.style.borderColor='rgba(68,71,72,0.4)';this.style.color='#C4C7C8'">
-<span class="material-symbols-outlined" style="font-size:18px;">download</span>
-PDF / PRINT
+<button type="button" onclick="window.print()" class="st-btn-primary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="hidden sm:inline">PDF / Print</span>
 </button>
 </div>
 </header>
 
-<div class="flex-1 overflow-y-auto no-scrollbar">
-<div class="max-w-[1200px] mx-auto px-6 md:px-8 py-8 flex flex-col gap-8">
+<div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth statement-print-root">
+<div class="max-w-[1200px] mx-auto flex flex-col gap-8">
 
-<div>
-<p class="text-xs font-medium uppercase tracking-[0.15em] mb-2" style="color:#8e9192;">Account Statement</p>
-<h1 class="text-4xl font-bold tracking-tight" style="color:#FFFFFF;letter-spacing:-0.02em;">{{ $customer->customer_name }}</h1>
-<p class="text-sm font-mono mt-2" style="color:#8e9192;">{{ $customer->customer_code }}</p>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+<div class="flex flex-col gap-1 min-w-0">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">ACCT_STMT_10</p>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">{{ $customer->customer_name }}</h1>
+<p class="text-sm font-mono text-[#586064] mt-1">{{ $customer->customer_code }}</p>
+</div>
+</div>
+<div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
 @if (session('success'))
-<div class="flex items-center gap-3 px-5 py-3.5 rounded-md" style="background:rgba(255,255,255,0.04);">
-<span class="material-symbols-outlined" style="color:#FFFFFF;font-size:20px;">check_circle</span>
-<span class="text-sm font-medium" style="color:#C4C7C8;">{{ session('success') }}</span>
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
+{{ session('success') }}
 </div>
 @endif
 @if (session('error'))
-<div class="flex items-center gap-3 px-5 py-3.5 rounded-md" style="background:rgba(255,180,171,0.06);">
-<span class="material-symbols-outlined" style="color:#FFB4AB;font-size:20px;">error</span>
-<span class="text-sm font-medium" style="color:#FFB4AB;">{{ session('error') }}</span>
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+{{ session('error') }}
 </div>
 @endif
 
-<div class="rounded-lg p-6" style="background:#1B1B1B;">
+<div class="st-paper border border-[#ABB3B7] p-6 bg-white">
 <div class="flex flex-wrap items-start justify-between gap-6">
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1">
 <div>
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-1.5" style="color:#8e9192;">Phone</p>
-<p class="text-sm font-medium" style="color:#FFFFFF;">{{ $customer->phone ?: '—' }}</p>
+<p class="st-label mb-1">Phone</p>
+<p class="text-sm font-semibold text-[#2B3437]">{{ $customer->phone ?: '—' }}</p>
 </div>
 <div>
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-1.5" style="color:#8e9192;">Email</p>
-<p class="text-sm font-medium" style="color:#FFFFFF;">{{ $customer->email ?: '—' }}</p>
+<p class="st-label mb-1">Email</p>
+<p class="text-sm font-semibold text-[#2B3437]">{{ $customer->email ?: '—' }}</p>
+</div>
+<div class="col-span-2 sm:col-span-1">
+<p class="st-label mb-1">Address</p>
+<p class="text-sm font-semibold text-[#2B3437]">{{ $customer->address ?: '—' }}</p>
 </div>
 <div>
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-1.5" style="color:#8e9192;">Address</p>
-<p class="text-sm font-medium" style="color:#FFFFFF;">{{ $customer->address ?: '—' }}</p>
-</div>
-<div>
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-1.5" style="color:#8e9192;">Opening Balance</p>
-<p class="text-sm font-mono font-medium tabular-nums" style="color:#FFFFFF;">
+<p class="st-label mb-1">Opening balance</p>
+<p class="text-sm font-mono font-semibold tabular-nums text-[#2B3437]">
 {{ $currencySymbol ?? '$' }} {{ number_format($openingBalance, 2) }}
 @if($customer->opening_balance_date)
-<span class="text-[10px] font-sans ml-1" style="color:#8e9192;">as of {{ $customer->opening_balance_date->format('Y-m-d') }}</span>
+<span class="text-[10px] font-sans ml-1 text-[#586064]">as of {{ $customer->opening_balance_date->format('Y-m-d') }}</span>
 @endif
 </p>
 </div>
 </div>
-<div class="text-right shrink-0">
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-1.5" style="color:#8e9192;">Closing Balance</p>
-<p class="text-3xl font-bold font-mono tabular-nums" style="color:#FFFFFF;">
+<div class="text-right shrink-0 border border-[#ABB3B7] p-4 bg-[#F8F9FA] min-w-[200px]">
+<p class="st-label mb-1">Closing balance</p>
+<p class="text-3xl font-black font-mono tabular-nums text-[#5E5E5E]">
 {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
 </p>
 @if($closingBalance > 0)
-<span class="inline-flex items-center mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-[0.1em]" style="background:rgba(255,255,255,0.08);color:#FFFFFF;">Receivable</span>
+<span class="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-0.5 bg-white">Receivable</span>
 @elseif($closingBalance < 0)
-<span class="inline-flex items-center mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-[0.1em]" style="background:rgba(255,255,255,0.08);color:#C4C7C8;">Payable</span>
+<span class="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-0.5 bg-white">Payable</span>
 @else
-<span class="inline-flex items-center mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-[0.1em]" style="background:rgba(255,255,255,0.08);color:#8e9192;">Settled</span>
+<span class="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-0.5 bg-white">Settled</span>
 @endif
 </div>
 </div>
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-<div class="rounded-lg p-5" style="background:#1B1B1B;">
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style="color:#8e9192;">Total Debit</p>
-<p class="text-2xl font-bold font-mono tabular-nums" style="color:#FFFFFF;">{{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}</p>
-<p class="text-xs mt-2" style="color:#8e9192;">Sales + payments you made</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="p-5 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Total debit</p>
+<p class="text-2xl font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}</p>
+<p class="text-xs mt-2 text-[#586064]">Sales + payments you made</p>
 </div>
-<div class="rounded-lg p-5" style="background:#1B1B1B;">
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style="color:#8e9192;">Total Credit</p>
-<p class="text-2xl font-bold font-mono tabular-nums" style="color:#FFFFFF;">{{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}</p>
-<p class="text-xs mt-2" style="color:#8e9192;">Payments received + purchases</p>
+<div class="p-5 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Total credit</p>
+<p class="text-2xl font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}</p>
+<p class="text-xs mt-2 text-[#586064]">Payments received + purchases</p>
 </div>
-<div class="rounded-lg p-5 relative overflow-hidden" style="background:#FFFFFF;">
-<p class="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style="color:#666;">Net Balance</p>
-<p class="text-2xl font-bold font-mono tabular-nums" style="color:#131313;">
+<div class="p-5 border-2 border-[#5E5E5E] -m-px">
+<p class="st-label st-label--primary mb-2">Net balance</p>
+<p class="text-2xl font-black font-mono tabular-nums text-[#5E5E5E]">
 {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
 </p>
-<p class="text-xs mt-2" style="color:#666;">
+<p class="text-xs mt-2 text-[#586064]">
 {{ $closingBalance > 0 ? 'Receivable' : ($closingBalance < 0 ? 'Payable' : 'Settled') }}
 </p>
-<div class="absolute top-4 right-4">
-<span class="material-symbols-outlined" style="font-size:32px;color:rgba(19,19,19,0.08);">account_balance</span>
-</div>
 </div>
 </div>
 
-<div class="rounded-lg overflow-hidden" style="background:#1B1B1B;">
-<div class="px-6 py-4 flex items-center justify-between" style="border-bottom:1px solid rgba(68,71,72,0.15);">
-<div>
-<p class="text-sm font-semibold" style="color:#FFFFFF;">Account Ledger</p>
-<p class="text-xs mt-0.5" style="color:#8e9192;">All transactions in chronological order</p>
-</div>
+<div class="st-paper flex flex-col border border-[#ABB3B7] bg-white overflow-hidden">
+<div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Account ledger</h3>
+<p class="text-[11px] text-[#586064] mt-1">Chronological transactions</p>
 </div>
 
-<div class="overflow-x-auto">
-<table class="w-full text-left min-w-[780px]">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse min-w-[780px]">
 <thead>
-<tr style="background:#0E0E0E;">
-<th class="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] w-32" style="color:#8e9192;">Date</th>
-<th class="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Description</th>
-<th class="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em]" style="color:#8e9192;">Reference</th>
-<th class="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right w-32" style="color:#8e9192;">Debit</th>
-<th class="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right w-32" style="color:#8e9192;">Credit</th>
-<th class="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-right w-36" style="color:#8e9192;">Balance</th>
+<tr class="st-thead">
+<th class="st-th px-4 py-3 w-32 whitespace-nowrap">Date</th>
+<th class="st-th px-4 py-3">Description</th>
+<th class="st-th px-4 py-3">Customer code</th>
+<th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Debit</th>
+<th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Credit</th>
+<th class="st-th px-4 py-3 text-right w-36 whitespace-nowrap">Balance</th>
 </tr>
 </thead>
 <tbody>
-
-<tr style="background:rgba(14,14,14,0.4);">
-<td class="px-5 py-3 text-sm" style="color:#8e9192;">
+<tr class="st-tr bg-[#F8F9FA]">
+<td class="st-td px-4 py-3 text-sm text-[#586064]">
 {{ $customer->opening_balance_date ? $customer->opening_balance_date->format('Y-m-d') : '—' }}
 </td>
-<td class="px-5 py-3 text-sm">
-<div class="flex items-center gap-2">
-<span class="w-1.5 h-1.5 rounded-full inline-block shrink-0" style="background:#8e9192;"></span>
-<span class="font-medium" style="color:#C4C7C8;">Opening Balance</span>
-</div>
+<td class="st-td px-4 py-3 text-sm">
+<span class="font-semibold text-[#586064]">Opening balance</span>
 </td>
-<td class="px-5 py-3 text-sm" style="color:#8e9192;">—</td>
-<td class="px-5 py-3 text-sm font-mono text-right" style="color:#555;">—</td>
-<td class="px-5 py-3 text-sm font-mono text-right" style="color:#555;">—</td>
-<td class="px-5 py-3 text-sm font-mono font-semibold text-right tabular-nums" style="color:#FFFFFF;">
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $customer->customer_code ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#2B3437]">
 {{ $currencySymbol ?? '$' }} {{ number_format($openingBalance, 2) }}
 </td>
 </tr>
@@ -194,68 +184,64 @@ $badge = match($row['source_type']) {
     default            => 'Entry',
 };
 @endphp
-<tr class="transition-colors duration-150" style="border-bottom:1px solid rgba(68,71,72,0.1);" onmouseenter="this.style.background='#2A2A2A'" onmouseleave="this.style.background='transparent'">
-<td class="px-5 py-3 text-sm whitespace-nowrap" style="color:#C4C7C8;">
+<tr class="st-tr">
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">
 {{ $row['date']->format('Y-m-d') }}
-<span class="text-xs ml-1" style="color:#555;">{{ $row['date']->format('H:i') }}</span>
+<span class="text-xs ml-1 text-[#ABB3B7]">{{ $row['date']->format('H:i') }}</span>
 </td>
-<td class="px-5 py-3 text-sm">
-<div class="flex items-center gap-2.5">
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-[0.05em] whitespace-nowrap" style="background:#353535;color:#C4C7C8;">
-{{ $badge }}
-</span>
-<span class="font-medium" style="color:#FFFFFF;">{{ $row['description'] }}</span>
+<td class="st-td px-4 py-3 text-sm">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-[10px] font-bold uppercase tracking-wider border border-[#ABB3B7] bg-[#F8F9FA] text-[#586064] px-2 py-0.5 whitespace-nowrap">{{ $badge }}</span>
+<span class="font-semibold text-[#2B3437]">{{ $row['description'] }}</span>
 </div>
 </td>
-<td class="px-5 py-3 text-sm font-mono" style="color:#8e9192;">
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">
 {{ $row['reference'] ?: '—' }}
 </td>
-<td class="px-5 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums" style="color:{{ $isDebit ? '#FFFFFF' : '#353535' }};font-weight:{{ $isDebit ? '600' : '400' }};">
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums {{ $isDebit ? 'font-bold text-[#2B3437]' : 'text-[#ABB3B7]' }}">
 @if($isDebit)
 {{ $currencySymbol ?? '$' }} {{ number_format($row['debit'], 2) }}
 @else
 —
 @endif
 </td>
-<td class="px-5 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums" style="color:{{ $isCredit ? '#FFFFFF' : '#353535' }};font-weight:{{ $isCredit ? '600' : '400' }};">
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums {{ $isCredit ? 'font-bold text-[#2B3437]' : 'text-[#ABB3B7]' }}">
 @if($isCredit)
 {{ $currencySymbol ?? '$' }} {{ number_format($row['credit'], 2) }}
 @else
 —
 @endif
 </td>
-<td class="px-5 py-3 text-sm font-mono font-semibold text-right whitespace-nowrap tabular-nums" style="color:#FFFFFF;">
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">
 {{ $currencySymbol ?? '$' }} {{ number_format($row['running_balance'], 2) }}
 @if($row['running_balance'] > 0)
-<span class="text-[10px] font-bold ml-0.5" style="color:#C4C7C8;">DR</span>
+<span class="text-[10px] font-bold ml-0.5 text-[#586064]">DR</span>
 @elseif($row['running_balance'] < 0)
-<span class="text-[10px] font-bold ml-0.5" style="color:#C4C7C8;">CR</span>
+<span class="text-[10px] font-bold ml-0.5 text-[#586064]">CR</span>
 @endif
 </td>
 </tr>
 @empty
 <tr>
-<td colspan="6" class="px-5 py-16 text-center">
-<span class="material-symbols-outlined block mb-3 mx-auto" style="font-size:40px;color:#353535;">receipt_long</span>
-<p class="text-sm mb-1" style="color:#8e9192;">No transactions yet</p>
-<p class="text-xs" style="color:#555;">Transactions are added automatically when sales, purchases, or payments are recorded.</p>
+<td colspan="6" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No transactions yet</p>
+<p class="text-xs">Activity appears when sales, purchases, or payments are posted.</p>
 </td>
 </tr>
 @endforelse
-
 </tbody>
 
 @if(count($ledgerRows) > 0)
 <tfoot>
-<tr style="background:#0E0E0E;">
-<td colspan="3" class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.15em]" style="color:#8e9192;">Totals</td>
-<td class="px-5 py-3.5 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap" style="color:#FFFFFF;">
+<tr class="bg-[#EAEFF1] border-t-2 border-[#ABB3B7]">
+<td colspan="3" class="px-4 py-3 st-label">Totals</td>
+<td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437]">
 {{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}
 </td>
-<td class="px-5 py-3.5 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap" style="color:#FFFFFF;">
+<td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437]">
 {{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}
 </td>
-<td class="px-5 py-3.5 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap" style="color:#FFFFFF;">
+<td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#5E5E5E]">
 {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
 {{ $closingBalance > 0 ? 'DR' : ($closingBalance < 0 ? 'CR' : '') }}
 </td>
@@ -266,12 +252,10 @@ $badge = match($row['source_type']) {
 </div>
 </div>
 
-<footer class="pt-4 pb-8 text-center no-print">
-<p class="text-xs" style="color:rgba(142,145,146,0.4);">&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</p>
-</footer>
-<div class="print-title" style="display:none;text-align:center;padding-top:24px;font-size:8pt;color:#666;">
-<p>This statement is computer-generated and requires no signature.</p>
-<p>&copy; {{ date('Y') }} Laiba Safety. All rights reserved.</p>
+<p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2 no-print">© {{ date('Y') }} Nexus ERP Inc.</p>
+<div class="print-title hidden text-center pt-6 text-[8pt] text-[#666]">
+<p>This statement is computer-generated.</p>
+<p>© {{ date('Y') }} Laiba Safety. All rights reserved.</p>
 </div>
 
 </div>
