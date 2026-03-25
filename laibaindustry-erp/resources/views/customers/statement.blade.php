@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Statement — ' . $customer->customer_name . ' - ERP'])
+@include('partials.frontend-head', ['title' => 'Statement — ' . Str::title(Str::lower($customer->customer_name)) . ' - ERP'])
 @include('partials.stitch-design')
 <style>
 @media print {
@@ -36,6 +36,17 @@
 <span class="hidden sm:inline">Customers</span>
 </a>
 </div>
+@php
+    $statementFiltered = $statementFiltered ?? false;
+    $stmtQuery = array_filter([
+        'from' => old('from', request('from')),
+        'to' => old('to', request('to')),
+    ], fn ($v) => filled($v));
+    $pdfHref = route('customers.statement.pdf', $customer);
+    if ($stmtQuery !== []) {
+        $pdfHref .= '?'.http_build_query($stmtQuery);
+    }
+@endphp
 <div class="flex items-center gap-2 flex-wrap justify-end">
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('customers.edit', $customer) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
@@ -43,7 +54,7 @@
 <span class="hidden sm:inline">Edit</span>
 </a>
 @endif
-<a href="{{ route('customers.statement.pdf', $customer) }}" class="st-btn-primary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<a href="{{ $pdfHref }}" class="st-btn-primary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
 <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
 <span class="hidden sm:inline">Download PDF</span>
 </a>
@@ -56,12 +67,53 @@
 
 <div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth statement-print-root">
 <div class="max-w-[1200px] mx-auto flex flex-col gap-8">
+@php
+    $company = \App\Support\StatementCompany::normalize($company ?? config('company'));
+@endphp
+
+<div class="st-paper border border-[#ABB3B7] p-5 md:p-6 bg-white">
+<p class="st-label mb-2">Statement from</p>
+@if(filled($company['name'] ?? null))
+<p class="text-base font-bold text-[#2B3437] leading-snug">{{ $company['name'] }}</p>
+@endif
+@foreach($company['address_lines'] ?? [] as $addrLine)
+@if(filled($addrLine))
+<p class="text-sm text-[#2B3437] mt-1 leading-relaxed">{{ $addrLine }}</p>
+@endif
+@endforeach
+<div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm text-[#2B3437]">
+@if(filled($company['registration'] ?? null))
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mb-0.5">CR</p>
+<p class="font-mono font-semibold">{{ $company['registration'] }}</p>
+</div>
+@endif
+@if(filled($company['vat_number'] ?? null))
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mb-0.5">VAT</p>
+<p class="font-mono font-semibold">{{ $company['vat_number'] }}</p>
+</div>
+@endif
+@if(filled($company['phone'] ?? null))
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mb-0.5">{{ $company['phone_label'] ?? 'Phone' }}</p>
+<p class="font-semibold">{{ $company['phone'] }}</p>
+</div>
+@endif
+@if(filled($company['email'] ?? null))
+<div class="sm:col-span-2">
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mb-0.5">Email</p>
+<p class="font-semibold break-all">{{ $company['email'] }}</p>
+</div>
+@endif
+</div>
+</div>
 
 <div class="flex flex-col gap-4">
 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 <div class="flex flex-col gap-1 min-w-0">
-<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">ACCT_STMT_10</p>
-<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">{{ $customer->customer_name }}</h1>
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">Account statement</p>
+<h1 class="text-4xl md:text-5xl font-black tracking-tight text-[#2B3437] leading-none">{{ Str::title(Str::lower($customer->customer_name)) }}</h1>
 <p class="text-sm font-mono text-[#586064] mt-1">{{ $customer->customer_code }}</p>
 </div>
 </div>
@@ -79,12 +131,48 @@
 </div>
 @endif
 
+@if ($errors->any())
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D] space-y-1">
+<p class="font-semibold">Could not apply date filter</p>
+<ul class="list-disc list-inside text-[13px]">
+@foreach ($errors->all() as $err)
+<li>{{ $err }}</li>
+@endforeach
+</ul>
+</div>
+@endif
+
+<div class="no-print st-paper border border-[#ABB3B7] p-4 md:p-5 bg-white">
+<p class="st-label mb-3">Statement period</p>
+<form method="get" action="{{ route('customers.statement', $customer) }}" class="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3">
+<div class="flex flex-col gap-1 min-w-0">
+<label class="text-[10px] font-bold uppercase tracking-widest text-[#586064]" for="stmt_from">From</label>
+<input class="st-input w-full sm:w-44 px-3 py-2 text-sm" type="date" id="stmt_from" name="from" value="{{ old('from', request('from')) }}">
+</div>
+<div class="flex flex-col gap-1 min-w-0">
+<label class="text-[10px] font-bold uppercase tracking-widest text-[#586064]" for="stmt_to">To</label>
+<input class="st-input w-full sm:w-44 px-3 py-2 text-sm" type="date" id="stmt_to" name="to" value="{{ old('to', request('to')) }}">
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<button type="submit" class="st-btn-primary h-9 px-4 inline-flex items-center gap-2 text-[10px]">Apply</button>
+<a href="{{ route('customers.statement', $customer) }}" class="st-btn-secondary h-9 px-4 inline-flex items-center gap-2 text-[10px]">Clear</a>
+</div>
+</form>
+@if ($statementFiltered && isset($periodFrom, $periodTo))
+<p class="text-sm text-[#2B3437] mt-3 font-semibold">Showing {{ $periodFrom->format('j M Y') }} – {{ $periodTo->format('j M Y') }}</p>
+@endif
+</div>
+
 @if(auth()->user()->role !== 'viewer')
 <div class="no-print st-paper border border-[#ABB3B7] p-5 md:p-6 bg-white">
 <p class="st-label mb-3">Email statement</p>
 @if(filled($customer->email))
 <form method="POST" action="{{ route('customers.statement.email', $customer) }}" class="flex flex-col gap-4 max-w-xl">
 @csrf
+@if (filled(old('from', request('from'))) && filled(old('to', request('to'))))
+<input type="hidden" name="from" value="{{ old('from', request('from')) }}">
+<input type="hidden" name="to" value="{{ old('to', request('to')) }}">
+@endif
 <div>
 <p class="text-[11px] font-bold uppercase tracking-widest text-[#586064] mb-1">Recipient</p>
 <p class="text-sm font-semibold text-[#2B3437] break-all">{{ $customer->email }}</p>
@@ -107,31 +195,35 @@ Email statement
 @endif
 
 <div class="st-paper border border-[#ABB3B7] p-6 bg-white">
-<div class="flex flex-wrap items-start justify-between gap-6">
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-6 flex-1">
-<div>
+<div class="flex flex-col lg:flex-row lg:flex-nowrap items-start justify-between gap-6">
+<div class="flex min-w-0 w-full flex-1 flex-col gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-6 min-w-0">
+<div class="min-w-0">
 <p class="st-label mb-1">Phone</p>
-<p class="text-sm font-semibold text-[#2B3437]">{{ $customer->phone ?: '—' }}</p>
+<p class="text-sm font-semibold text-[#2B3437] break-words">{{ $customer->phone ?: '—' }}</p>
 </div>
-<div>
+<div class="min-w-0">
 <p class="st-label mb-1">Email</p>
-<p class="text-sm font-semibold text-[#2B3437]">{{ $customer->email ?: '—' }}</p>
+<p class="text-sm font-semibold text-[#2B3437] break-all sm:break-words">{{ $customer->email ?: '—' }}</p>
 </div>
-<div class="col-span-2 sm:col-span-1">
-<p class="st-label mb-1">Address</p>
-<p class="text-sm font-semibold text-[#2B3437]">{{ $customer->address ?: '—' }}</p>
-</div>
-<div>
-<p class="st-label mb-1">Opening balance</p>
-<p class="text-sm font-mono font-semibold tabular-nums text-[#2B3437]">
+<div class="min-w-0">
+<p class="st-label mb-1">{{ $statementFiltered ? 'Balance brought forward' : 'Opening balance' }}</p>
+<p class="text-sm font-mono font-semibold tabular-nums text-[#2B3437] break-words">
 {{ $currencySymbol ?? '$' }} {{ number_format($openingBalance, 2) }}
-@if($customer->opening_balance_date)
+@if($statementFiltered && isset($periodFrom))
+<span class="text-[10px] font-sans ml-1 text-[#586064]">at start of period ({{ $periodFrom->format('Y-m-d') }})</span>
+@elseif($customer->opening_balance_date)
 <span class="text-[10px] font-sans ml-1 text-[#586064]">as of {{ $customer->opening_balance_date->format('Y-m-d') }}</span>
 @endif
 </p>
 </div>
 </div>
-<div class="text-right shrink-0 border border-[#ABB3B7] p-4 bg-[#F8F9FA] min-w-[200px]">
+<div class="min-w-0 w-full">
+<p class="st-label mb-1">Address</p>
+<p class="text-sm font-semibold text-[#2B3437] break-words whitespace-pre-wrap">{{ $customer->address ?: '—' }}</p>
+</div>
+</div>
+<div class="text-right shrink-0 border border-[#ABB3B7] p-4 bg-[#F8F9FA] w-full lg:w-auto lg:min-w-[200px]">
 <p class="st-label mb-1">Closing balance</p>
 <p class="text-3xl font-black font-mono tabular-nums text-[#5E5E5E]">
 {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
@@ -190,10 +282,14 @@ Email statement
 <tbody>
 <tr class="st-tr bg-[#F8F9FA]">
 <td class="st-td px-4 py-3 text-sm text-[#586064]">
+@if($statementFiltered && isset($periodFrom))
+{{ $periodFrom->format('Y-m-d') }}
+@else
 {{ $customer->opening_balance_date ? $customer->opening_balance_date->format('Y-m-d') : '—' }}
+@endif
 </td>
 <td class="st-td px-4 py-3 text-sm">
-<span class="font-semibold text-[#586064]">Opening balance</span>
+<span class="font-semibold text-[#586064]">{{ $statementFiltered ? 'Balance brought forward' : 'Opening balance' }}</span>
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $customer->customer_code ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
@@ -255,8 +351,8 @@ $badge = match($row['source_type']) {
 @empty
 <tr>
 <td colspan="6" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
-<p class="font-semibold text-[#2B3437] mb-1">No transactions yet</p>
-<p class="text-xs">Activity appears when sales, purchases, or payments are posted.</p>
+<p class="font-semibold text-[#2B3437] mb-1">{{ $statementFiltered ? 'No transactions in this period' : 'No transactions yet' }}</p>
+<p class="text-xs">{{ $statementFiltered ? 'Try a different date range or clear the filter to see full history.' : 'Activity appears when sales, purchases, or payments are posted.' }}</p>
 </td>
 </tr>
 @endforelse

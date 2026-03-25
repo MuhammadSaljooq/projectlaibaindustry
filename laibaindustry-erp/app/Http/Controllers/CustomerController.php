@@ -8,6 +8,8 @@ use App\Mail\CustomerStatementMail;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use App\Support\CustomerStatementPeriod;
+use App\Support\StatementCompany;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
@@ -137,42 +140,86 @@ class CustomerController extends Controller
 
     /**
      * Get statement data for a customer (ledger rows, balances, totals).
+     *
+     * @param  CustomerStatementPeriod|null  $period  When set, statement is limited to [fromStart, toEnd] inclusive; opening row is balance brought forward.
      */
-    private function getStatementData(Customer $customer): array
+    private function getStatementData(Customer $customer, ?CustomerStatementPeriod $period = null): array
     {
         $hasLedger = $this->hasLedgerColumns()
             && Schema::hasTable('customer_ledger_entries');
 
-        $openingBalance = $hasLedger ? (float) $customer->opening_balance : 0;
-        $runningBalance = $openingBalance;
+        $customerOpening = $hasLedger ? (float) $customer->opening_balance : 0;
+        $runningBalance = $customerOpening;
         $totalDebit = 0;
         $totalCredit = 0;
         $ledgerRows = [];
+        $statementFiltered = $period !== null && $hasLedger;
+        $openingBalanceForStatementRow = $customerOpening;
 
         if ($hasLedger) {
-            $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
-                ->orderBy('date')
-                ->orderBy('id')
-                ->get();
+            if ($period === null) {
+                $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
+                    ->orderBy('date')
+                    ->orderBy('id')
+                    ->get();
 
-            foreach ($entries as $entry) {
-                $debit = (float) $entry->debit;
-                $credit = (float) $entry->credit;
+                foreach ($entries as $entry) {
+                    $debit = (float) $entry->debit;
+                    $credit = (float) $entry->credit;
 
-                $runningBalance += $debit - $credit;
-                $totalDebit += $debit;
-                $totalCredit += $credit;
+                    $runningBalance += $debit - $credit;
+                    $totalDebit += $debit;
+                    $totalCredit += $credit;
 
-                $ledgerRows[] = [
-                    'date' => $entry->date,
-                    'description' => $entry->description,
-                    // Statement column shows customer account code (not invoice / internal reference).
-                    'reference' => $customer->customer_code,
-                    'debit' => $debit,
-                    'credit' => $credit,
-                    'running_balance' => $runningBalance,
-                    'source_type' => $entry->source_type,
-                ];
+                    $ledgerRows[] = [
+                        'date' => $entry->date,
+                        'description' => $entry->description,
+                        'reference' => $customer->customer_code,
+                        'debit' => $debit,
+                        'credit' => $credit,
+                        'running_balance' => $runningBalance,
+                        'source_type' => $entry->source_type,
+                    ];
+                }
+            } else {
+                $fromStart = $period->fromStart;
+                $toEnd = $period->toEnd;
+
+                $preNet = (float) (CustomerLedgerEntry::query()
+                    ->where('customer_id', $customer->id)
+                    ->where('date', '<', $fromStart)
+                    ->selectRaw('COALESCE(SUM(debit - credit), 0) as net')
+                    ->value('net') ?? 0);
+
+                $periodOpening = $customerOpening + $preNet;
+                $runningBalance = $periodOpening;
+                $openingBalanceForStatementRow = $periodOpening;
+
+                $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
+                    ->where('date', '>=', $fromStart)
+                    ->where('date', '<=', $toEnd)
+                    ->orderBy('date')
+                    ->orderBy('id')
+                    ->get();
+
+                foreach ($entries as $entry) {
+                    $debit = (float) $entry->debit;
+                    $credit = (float) $entry->credit;
+
+                    $runningBalance += $debit - $credit;
+                    $totalDebit += $debit;
+                    $totalCredit += $credit;
+
+                    $ledgerRows[] = [
+                        'date' => $entry->date,
+                        'description' => $entry->description,
+                        'reference' => $customer->customer_code,
+                        'debit' => $debit,
+                        'credit' => $credit,
+                        'running_balance' => $runningBalance,
+                        'source_type' => $entry->source_type,
+                    ];
+                }
             }
         }
 
@@ -180,21 +227,31 @@ class CustomerController extends Controller
 
         return [
             'customer' => $customer,
-            'openingBalance' => $openingBalance,
+            'company' => StatementCompany::normalize(config('company')),
+            'openingBalance' => $openingBalanceForStatementRow,
             'ledgerRows' => $ledgerRows,
             'totalDebit' => $totalDebit,
             'totalCredit' => $totalCredit,
             'closingBalance' => $runningBalance,
             'currencySymbol' => $currencySymbol,
+            'statementFiltered' => $statementFiltered,
+            'periodFrom' => $period?->fromStart,
+            'periodTo' => $period?->toEnd,
         ];
     }
 
+    private function redirectStatementWithValidation(Customer $customer, ValidationException $e): RedirectResponse
+    {
+        return redirect()
+            ->route('customers.statement', ['customer' => $customer])
+            ->withErrors($e->validator)
+            ->withInput();
+    }
+
     /**
-     * Build the statement PDF as raw bytes (shared by download and email).
-     *
      * @return array{content: string, filename: string}
      */
-    private function makeStatementPdfBinary(Customer $customer): array
+    private function makeStatementPdfBinary(Customer $customer, ?CustomerStatementPeriod $period = null): array
     {
         $fontsDir = storage_path('fonts');
         if (! is_dir($fontsDir)) {
@@ -205,7 +262,7 @@ class CustomerController extends Controller
             throw new \RuntimeException('PDF package not installed on server.');
         }
 
-        $data = $this->getStatementData($customer);
+        $data = $this->getStatementData($customer, $period);
 
         $pdf = Pdf::loadView('customers.statement-pdf', $data)
             ->setPaper('a4', 'portrait')
@@ -214,11 +271,21 @@ class CustomerController extends Controller
             ->setOption('fontDir', $fontsDir)
             ->setOption('fontCache', $fontsDir);
 
-        $filename = sprintf(
-            'statement-%s-%s.pdf',
-            Str::slug($customer->customer_name),
-            now()->format('Y-m-d')
-        );
+        $slug = Str::slug($customer->customer_name);
+        if ($period !== null) {
+            $filename = sprintf(
+                'statement-%s-%s-%s.pdf',
+                $slug,
+                $period->fromStart->format('Y-m-d'),
+                $period->toEnd->format('Y-m-d')
+            );
+        } else {
+            $filename = sprintf(
+                'statement-%s-all-%s.pdf',
+                $slug,
+                now()->format('Y-m-d')
+            );
+        }
 
         return [
             'content' => $pdf->output(),
@@ -226,17 +293,29 @@ class CustomerController extends Controller
         ];
     }
 
-    public function statement(Customer $customer): View
+    public function statement(Request $request, Customer $customer): View|RedirectResponse
     {
-        $data = $this->getStatementData($customer);
+        try {
+            [, $period] = CustomerStatementPeriod::validateAndParse($request);
+        } catch (ValidationException $e) {
+            return $this->redirectStatementWithValidation($customer, $e);
+        }
+
+        $data = $this->getStatementData($customer, $period);
 
         return view('customers.statement', $data);
     }
 
-    public function statementPdf(Customer $customer): Response|RedirectResponse
+    public function statementPdf(Request $request, Customer $customer): Response|RedirectResponse
     {
         try {
-            $out = $this->makeStatementPdfBinary($customer);
+            [, $period] = CustomerStatementPeriod::validateAndParse($request);
+        } catch (ValidationException $e) {
+            return $this->redirectStatementWithValidation($customer, $e);
+        }
+
+        try {
+            $out = $this->makeStatementPdfBinary($customer, $period);
 
             return response($out['content'], 200, [
                 'Content-Type' => 'application/pdf',
@@ -250,13 +329,23 @@ class CustomerController extends Controller
             ]);
 
             return redirect()
-                ->route('customers.statement', $customer)
+                ->route('customers.statement', array_filter([
+                    'customer' => $customer,
+                    'from' => $period?->fromStart->format('Y-m-d'),
+                    'to' => $period?->toEnd->format('Y-m-d'),
+                ]))
                 ->with('error', 'PDF generation failed: '.$e->getMessage());
         }
     }
 
     public function emailStatement(Request $request, Customer $customer): RedirectResponse
     {
+        try {
+            [, $period] = CustomerStatementPeriod::validateAndParse($request);
+        } catch (ValidationException $e) {
+            return $this->redirectStatementWithValidation($customer, $e);
+        }
+
         $validated = $request->validate([
             'message' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -264,12 +353,16 @@ class CustomerController extends Controller
         $email = trim((string) $customer->email);
         if ($email === '') {
             return redirect()
-                ->route('customers.statement', $customer)
+                ->route('customers.statement', array_filter([
+                    'customer' => $customer,
+                    'from' => $period?->fromStart->format('Y-m-d'),
+                    'to' => $period?->toEnd->format('Y-m-d'),
+                ]))
                 ->with('error', 'This customer has no email address. Add one on the customer record first.');
         }
 
         try {
-            $out = $this->makeStatementPdfBinary($customer);
+            $out = $this->makeStatementPdfBinary($customer, $period);
 
             Mail::to($email)->send(new CustomerStatementMail(
                 customer: $customer,
@@ -285,12 +378,20 @@ class CustomerController extends Controller
             ]);
 
             return redirect()
-                ->route('customers.statement', $customer)
+                ->route('customers.statement', array_filter([
+                    'customer' => $customer,
+                    'from' => $period?->fromStart->format('Y-m-d'),
+                    'to' => $period?->toEnd->format('Y-m-d'),
+                ]))
                 ->with('error', 'Could not send email: '.$e->getMessage());
         }
 
         return redirect()
-            ->route('customers.statement', $customer)
+            ->route('customers.statement', array_filter([
+                'customer' => $customer,
+                'from' => $period?->fromStart->format('Y-m-d'),
+                'to' => $period?->toEnd->format('Y-m-d'),
+            ]))
             ->with('success', 'Statement emailed to '.$email.'.');
     }
 }
