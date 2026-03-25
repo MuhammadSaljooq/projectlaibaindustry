@@ -21,6 +21,7 @@ $navItems = [
     ['key' => 'purchases',    'icon' => 'shopping_cart',          'label' => 'Purchases',   'route' => route('purchases.index', absolute: false)],
     ['key' => 'payables',     'icon' => 'account_balance',        'label' => 'Payables',    'route' => route('payables.index', absolute: false)],
     ['key' => 'expenses',     'icon' => 'receipt_long',           'label' => 'Expenses',    'route' => route('expenses.index', absolute: false)],
+    ['key' => 'bank_statement', 'icon' => 'account_balance',      'label' => 'Bank statement', 'route' => route('bank-statement.index', absolute: false)],
     ['key' => 'vat',          'icon' => 'percent',                'label' => 'VAT',         'route' => route('vat.index', absolute: false)],
 ];
 $active = $activeNav ?? '';

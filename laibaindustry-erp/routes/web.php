@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\BankStatementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
@@ -60,6 +61,13 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::post('customers/{customer}/statement/email', [CustomerController::class, 'emailStatement'])->name('customers.statement.email');
     Route::resource('payables', PayableController::class);
     Route::resource('expenses', ExpenseController::class);
+
+    Route::get('bank-statement', [BankStatementController::class, 'index'])->name('bank-statement.index');
+    Route::post('bank-statement', [BankStatementController::class, 'store'])->name('bank-statement.store');
+    Route::get('bank-statement/{bank_statement_entry}/edit', [BankStatementController::class, 'edit'])->name('bank-statement.edit');
+    Route::put('bank-statement/{bank_statement_entry}', [BankStatementController::class, 'update'])->name('bank-statement.update');
+    Route::delete('bank-statement/{bank_statement_entry}', [BankStatementController::class, 'destroy'])->name('bank-statement.destroy');
+
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
     Route::get('/vat/export', [VatController::class, 'export'])->name('vat.export');
 
