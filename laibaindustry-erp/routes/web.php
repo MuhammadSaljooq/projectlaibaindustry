@@ -53,6 +53,11 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
 
     Route::resource('products', ProductController::class);
     Route::resource('sales', SaleController::class);
+    Route::get('receivables/group/{groupKey}', [ReceivableController::class, 'showGroup'])->name('receivables.group');
+    Route::post('receivables/group/{groupKey}/payments', [ReceivableController::class, 'storeGroupPayment'])->name('receivables.group.payments.store');
+    Route::get('receivables/group/{groupKey}/payments/{receivableGroupPayment}/edit', [ReceivableController::class, 'editGroupPayment'])->name('receivables.group.payments.edit');
+    Route::patch('receivables/group/{groupKey}/payments/{receivableGroupPayment}', [ReceivableController::class, 'updateGroupPayment'])->name('receivables.group.payments.update');
+    Route::delete('receivables/group/{groupKey}/payments/{receivableGroupPayment}', [ReceivableController::class, 'destroyGroupPayment'])->name('receivables.group.payments.destroy');
     Route::patch('receivables/{receivable}/payments/{customerLedgerEntry}', [ReceivableController::class, 'updatePayment'])->name('receivables.payments.update');
     Route::delete('receivables/{receivable}/payments/{customerLedgerEntry}', [ReceivableController::class, 'destroyPayment'])->name('receivables.payments.destroy');
     Route::put('receivables/{receivable}/adjust-received', [ReceivableController::class, 'adjustReceivedWithoutLedger'])->name('receivables.adjust-received');

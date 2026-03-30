@@ -25,7 +25,7 @@
 <div class="flex flex-col gap-1 min-w-0">
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Receivables</h1>
 </div>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Accounts receivable · read / record payment</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Accounts receivable · by customer</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
@@ -64,51 +64,57 @@
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] flex flex-wrap items-center justify-between gap-3 bg-[#EAEFF1]">
 <div>
-<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Open &amp; closed receivables</h3>
-<p class="text-[11px] text-[#586064] mt-1 max-w-xl">Track amounts owed. <span class="font-bold text-[#5E5E5E]">Click a row</span> to open the receivable and record or adjust payments.</p>
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Customers (aggregated)</h3>
+<p class="text-[11px] text-[#586064] mt-1 max-w-xl">One row per customer (or same name without code). <span class="font-bold text-[#5E5E5E]">Click a row</span> to see invoices and open Manage on each.</p>
 </div>
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[700px]">
+<table class="w-full text-left border-collapse min-w-[900px]">
 <thead>
 <tr class="st-thead">
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice date</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Payment date</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Customer</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Invoices</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Latest invoice</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Latest payment</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Total bill</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Received</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Remaining</th>
-<th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Status</th>
+<th class="st-th px-4 py-3 text-right w-28 whitespace-nowrap">Status</th>
 </tr>
 </thead>
 <tbody>
-@forelse($receivables as $r)
-@php $remaining = (float)$r->amount - (float)$r->received; @endphp
-<tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer hover:bg-[#F1F4F6] @endif"
-@if(auth()->user()->role !== 'viewer')
-data-receivable-edit-url="{{ route('receivables.edit', $r) }}"
+@forelse($receivableGroups as $g)
+@php
+    $remaining = (float) $g->total_amount - (float) $g->total_received;
+    $groupUrl = route('receivables.group', ['groupKey' => \App\Models\Receivable::encodeGroupKeyForRoute($g->ar_group_key)]);
+    $latestInv = $g->latest_invoice_date ? \Carbon\Carbon::parse($g->latest_invoice_date) : null;
+    $latestPay = $g->latest_payment_at ? \Carbon\Carbon::parse($g->latest_payment_at) : null;
+    $aggName = $g->agg_customer_name ?: '—';
+    $aggCode = $g->agg_customer_code ? trim((string) $g->agg_customer_code) : '';
+@endphp
+<tr class="st-tr cursor-pointer hover:bg-[#F1F4F6]"
+data-receivable-group-url="{{ $groupUrl }}"
 tabindex="0"
-aria-label="Open receivable {{ $r->invoice_number ? 'invoice '.$r->invoice_number : '#'.$r->id }}"
-@endif
+aria-label="Open receivables for {{ $aggName }}"
 >
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $r->date->format('Y-m-d') }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $r->payment_received_at ? $r->payment_received_at->format('Y-m-d') : '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $r->invoice_number ?: '—' }}</td>
-<td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $r->customer_name ?: $r->customer_code ?: '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($r->received, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm text-[#2B3437]">
+<p class="font-semibold">{{ $aggName }}</p>
+@if ($aggCode !== '')
+<p class="text-[11px] text-[#586064] font-mono mt-0.5">{{ $aggCode }}</p>
+@endif
+</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ (int) $g->invoice_count }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestInv ? $latestInv->format('Y-m-d') : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestPay ? $latestPay->format('Y-m-d') : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $g->total_amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $g->total_received, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</td>
 <td class="st-td px-4 py-3 text-right">
-@if(auth()->user()->role !== 'viewer')
 @if ($remaining <= 0)
 <span class="text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-1 inline-block bg-[#F8F9FA]">Paid</span>
 @else
 <span class="text-[10px] font-bold uppercase tracking-wider text-[#5E5E5E]">Open</span>
-@endif
-@else
-<span class="text-xs text-[#586064]">—</span>
 @endif
 </td>
 </tr>
@@ -124,32 +130,32 @@ aria-label="Open receivable {{ $r->invoice_number ? 'invoice '.$r->invoice_numbe
 </table>
 </div>
 
-@if($receivables->hasPages())
+@if($receivableGroups->hasPages())
 <div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $receivables->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $receivables->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $receivables->total() }}</span>
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $receivableGroups->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $receivableGroups->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $receivableGroups->total() }}</span>
 </p>
 <nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$receivables->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $receivables->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
+@if (!$receivableGroups->onFirstPage())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $receivableGroups->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
 @endif
-@foreach ($receivables->getUrlRange(max(1, $receivables->currentPage() - 2), min($receivables->lastPage(), $receivables->currentPage() + 2)) ?: [1 => $receivables->url(1)] as $page => $url)
-@if ($page == $receivables->currentPage())
+@foreach ($receivableGroups->getUrlRange(max(1, $receivableGroups->currentPage() - 2), min($receivableGroups->lastPage(), $receivableGroups->currentPage() + 2)) ?: [1 => $receivableGroups->url(1)] as $page => $url)
+@if ($page == $receivableGroups->currentPage())
 <span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
 @else
 <a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
 @endif
 @endforeach
-@if ($receivables->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $receivables->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
+@if ($receivableGroups->hasMorePages())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $receivableGroups->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
 @endif
 </nav>
 </div>
 @else
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($receivables->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $receivables->total() }}</span> results
+@if($receivableGroups->total() > 0)
+Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $receivableGroups->total() }}</span> customers
 @else
 No results
 @endif
@@ -162,11 +168,10 @@ No results
 </div>
 </div>
 </main>
-@if(auth()->user()->role !== 'viewer')
 <script>
 (function () {
-  document.querySelectorAll('tr[data-receivable-edit-url]').forEach(function (tr) {
-    var url = tr.getAttribute('data-receivable-edit-url');
+  document.querySelectorAll('tr[data-receivable-group-url]').forEach(function (tr) {
+    var url = tr.getAttribute('data-receivable-group-url');
     tr.addEventListener('click', function (e) {
       if (e.target.closest('a, button, input, select, textarea, label')) return;
       window.location.href = url;
@@ -179,6 +184,5 @@ No results
   });
 })();
 </script>
-@endif
 </body>
 </html>

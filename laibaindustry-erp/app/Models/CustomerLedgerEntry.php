@@ -18,17 +18,23 @@ class CustomerLedgerEntry extends Model
         'credit',
         'source_type',
         'source_id',
+        'receivable_group_payment_id',
         'notes',
     ];
 
     protected $casts = [
-        'date'   => 'datetime',
-        'debit'  => 'decimal:2',
+        'date' => 'datetime',
+        'debit' => 'decimal:2',
         'credit' => 'decimal:2',
     ];
 
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function receivableGroupPayment(): BelongsTo
+    {
+        return $this->belongsTo(ReceivableGroupPayment::class);
     }
 }
