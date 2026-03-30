@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -48,12 +49,12 @@ class DatabaseSeeder extends Seeder
         DB::table('users')->upsert([
             [
                 'email' => 'admin@example.com',
-                'password_hash' => '$2y$12$fqt0tvYgS5n15OyqPFclgeW6LOhaRBwsMvENCYjzeNSEzzL391Fe.',
+                'password_hash' => Hash::make('password'),
                 'name' => 'Admin',
                 'role' => 'admin',
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,
             ],
-        ], ['email'], ['name', 'role', 'updated_at']);
+        ], ['email'], ['name', 'role', 'password_hash', 'updated_at']);
     }
 }

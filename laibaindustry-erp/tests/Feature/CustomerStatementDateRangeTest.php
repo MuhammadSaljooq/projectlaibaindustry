@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CustomerStatementDateRangeTest extends TestCase
@@ -69,6 +70,63 @@ class CustomerStatementDateRangeTest extends TestCase
         $response->assertViewHas('closingBalance', 70.0);
         $rows = $response->viewData('ledgerRows');
         $this->assertCount(2, $rows);
+    }
+
+    public function test_statement_orders_same_date_by_created_at_not_id(): void
+    {
+        $user = $this->actingManager();
+        $customer = Customer::create([
+            'customer_code' => 'STMT-ORD',
+            'customer_name' => 'Order Test Co',
+            'phone' => null,
+            'email' => null,
+            'address' => null,
+            'opening_balance' => 0,
+            'opening_balance_date' => '2025-01-01',
+        ]);
+
+        $firstPosted = CustomerLedgerEntry::create([
+            'customer_id' => $customer->id,
+            'date' => '2025-06-15 00:00:00',
+            'description' => 'Posted first',
+            'reference' => null,
+            'debit' => 10,
+            'credit' => 0,
+            'source_type' => 'sale',
+            'source_id' => null,
+            'notes' => null,
+        ]);
+
+        $secondPosted = CustomerLedgerEntry::create([
+            'customer_id' => $customer->id,
+            'date' => '2025-06-15 00:00:00',
+            'description' => 'Posted second',
+            'reference' => null,
+            'debit' => 5,
+            'credit' => 0,
+            'source_type' => 'sale',
+            'source_id' => null,
+            'notes' => null,
+        ]);
+
+        $this->assertLessThan($secondPosted->id, $firstPosted->id);
+
+        DB::table('customer_ledger_entries')->where('id', $firstPosted->id)->update([
+            'created_at' => '2025-06-16 12:00:00',
+            'updated_at' => '2025-06-16 12:00:00',
+        ]);
+        DB::table('customer_ledger_entries')->where('id', $secondPosted->id)->update([
+            'created_at' => '2025-06-15 08:00:00',
+            'updated_at' => '2025-06-15 08:00:00',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('customers.statement', $customer));
+
+        $response->assertOk();
+        $rows = $response->viewData('ledgerRows');
+        $this->assertCount(2, $rows);
+        $this->assertSame('Posted second', $rows[0]['description']);
+        $this->assertSame('Posted first', $rows[1]['description']);
     }
 
     public function test_filtered_statement_uses_balance_brought_forward_and_period_totals(): void

@@ -10,22 +10,22 @@ return new class extends Migration
     {
         Schema::create('receivable_group_payment_lines', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('receivable_group_payment_id')
-                ->constrained('receivable_group_payments')
-                ->cascadeOnDelete();
-            $table->foreignId('receivable_id')
-                ->constrained('receivables')
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('receivable_group_payment_id');
+            $table->unsignedBigInteger('receivable_id');
             $table->decimal('amount', 10, 2);
             $table->unsignedInteger('customer_ledger_entry_id')->nullable();
             $table->timestamps();
 
-            $table->foreign('customer_ledger_entry_id')
+            // Only FK to receivable_group_payments: guaranteed same engine/type as this migration.
+            // No DB FK to receivables / customer_ledger_entries — live DBs often use INT id vs BIGINT,
+            // MyISAM, or other drift; errno 150 otherwise. Indexes keep lookups fast; app enforces links.
+            $table->foreign('receivable_group_payment_id', 'rgpl_ar_group_pay_fk')
                 ->references('id')
-                ->on('customer_ledger_entries')
-                ->nullOnDelete();
+                ->on('receivable_group_payments')
+                ->cascadeOnDelete();
 
-            $table->index('receivable_id');
+            $table->index('receivable_id', 'rgpl_receivable_id_idx');
+            $table->index('customer_ledger_entry_id', 'rgpl_cust_ledger_idx');
         });
     }
 

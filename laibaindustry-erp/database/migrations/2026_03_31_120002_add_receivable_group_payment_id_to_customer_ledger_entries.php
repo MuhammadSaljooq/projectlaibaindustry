@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::table('customer_ledger_entries', function (Blueprint $table) {
             $table->unsignedBigInteger('receivable_group_payment_id')->nullable()->after('source_id');
-            $table->foreign('receivable_group_payment_id')
+            $table->foreign('receivable_group_payment_id', 'cle_ar_group_pay_fk')
                 ->references('id')
                 ->on('receivable_group_payments')
                 ->nullOnDelete();
-            $table->index('receivable_group_payment_id');
+            $table->index('receivable_group_payment_id', 'cle_ar_group_pay_idx');
         });
     }
 

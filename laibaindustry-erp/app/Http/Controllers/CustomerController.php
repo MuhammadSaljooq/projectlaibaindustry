@@ -11,6 +11,7 @@ use App\Models\CustomerLedgerEntry;
 use App\Support\CustomerStatementPeriod;
 use App\Support\StatementCompany;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -139,6 +140,23 @@ class CustomerController extends Controller
     }
 
     /**
+     * Chronological order for statement lines: business date, then when the row was posted,
+     * then id. Many entries share the same clock time (date-only from forms); id alone does not
+     * match true posting sequence.
+     *
+     * @param  Builder<CustomerLedgerEntry>  $query
+     * @return Builder<CustomerLedgerEntry>
+     */
+    private function applyStatementLedgerOrdering(Builder $query): Builder
+    {
+        return $query
+            ->orderBy('date')
+            ->orderByRaw('CASE WHEN created_at IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('created_at')
+            ->orderBy('id');
+    }
+
+    /**
      * Get statement data for a customer (ledger rows, balances, totals).
      *
      * @param  CustomerStatementPeriod|null  $period  When set, statement is limited to [fromStart, toEnd] inclusive; opening row is balance brought forward.
@@ -158,10 +176,9 @@ class CustomerController extends Controller
 
         if ($hasLedger) {
             if ($period === null) {
-                $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
-                    ->orderBy('date')
-                    ->orderBy('id')
-                    ->get();
+                $entries = $this->applyStatementLedgerOrdering(
+                    CustomerLedgerEntry::query()->where('customer_id', $customer->id)
+                )->get();
 
                 foreach ($entries as $entry) {
                     $debit = (float) $entry->debit;
@@ -195,12 +212,12 @@ class CustomerController extends Controller
                 $runningBalance = $periodOpening;
                 $openingBalanceForStatementRow = $periodOpening;
 
-                $entries = CustomerLedgerEntry::where('customer_id', $customer->id)
-                    ->where('date', '>=', $fromStart)
-                    ->where('date', '<=', $toEnd)
-                    ->orderBy('date')
-                    ->orderBy('id')
-                    ->get();
+                $entries = $this->applyStatementLedgerOrdering(
+                    CustomerLedgerEntry::query()
+                        ->where('customer_id', $customer->id)
+                        ->where('date', '>=', $fromStart)
+                        ->where('date', '<=', $toEnd)
+                )->get();
 
                 foreach ($entries as $entry) {
                     $debit = (float) $entry->debit;
