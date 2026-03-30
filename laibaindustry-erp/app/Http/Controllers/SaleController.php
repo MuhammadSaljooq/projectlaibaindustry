@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSaleRequest;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Product;
@@ -10,7 +11,6 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\TaxSetting;
 use App\Models\VatEntry;
-use App\Http\Requests\StoreSaleRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -20,31 +20,28 @@ class SaleController extends Controller
 {
     public function index(): View
     {
-        $query = SaleItem::query()
-            ->with(['sale', 'product'])
-            ->join('sales', 'sales_items.sale_id', '=', 'sales.id')
-            ->join('products', 'sales_items.product_id', '=', 'products.id')
-            ->select('sales_items.*');
+        $query = Sale::query()
+            ->with(['items.product', 'currency']);
 
         if ($search = request('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('sales.invoice_number', 'like', "%{$search}%")
-                  ->orWhere('sales.customer_name', 'like', "%{$search}%")
-                  ->orWhere('sales.customer_code', 'like', "%{$search}%")
-                  ->orWhere('products.name', 'like', "%{$search}%");
+            $like = '%'.$search.'%';
+            $query->where(function ($q) use ($like) {
+                $q->where('invoice_number', 'like', $like)
+                    ->orWhere('customer_name', 'like', $like)
+                    ->orWhere('customer_code', 'like', $like)
+                    ->orWhereHas('items.product', fn ($pq) => $pq->where('name', 'like', $like));
             });
         }
         if ($from = request('from')) {
-            $query->whereDate('sales.date', '>=', $from);
+            $query->whereDate('date', '>=', $from);
         }
         if ($to = request('to')) {
-            $query->whereDate('sales.date', '<=', $to);
+            $query->whereDate('date', '<=', $to);
         }
 
-        $items = $query
-            ->orderByDesc('sales.date')
-            ->orderBy('sales.id')
-            ->orderBy('sales_items.id')
+        $sales = $query
+            ->orderByDesc('date')
+            ->orderByDesc('id')
             ->paginate(25)
             ->appends(request()->query());
 
@@ -53,7 +50,7 @@ class SaleController extends Controller
             ->first();
 
         return view('sales.index', [
-            'items'  => $items,
+            'sales' => $sales,
             'totals' => $totals,
         ]);
     }
@@ -73,7 +70,7 @@ class SaleController extends Controller
                         $sale->invoice_number,
                         $sale->customer_code ?? '',
                         $sale->customer_name ?? '',
-                        $item->product?->name ?? 'Product #' . $item->product_id,
+                        $item->product?->name ?? 'Product #'.$item->product_id,
                         $item->quantity,
                         number_format($item->selling_price, 2, '.', ''),
                         number_format($amount, 2, '.', ''),
@@ -83,14 +80,14 @@ class SaleController extends Controller
                 }
             }
             fclose($handle);
-        }, 'sales-' . now()->format('Y-m-d') . '.csv', [
+        }, 'sales-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv',
         ]);
     }
 
     public function create(): View
     {
-        $products  = Product::query()->orderBy('name')->get();
+        $products = Product::query()->orderBy('name')->get();
         $customers = Customer::query()->orderBy('customer_name')->get();
 
         return view('sales.create', ['products' => $products, 'customers' => $customers]);
@@ -111,63 +108,64 @@ class SaleController extends Controller
 
             $subtotal = 0;
             foreach ($items as $item) {
-                $qty   = (int) ($item['quantity']      ?? 1);
+                $qty = (int) ($item['quantity'] ?? 1);
                 $price = (float) ($item['selling_price'] ?? 0);
                 $subtotal += $price * $qty;
             }
-            $taxAmount   = $subtotal * ($taxRate / 100);
+            $taxAmount = $subtotal * ($taxRate / 100);
             $totalAmount = $subtotal + $taxAmount;
 
             $sale = Sale::create([
-                'date'            => $request->date,
-                'customer_code'   => $request->customer_code ?: null,
-                'customer_name'   => $request->customer_name ?: null,
-                'invoice_number'  => $request->invoice_number,
-                'subtotal'        => round($subtotal, 2),
-                'tax_amount'      => round($taxAmount, 2),
+                'date' => $request->date,
+                'customer_code' => $request->customer_code ?: null,
+                'customer_name' => $request->customer_name ?: null,
+                'invoice_number' => $request->invoice_number,
+                'subtotal' => round($subtotal, 2),
+                'tax_amount' => round($taxAmount, 2),
                 'discount_amount' => 0,
-                'total_amount'    => round($totalAmount, 2),
-                'tax_rate'        => $taxRate,
-                'currency_id'     => $defaultCurrencyId,
-                'exchange_rate'   => null,
-                'status'          => 'completed',
+                'total_amount' => round($totalAmount, 2),
+                'tax_rate' => $taxRate,
+                'currency_id' => $defaultCurrencyId,
+                'exchange_rate' => null,
+                'status' => 'completed',
             ]);
 
             foreach ($items as $item) {
-                $product      = Product::findOrFail($item['product_id']);
-                $qty          = (int) ($item['quantity']      ?? 1);
+                $product = Product::findOrFail($item['product_id']);
+                $qty = (int) ($item['quantity'] ?? 1);
                 $sellingPrice = (float) ($item['selling_price'] ?? 0);
-                $costPrice    = (float) ($product->cost_price    ?? 0);
+                $costPrice = (float) ($product->cost_price ?? 0);
 
                 if ($product->stock_quantity < $qty) {
                     DB::rollBack();
+
                     return redirect()->back()->withInput()->with('error', "Insufficient stock for '{$product->name}'. Available: {$product->stock_quantity}, required: {$qty}.");
                 }
 
                 $lineAmount = $sellingPrice * $qty;
-                $lineTax    = $lineAmount * ($taxRate / 100);
-                $profit     = ($sellingPrice - $costPrice) * $qty;
+                $lineTax = $lineAmount * ($taxRate / 100);
+                $profit = ($sellingPrice - $costPrice) * $qty;
 
                 SaleItem::create([
-                    'sale_id'       => $sale->id,
-                    'product_id'    => $product->id,
-                    'quantity'      => $qty,
-                    'cost_price'    => $costPrice,
+                    'sale_id' => $sale->id,
+                    'product_id' => $product->id,
+                    'quantity' => $qty,
+                    'cost_price' => $costPrice,
                     'selling_price' => $sellingPrice,
-                    'profit'        => round($profit, 2),
-                    'tax_applied'   => round($lineTax, 2),
+                    'profit' => round($profit, 2),
+                    'tax_applied' => round($lineTax, 2),
                 ]);
 
                 $product->decrement('stock_quantity', $qty);
             }
 
             Receivable::create([
-                'date'           => $request->date,
+                'date' => $request->date,
                 'invoice_number' => $request->invoice_number,
-                'customer_name'  => $request->customer_name ?: null,
-                'customer_code'  => $request->customer_code ?: null,
-                'amount'         => round($totalAmount, 2),
-                'received'       => 0,
+                'customer_name' => $request->customer_name ?: null,
+                'customer_code' => $request->customer_code ?: null,
+                'amount' => round($totalAmount, 2),
+                'received' => 0,
             ]);
 
             // Only upsert a customer record when a customer_code is explicitly provided
@@ -185,28 +183,28 @@ class SaleController extends Controller
             if ($customer) {
                 CustomerLedgerEntry::create([
                     'customer_id' => $customer->id,
-                    'date'        => $request->date,
+                    'date' => $request->date,
                     'description' => 'Sale Invoice',
-                    'reference'   => $request->invoice_number,
-                    'debit'       => round($totalAmount, 2),
-                    'credit'      => 0,
+                    'reference' => $request->invoice_number,
+                    'debit' => round($totalAmount, 2),
+                    'credit' => 0,
                     'source_type' => 'sale',
-                    'source_id'   => $sale->id,
+                    'source_id' => $sale->id,
                 ]);
             }
 
             VatEntry::create([
-                'type'           => 'sale',
-                'source_type'    => Sale::class,
-                'source_id'      => $sale->id,
-                'date'           => $request->date,
+                'type' => 'sale',
+                'source_type' => Sale::class,
+                'source_id' => $sale->id,
+                'date' => $request->date,
                 'invoice_number' => $request->invoice_number,
-                'customer_name'  => $request->customer_name ?: null,
-                'customer_code'  => $request->customer_code ?: null,
-                'subtotal'       => round($subtotal, 2),
-                'vat_rate'       => $taxRate,
-                'vat_amount'     => round($taxAmount, 2),
-                'total_amount'   => round($totalAmount, 2),
+                'customer_name' => $request->customer_name ?: null,
+                'customer_code' => $request->customer_code ?: null,
+                'subtotal' => round($subtotal, 2),
+                'vat_rate' => $taxRate,
+                'vat_amount' => round($taxAmount, 2),
+                'total_amount' => round($totalAmount, 2),
             ]);
 
             DB::commit();
@@ -214,7 +212,8 @@ class SaleController extends Controller
             return redirect()->route('sales.index')->with('success', 'Sale created successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Failed to create sale: ' . $e->getMessage());
+
+            return redirect()->back()->withInput()->with('error', 'Failed to create sale: '.$e->getMessage());
         }
     }
 
@@ -228,12 +227,12 @@ class SaleController extends Controller
     public function edit(Sale $sale): View
     {
         $sale->load('items.product');
-        $products  = Product::query()->orderBy('name')->get();
+        $products = Product::query()->orderBy('name')->get();
         $customers = Customer::query()->orderBy('customer_name')->get();
 
         return view('sales.edit', [
-            'sale'      => $sale,
-            'products'  => $products,
+            'sale' => $sale,
+            'products' => $products,
             'customers' => $customers,
         ]);
     }
@@ -246,13 +245,13 @@ class SaleController extends Controller
         }
 
         $defaultCurrencyId = \App\Models\Currency::query()->where('is_default', true)->value('id');
-        $taxRate           = (float) ($sale->tax_rate ?? 15.0);
+        $taxRate = (float) ($sale->tax_rate ?? 15.0);
 
         try {
             DB::beginTransaction();
 
             $sale->load('items.product');
-            $oldTotal      = (float) $sale->total_amount;
+            $oldTotal = (float) $sale->total_amount;
             $oldInvoiceRef = $sale->invoice_number;
 
             foreach ($sale->items as $item) {
@@ -263,48 +262,49 @@ class SaleController extends Controller
 
             $subtotal = 0;
             foreach ($items as $item) {
-                $qty   = (int) ($item['quantity']      ?? 1);
+                $qty = (int) ($item['quantity'] ?? 1);
                 $price = (float) ($item['selling_price'] ?? 0);
                 $subtotal += $price * $qty;
             }
-            $taxAmount   = $subtotal * ($taxRate / 100);
+            $taxAmount = $subtotal * ($taxRate / 100);
             $totalAmount = $subtotal + $taxAmount;
 
             $sale->update([
-                'date'           => $request->date,
-                'customer_code'  => $request->customer_code ?: null,
-                'customer_name'  => $request->customer_name ?: null,
+                'date' => $request->date,
+                'customer_code' => $request->customer_code ?: null,
+                'customer_name' => $request->customer_name ?: null,
                 'invoice_number' => $request->invoice_number,
-                'subtotal'       => round($subtotal, 2),
-                'tax_amount'     => round($taxAmount, 2),
-                'total_amount'   => round($totalAmount, 2),
+                'subtotal' => round($subtotal, 2),
+                'tax_amount' => round($taxAmount, 2),
+                'total_amount' => round($totalAmount, 2),
             ]);
 
             $sale->items()->delete();
 
             foreach ($items as $item) {
-                $product      = Product::findOrFail($item['product_id']);
-                $qty          = (int) ($item['quantity']      ?? 1);
+                $product = Product::findOrFail($item['product_id']);
+                $qty = (int) ($item['quantity'] ?? 1);
                 $sellingPrice = (float) ($item['selling_price'] ?? 0);
-                $costPrice    = (float) ($product->cost_price    ?? 0);
+                $costPrice = (float) ($product->cost_price ?? 0);
 
                 if ($product->stock_quantity < $qty) {
                     DB::rollBack();
+
                     return redirect()->back()->withInput()->with('error', "Insufficient stock for '{$product->name}'. Available: {$product->stock_quantity}, required: {$qty}.");
                 }
 
                 $lineAmount = $sellingPrice * $qty;
-                $lineTax    = $lineAmount * ($taxRate / 100);
-                $profit     = ($sellingPrice - $costPrice) * $qty;
+                $lineTax = $lineAmount * ($taxRate / 100);
+                $profit = ($sellingPrice - $costPrice) * $qty;
 
                 SaleItem::create([
-                    'sale_id'       => $sale->id,
-                    'product_id'    => $product->id,
-                    'quantity'      => $qty,
-                    'cost_price'    => $costPrice,
+                    'sale_id' => $sale->id,
+                    'product_id' => $product->id,
+                    'quantity' => $qty,
+                    'cost_price' => $costPrice,
                     'selling_price' => $sellingPrice,
-                    'profit'        => round($profit, 2),
-                    'tax_applied'   => round($lineTax, 2),
+                    'profit' => round($profit, 2),
+                    'tax_applied' => round($lineTax, 2),
                 ]);
 
                 $product->decrement('stock_quantity', $qty);
@@ -320,11 +320,11 @@ class SaleController extends Controller
                     ->where('invoice_number', $oldInvoiceRef)
                     ->where('amount', $oldTotal)
                     ->update([
-                        'date'           => $request->date,
+                        'date' => $request->date,
                         'invoice_number' => $request->invoice_number,
-                        'customer_name'  => $request->customer_name ?: null,
-                        'customer_code'  => $request->customer_code ?: null,
-                        'amount'         => max(round($totalAmount, 2), $received),
+                        'customer_name' => $request->customer_name ?: null,
+                        'customer_code' => $request->customer_code ?: null,
+                        'amount' => max(round($totalAmount, 2), $received),
                     ]);
             }
 
@@ -332,22 +332,22 @@ class SaleController extends Controller
             CustomerLedgerEntry::where('source_type', 'sale')
                 ->where('source_id', $sale->id)
                 ->update([
-                    'date'        => $request->date,
-                    'reference'   => $request->invoice_number,
-                    'debit'       => round($totalAmount, 2),
+                    'date' => $request->date,
+                    'reference' => $request->invoice_number,
+                    'debit' => round($totalAmount, 2),
                 ]);
 
             VatEntry::where('source_type', Sale::class)
                 ->where('source_id', $sale->id)
                 ->update([
-                    'date'           => $request->date,
+                    'date' => $request->date,
                     'invoice_number' => $request->invoice_number,
-                    'customer_name'  => $request->customer_name ?: null,
-                    'customer_code'  => $request->customer_code ?: null,
-                    'subtotal'       => round($subtotal, 2),
-                    'vat_rate'       => $taxRate,
-                    'vat_amount'     => round($taxAmount, 2),
-                    'total_amount'   => round($totalAmount, 2),
+                    'customer_name' => $request->customer_name ?: null,
+                    'customer_code' => $request->customer_code ?: null,
+                    'subtotal' => round($subtotal, 2),
+                    'vat_rate' => $taxRate,
+                    'vat_amount' => round($taxAmount, 2),
+                    'total_amount' => round($totalAmount, 2),
                 ]);
 
             DB::commit();
@@ -355,7 +355,8 @@ class SaleController extends Controller
             return redirect()->route('sales.show', $sale)->with('success', 'Sale updated successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('error', 'Failed to update sale: ' . $e->getMessage());
+
+            return redirect()->back()->withInput()->with('error', 'Failed to update sale: '.$e->getMessage());
         }
     }
 
@@ -396,7 +397,8 @@ class SaleController extends Controller
             return redirect()->route('sales.index')->with('success', 'Sale deleted successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            return redirect()->route('sales.index')->with('error', 'Failed to delete sale: ' . $e->getMessage());
+
+            return redirect()->route('sales.index')->with('error', 'Failed to delete sale: '.$e->getMessage());
         }
     }
 }

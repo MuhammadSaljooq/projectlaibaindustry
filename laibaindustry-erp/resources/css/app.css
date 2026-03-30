@@ -9,3 +9,18 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Line-item number fields (when built with Vite): hide native stepper arrows */
+.price-input::-webkit-outer-spin-button,
+.price-input::-webkit-inner-spin-button,
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.price-input[type='number'],
+.qty-input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}

@@ -37,7 +37,7 @@ New sale
 <div class="flex flex-col gap-1 min-w-0">
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Sales</h1>
 </div>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Line items · click row to open</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">One row per invoice · click row to open</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
@@ -105,8 +105,8 @@ Clear
 
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
-<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Sales line ledger</h3>
-<p class="text-[11px] text-[#586064] mt-1">Per-line revenue · view or delete from actions</p>
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Sales invoices</h3>
+<p class="text-[11px] text-[#586064] mt-1">One row per sale · line details on the sale page</p>
 </div>
 
 <div class="overflow-x-auto w-full">
@@ -116,41 +116,46 @@ Clear
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap max-w-[160px]">Customer</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
-<th class="st-th px-4 py-3">Product</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Price</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Qty</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Amount</th>
+<th class="st-th px-4 py-3 min-w-[200px]">Lines</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Total</th>
 <th class="st-th px-4 py-3 text-right w-28"></th>
 </tr>
 </thead>
 <tbody>
-@forelse($items as $item)
+@forelse($sales as $sale)
 @php
-$sale = $item->sale;
-$amount = $item->selling_price * $item->quantity;
-$vat = $item->tax_applied ?? 0;
-$subtotal = $amount + $vat;
-$showLabel = $sale ? 'View sale ' . ($sale->invoice_number ?: '#' . $sale->id) : '';
+$rowSymbol = $sale->currency && $sale->currency->symbol ? $sale->currency->symbol : ($currencySymbol ?? '$');
+$lineCount = $sale->items->count();
+$firstItem = $sale->items->first();
+$firstName = $firstItem ? ($firstItem->product?->name ?: 'Product #'.$firstItem->product_id) : '—';
+if ($lineCount === 0) {
+    $linesSummary = 'No line items';
+} elseif ($lineCount === 1) {
+    $linesSummary = $firstName;
+} else {
+    $linesSummary = $firstName.', +'.($lineCount - 1).' more';
+}
+$showLabel = 'View sale '.($sale->invoice_number ?: '#'.$sale->id);
 @endphp
-<tr class="st-tr @if($sale) cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
-    @if($sale) data-sale-show-url="{{ route('sales.show', $sale) }}" role="link" tabindex="0" aria-label="{{ e($showLabel) }}" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $sale ? $sale->date->format('Y-m-d') : '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437] truncate max-w-[160px]">{{ $sale?->customer_name ?: ($sale?->customer_code ?: '—') }}</td>
+<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
+    data-sale-show-url="{{ route('sales.show', $sale) }}" role="link" tabindex="0" aria-label="{{ e($showLabel) }}">
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $sale->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437] truncate max-w-[160px]">{{ $sale->customer_name ?: ($sale->customer_code ?: '—') }}</td>
 <td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
-@if($sale)
 <a href="{{ route('sales.show', $sale) }}" class="text-[#5E5E5E] hover:underline" onclick="event.stopPropagation()">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>
-@else — @endif
 </td>
-<td class="st-td px-4 py-3 text-sm text-[#586064]">{{ $item->product?->name ?: 'Product #' . $item->product_id }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($item->selling_price, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#586064]">{{ number_format($item->quantity) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($vat, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($subtotal, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm text-[#586064] max-w-[280px]" title="{{ e($linesSummary) }}">
+<span class="line-clamp-2">{{ $linesSummary }}</span>
+@if($lineCount > 1)
+<span class="block text-[10px] uppercase tracking-wide text-[#586064] mt-0.5">{{ $lineCount }} products</span>
+@endif
+</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $rowSymbol }} {{ number_format($sale->subtotal ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $rowSymbol }} {{ number_format($sale->tax_amount ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $rowSymbol }} {{ number_format($sale->total_amount ?? 0, 2) }}</td>
 <td class="st-td px-4 py-3 text-right" data-stop-row-nav>
-@if($sale)
 <div class="flex items-center justify-end gap-1 flex-wrap">
 <a href="{{ route('sales.show', $sale) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View">
 <span class="material-symbols-outlined text-[18px]">visibility</span>
@@ -165,12 +170,11 @@ $showLabel = $sale ? 'View sale ' . ($sale->invoice_number ?: '#' . $sale->id) :
 </form>
 @endif
 </div>
-@endif
 </td>
 </tr>
 @empty
 <tr>
-<td colspan="10" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No sales recorded yet</p>
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('sales.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Create first sale</a>
@@ -182,32 +186,32 @@ $showLabel = $sale ? 'View sale ' . ($sale->invoice_number ?: '#' . $sale->id) :
 </table>
 </div>
 
-@if($items->hasPages())
+@if($sales->hasPages())
 <div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $items->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->total() }}</span> line items
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $sales->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $sales->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $sales->total() }}</span> sales
 </p>
 <nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$items->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $items->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
+@if (!$sales->onFirstPage())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $sales->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
 @endif
-@foreach ($items->getUrlRange(max(1, $items->currentPage() - 2), min($items->lastPage(), $items->currentPage() + 2)) ?: [1 => $items->url(1)] as $page => $url)
-@if ($page == $items->currentPage())
+@foreach ($sales->getUrlRange(max(1, $sales->currentPage() - 2), min($sales->lastPage(), $sales->currentPage() + 2)) ?: [1 => $sales->url(1)] as $page => $url)
+@if ($page == $sales->currentPage())
 <span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
 @else
 <a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
 @endif
 @endforeach
-@if ($items->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $items->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
+@if ($sales->hasMorePages())
+<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $sales->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
 @endif
 </nav>
 </div>
 @else
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($items->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->total() }}</span> results
+@if($sales->total() > 0)
+Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $sales->total() }}</span> sales
 @else
 No results
 @endif

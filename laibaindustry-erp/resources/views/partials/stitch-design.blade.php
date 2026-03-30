@@ -65,4 +65,17 @@
   display:inline-block;
   vertical-align:middle;
 }
+/* Line-item price/qty: hide native number spinners (manual entry only) */
+:is(.stitch-ui, .purchases-stitch) .price-input::-webkit-outer-spin-button,
+:is(.stitch-ui, .purchases-stitch) .price-input::-webkit-inner-spin-button,
+:is(.stitch-ui, .purchases-stitch) .qty-input::-webkit-outer-spin-button,
+:is(.stitch-ui, .purchases-stitch) .qty-input::-webkit-inner-spin-button {
+  -webkit-appearance:none;
+  margin:0;
+}
+:is(.stitch-ui, .purchases-stitch) .price-input[type='number'],
+:is(.stitch-ui, .purchases-stitch) .qty-input[type='number'] {
+  -moz-appearance:textfield;
+  appearance:textfield;
+}
 </style>
