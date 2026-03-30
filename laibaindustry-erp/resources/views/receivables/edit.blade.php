@@ -44,7 +44,7 @@
 
 <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-8 pb-8 border-b border-[#ABB3B7]">
 <div>
-<p class="st-label mb-1">Date</p>
+<p class="st-label mb-1">Invoice date</p>
 <p class="text-sm font-semibold text-[#2B3437] font-mono">{{ $receivable->date->format('Y-m-d') }}</p>
 </div>
 <div>
@@ -77,7 +77,20 @@
 @csrf
 @method('PUT')
 
-<label class="st-label block mb-2" for="received">
+<label class="st-label block mb-2" for="payment_date">
+Payment date <span class="text-[#9F403D]">*</span>
+</label>
+<input class="st-input w-full h-11 px-4 text-sm font-mono"
+    id="payment_date"
+    name="payment_date"
+    type="date"
+    value="{{ old('payment_date', now()->format('Y-m-d')) }}"
+    required>
+@error('payment_date')
+<p class="text-xs text-[#9F403D] mt-1">{{ $message }}</p>
+@enderror
+
+<label class="st-label block mb-2 mt-6" for="received">
 Payment amount <span class="text-[#9F403D]">*</span>
 </label>
 <input class="st-input w-full h-11 px-4 text-sm font-mono text-right tabular-nums"

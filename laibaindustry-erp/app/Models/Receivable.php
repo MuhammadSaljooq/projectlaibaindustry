@@ -13,9 +13,11 @@ class Receivable extends Model
         'customer_code',
         'amount',
         'received',
+        'payment_received_at',
     ];
 
     protected $casts = [
         'date' => 'datetime',
+        'payment_received_at' => 'datetime',
     ];
 }

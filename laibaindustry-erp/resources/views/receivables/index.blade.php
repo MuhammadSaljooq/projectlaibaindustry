@@ -73,7 +73,8 @@
 <table class="w-full text-left border-collapse min-w-[700px]">
 <thead>
 <tr class="st-thead">
-<th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Invoice date</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Payment date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Customer</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
@@ -87,6 +88,7 @@
 @php $remaining = (float)$r->amount - (float)$r->received; @endphp
 <tr class="st-tr">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $r->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $r->payment_received_at ? $r->payment_received_at->format('Y-m-d') : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $r->invoice_number ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $r->customer_name ?: $r->customer_code ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</td>
@@ -109,7 +111,7 @@ Record
 </tr>
 @empty
 <tr>
-<td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No receivables yet</p>
 <p class="text-xs">Receivables are created automatically when you record a sale.</p>
 </td>

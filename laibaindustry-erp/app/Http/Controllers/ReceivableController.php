@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Receivable;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,21 +55,25 @@ class ReceivableController extends Controller
     public function update(Request $request, Receivable $receivable): RedirectResponse
     {
         $validated = $request->validate([
+            'payment_date' => ['required', 'date'],
             'received' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $payment      = (float) $validated['received'];
+        $paymentDate = Carbon::parse($validated['payment_date'], config('app.timezone'))->startOfDay();
+
+        $payment = (float) $validated['received'];
         $maxReceivable = (float) $receivable->amount - (float) $receivable->received;
 
         if ($payment > $maxReceivable) {
             return redirect()->back()->withInput()
-                ->with('error', "Amount cannot exceed remaining balance (" . number_format($maxReceivable, 2) . ").");
+                ->with('error', 'Amount cannot exceed remaining balance ('.number_format($maxReceivable, 2).').');
         }
 
         try {
             DB::beginTransaction();
 
             $receivable->increment('received', $payment);
+            $receivable->update(['payment_received_at' => $paymentDate]);
 
             $customer = $receivable->customer_code
                 ? Customer::where('customer_code', $receivable->customer_code)->first()
@@ -77,13 +82,13 @@ class ReceivableController extends Controller
             if ($customer) {
                 CustomerLedgerEntry::create([
                     'customer_id' => $customer->id,
-                    'date'        => now(),
+                    'date' => $paymentDate,
                     'description' => 'Payment Received',
-                    'reference'   => $receivable->invoice_number,
-                    'debit'       => 0,
-                    'credit'      => $payment,
+                    'reference' => $receivable->invoice_number,
+                    'debit' => 0,
+                    'credit' => $payment,
                     'source_type' => 'payment_received',
-                    'source_id'   => $receivable->id,
+                    'source_id' => $receivable->id,
                 ]);
             }
 
@@ -93,8 +98,9 @@ class ReceivableController extends Controller
                 ->with('success', 'Payment recorded successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return redirect()->back()->withInput()
-                ->with('error', 'Failed to record payment: ' . $e->getMessage());
+                ->with('error', 'Failed to record payment: '.$e->getMessage());
         }
     }
 
