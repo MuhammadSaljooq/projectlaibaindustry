@@ -57,6 +57,11 @@ New sale
 {{ session('error') }}
 </div>
 @endif
+@if (session('warning'))
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+{{ session('warning') }}
+</div>
+@endif
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">

@@ -130,17 +130,15 @@ class SaleController extends Controller
                 'status' => 'completed',
             ]);
 
+            $stockWarning = false;
+
             foreach ($items as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $qty = (int) ($item['quantity'] ?? 1);
                 $sellingPrice = (float) ($item['selling_price'] ?? 0);
                 $costPrice = (float) ($product->cost_price ?? 0);
-
-                if ($product->stock_quantity < $qty) {
-                    DB::rollBack();
-
-                    return redirect()->back()->withInput()->with('error', "Insufficient stock for '{$product->name}'. Available: {$product->stock_quantity}, required: {$qty}.");
-                }
+                $stockBefore = (int) $product->stock_quantity;
+                $reorderLevel = (int) ($product->reorder_level ?? 10);
 
                 $lineAmount = $sellingPrice * $qty;
                 $lineTax = $lineAmount * ($taxRate / 100);
@@ -157,6 +155,11 @@ class SaleController extends Controller
                 ]);
 
                 $product->decrement('stock_quantity', $qty);
+                $product->refresh();
+
+                if ($stockBefore < $qty || $product->stock_quantity < 0 || $product->stock_quantity <= $reorderLevel) {
+                    $stockWarning = true;
+                }
             }
 
             Receivable::create([
@@ -209,7 +212,12 @@ class SaleController extends Controller
 
             DB::commit();
 
-            return redirect()->route('sales.index')->with('success', 'Sale created successfully.');
+            $redirect = redirect()->route('sales.index')->with('success', 'Sale created successfully.');
+            if ($stockWarning) {
+                $redirect->with('warning', 'Sale saved. Some products are low or negative on stock—review inventory.');
+            }
+
+            return $redirect;
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -281,17 +289,15 @@ class SaleController extends Controller
 
             $sale->items()->delete();
 
+            $stockWarning = false;
+
             foreach ($items as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $qty = (int) ($item['quantity'] ?? 1);
                 $sellingPrice = (float) ($item['selling_price'] ?? 0);
                 $costPrice = (float) ($product->cost_price ?? 0);
-
-                if ($product->stock_quantity < $qty) {
-                    DB::rollBack();
-
-                    return redirect()->back()->withInput()->with('error', "Insufficient stock for '{$product->name}'. Available: {$product->stock_quantity}, required: {$qty}.");
-                }
+                $stockBefore = (int) $product->stock_quantity;
+                $reorderLevel = (int) ($product->reorder_level ?? 10);
 
                 $lineAmount = $sellingPrice * $qty;
                 $lineTax = $lineAmount * ($taxRate / 100);
@@ -308,6 +314,11 @@ class SaleController extends Controller
                 ]);
 
                 $product->decrement('stock_quantity', $qty);
+                $product->refresh();
+
+                if ($stockBefore < $qty || $product->stock_quantity < 0 || $product->stock_quantity <= $reorderLevel) {
+                    $stockWarning = true;
+                }
             }
 
             if ($oldInvoiceRef) {
@@ -352,7 +363,12 @@ class SaleController extends Controller
 
             DB::commit();
 
-            return redirect()->route('sales.show', $sale)->with('success', 'Sale updated successfully.');
+            $redirect = redirect()->route('sales.show', $sale)->with('success', 'Sale updated successfully.');
+            if ($stockWarning) {
+                $redirect->with('warning', 'Sale saved. Some products are low or negative on stock—review inventory.');
+            }
+
+            return $redirect;
         } catch (\Throwable $e) {
             DB::rollBack();
 

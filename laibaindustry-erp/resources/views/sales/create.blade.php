@@ -44,6 +44,9 @@
 @if (session('error'))
 <div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">{{ session('error') }}</div>
 @endif
+@if (session('warning'))
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">{{ session('warning') }}</div>
+@endif
 
 <div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
 <form method="POST" action="{{ route('sales.store') }}" id="sale-form" novalidate>
@@ -97,13 +100,16 @@
 </thead>
 <tbody id="line-items">
 <tr class="line-item st-tr">
-<td class="st-td px-4 py-3">
+<td class="st-td px-4 py-3 align-top">
+<div class="min-w-0">
 <select class="product-select st-select w-full h-10 pl-3 pr-9 text-sm appearance-none bg-no-repeat bg-[length:1rem] bg-[right_0.5rem_center]" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23586064%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E');" name="items[0][product_id]" required>
 <option value="">Select product</option>
 @foreach($products as $p)
 <option value="{{ $p->id }}" data-price="{{ $p->selling_price ?? $p->cost_price }}" data-stock="{{ $p->stock_quantity }}">{{ $p->name }} ({{ $p->sku }})</option>
 @endforeach
 </select>
+<p class="stock-hint text-[11px] mt-1 leading-snug" role="status" aria-live="polite"></p>
+</div>
 </td>
 <td class="st-td px-4 py-3"><input class="price-input st-input w-full h-10 px-3 text-sm text-right font-mono tabular-nums" name="items[0][selling_price]" type="number" step="0.01" min="0" value="0" required></td>
 <td class="st-td px-4 py-3"><input class="qty-input st-input w-full h-10 px-3 text-sm text-right font-mono tabular-nums" name="items[0][quantity]" type="number" min="1" value="1" required></td>
@@ -159,17 +165,36 @@ Save sale
             var sel=row.querySelector('.product-select'); if(!sel||!sel.value){row.querySelectorAll('input,select').forEach(function(el){el.removeAttribute('name')});}else{var p=row.querySelector('.price-input'),q=row.querySelector('.qty-input');sel.setAttribute('name','items['+idx+'][product_id]');if(p)p.setAttribute('name','items['+idx+'][selling_price]');if(q)q.setAttribute('name','items['+idx+'][quantity]');idx++;}
         });
     });
-    const products = @json($products->mapWithKeys(fn($p) => [$p->id => ['price' => (float)($p->selling_price ?? $p->cost_price ?? 0), 'stock' => $p->stock_quantity]])->all());
+    const products = @json($products->mapWithKeys(fn ($p) => [$p->id => ['price' => (float) ($p->selling_price ?? $p->cost_price ?? 0), 'stock' => (int) $p->stock_quantity, 'reorder_level' => (int) ($p->reorder_level ?? 10)]])->all());
     let rowIndex = 1;
+    function updateStockHint(row) {
+        var hint = row.querySelector('.stock-hint');
+        var sel = row.querySelector('.product-select');
+        var qi = row.querySelector('.qty-input');
+        if (!hint) return;
+        if (!sel || !sel.value) { hint.textContent = ''; hint.className = 'stock-hint text-[11px] mt-1 leading-snug'; return; }
+        var prod = products[sel.value];
+        if (!prod) { hint.textContent = ''; return; }
+        var stock = parseInt(String(prod.stock), 10) || 0;
+        var reorder = parseInt(String(prod.reorder_level), 10);
+        if (isNaN(reorder)) reorder = 10;
+        var qty = parseInt(qi && qi.value ? qi.value : '0', 10) || 0;
+        var parts = [];
+        if (stock <= reorder) parts.push('Low stock: ' + stock + ' on hand');
+        if (qty > stock) parts.push('Oversell: need ' + qty + ', have ' + stock);
+        hint.textContent = parts.join(' · ');
+        hint.className = parts.length ? 'stock-hint text-[11px] mt-1 leading-snug text-[#9F403D] font-medium' : 'stock-hint text-[11px] mt-1 leading-snug';
+    }
     function updateRow(row) { const pi=row.querySelector('.price-input'),qi=row.querySelector('.qty-input'),as=row.querySelector('.amount-display'),vs=row.querySelector('.vat-display'); const a=(parseFloat(pi?.value||0)||0)*(parseInt(qi?.value||0,10)||0),v=a*0.15; if(as)as.textContent=a.toFixed(2); if(vs)vs.textContent=v.toFixed(2); }
     function updateTotals() { let s=0; document.querySelectorAll('.line-item').forEach(r=>{const p=r.querySelector('.price-input'),q=r.querySelector('.qty-input');s+=(parseFloat(p?.value||0)||0)*(parseInt(q?.value||0,10)||0);}); const t=s*0.15,tot=s+t; const se=document.getElementById('subtotal-display'),te=document.getElementById('tax-display'),tte=document.getElementById('total-display'); if(se)se.textContent=s.toFixed(2); if(te)te.textContent=t.toFixed(2); if(tte)tte.textContent=tot.toFixed(2); }
-    function onRowChange() { document.querySelectorAll('.line-item').forEach(updateRow); updateTotals(); }
+    function onRowChange() { document.querySelectorAll('.line-item').forEach(function(row) { updateRow(row); updateStockHint(row); }); updateTotals(); }
     document.getElementById('add-row')?.addEventListener('click', function() {
         const tbody=document.getElementById('line-items'),fr=tbody.querySelector('.line-item'); if(!fr)return;
         const nr=fr.cloneNode(true); nr.querySelector('.product-select').value=''; nr.querySelector('.product-select').name='items['+rowIndex+'][product_id]';
         nr.querySelector('.price-input').value='0'; nr.querySelector('.price-input').name='items['+rowIndex+'][selling_price]';
         nr.querySelector('.qty-input').value='1'; nr.querySelector('.qty-input').name='items['+rowIndex+'][quantity]';
         nr.querySelector('.amount-display').textContent='0.00'; nr.querySelector('.vat-display').textContent='0.00';
+        var nh = nr.querySelector('.stock-hint'); if (nh) { nh.textContent=''; nh.className='stock-hint text-[11px] mt-1 leading-snug'; }
         nr.querySelectorAll('input,select').forEach(el=>el.removeAttribute('required'));
         tbody.appendChild(nr); rowIndex++; bindRowEvents();
     });

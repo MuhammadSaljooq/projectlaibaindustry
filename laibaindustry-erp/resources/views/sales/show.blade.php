@@ -45,6 +45,13 @@
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
+@if (session('success'))
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">{{ session('success') }}</div>
+@endif
+@if (session('warning'))
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">{{ session('warning') }}</div>
+@endif
+
 <div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
 <p class="st-label mb-6">Customer</p>
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
