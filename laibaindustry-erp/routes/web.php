@@ -53,6 +53,9 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
 
     Route::resource('products', ProductController::class);
     Route::resource('sales', SaleController::class);
+    Route::patch('receivables/{receivable}/payments/{customerLedgerEntry}', [ReceivableController::class, 'updatePayment'])->name('receivables.payments.update');
+    Route::delete('receivables/{receivable}/payments/{customerLedgerEntry}', [ReceivableController::class, 'destroyPayment'])->name('receivables.payments.destroy');
+    Route::put('receivables/{receivable}/adjust-received', [ReceivableController::class, 'adjustReceivedWithoutLedger'])->name('receivables.adjust-received');
     Route::resource('receivables', ReceivableController::class);
     Route::resource('purchases', PurchaseController::class);
     Route::resource('customers', CustomerController::class);

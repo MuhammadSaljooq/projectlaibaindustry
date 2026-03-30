@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Receivable extends Model
 {
@@ -20,4 +21,13 @@ class Receivable extends Model
         'date' => 'datetime',
         'payment_received_at' => 'datetime',
     ];
+
+    /** @return HasMany<CustomerLedgerEntry, $this> */
+    public function paymentLedgerEntries(): HasMany
+    {
+        return $this->hasMany(CustomerLedgerEntry::class, 'source_id')
+            ->where('source_type', 'payment_received')
+            ->orderBy('date')
+            ->orderBy('id');
+    }
 }

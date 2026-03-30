@@ -65,7 +65,7 @@
 <div class="px-5 py-4 border-b border-[#ABB3B7] flex flex-wrap items-center justify-between gap-3 bg-[#EAEFF1]">
 <div>
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Open &amp; closed receivables</h3>
-<p class="text-[11px] text-[#586064] mt-1 max-w-xl">Track amounts owed. Record payments via <span class="font-bold text-[#5E5E5E]">Record</span> on any row with a balance.</p>
+<p class="text-[11px] text-[#586064] mt-1 max-w-xl">Track amounts owed. <span class="font-bold text-[#5E5E5E]">Click a row</span> to open the receivable and record or adjust payments.</p>
 </div>
 </div>
 
@@ -86,7 +86,13 @@
 <tbody>
 @forelse($receivables as $r)
 @php $remaining = (float)$r->amount - (float)$r->received; @endphp
-<tr class="st-tr">
+<tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer hover:bg-[#F1F4F6] @endif"
+@if(auth()->user()->role !== 'viewer')
+data-receivable-edit-url="{{ route('receivables.edit', $r) }}"
+tabindex="0"
+aria-label="Open receivable {{ $r->invoice_number ? 'invoice '.$r->invoice_number : '#'.$r->id }}"
+@endif
+>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $r->date->format('Y-m-d') }}</td>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $r->payment_received_at ? $r->payment_received_at->format('Y-m-d') : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $r->invoice_number ?: '—' }}</td>
@@ -95,17 +101,14 @@
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($r->received, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</td>
 <td class="st-td px-4 py-3 text-right">
-@if ($remaining > 0)
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('receivables.edit', $r) }}" class="text-[11px] font-bold uppercase tracking-wider text-[#5E5E5E] border border-[#5E5E5E] px-2 py-1 inline-flex items-center gap-1 hover:bg-[#F1F4F6]">
-<span class="material-symbols-outlined text-[14px]">payments</span>
-Record
-</a>
+@if ($remaining <= 0)
+<span class="text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-1 inline-block bg-[#F8F9FA]">Paid</span>
 @else
-<span class="text-xs text-[#586064]">—</span>
+<span class="text-[10px] font-bold uppercase tracking-wider text-[#5E5E5E]">Open</span>
 @endif
 @else
-<span class="text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-1 inline-block bg-[#F8F9FA]">Paid</span>
+<span class="text-xs text-[#586064]">—</span>
 @endif
 </td>
 </tr>
@@ -159,5 +162,23 @@ No results
 </div>
 </div>
 </main>
+@if(auth()->user()->role !== 'viewer')
+<script>
+(function () {
+  document.querySelectorAll('tr[data-receivable-edit-url]').forEach(function (tr) {
+    var url = tr.getAttribute('data-receivable-edit-url');
+    tr.addEventListener('click', function (e) {
+      if (e.target.closest('a, button, input, select, textarea, label')) return;
+      window.location.href = url;
+    });
+    tr.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      window.location.href = url;
+    });
+  });
+})();
+</script>
+@endif
 </body>
 </html>
