@@ -250,16 +250,6 @@ class CustomerController extends Controller
 
         $desc = trim((string) ($first->description ?? ''));
 
-        $invoiceRefs = [];
-        foreach ($sliceEntries as $e) {
-            $r = trim((string) ($e->reference ?? ''));
-            if ($r !== '') {
-                $invoiceRefs[] = $r;
-            }
-        }
-        $invoiceRefs = array_values(array_unique($invoiceRefs));
-        $invoiceDisplay = $invoiceRefs !== [] ? implode(', ', $invoiceRefs) : null;
-
         return (object) [
             'date' => $first->date,
             'description' => $desc !== '' ? $desc : 'Payment received',
@@ -268,12 +258,13 @@ class CustomerController extends Controller
             'source_type' => $first->source_type,
             'created_at' => $first->created_at,
             'id' => $first->id,
-            'invoice_number' => $invoiceDisplay,
+            'invoice_number' => null,
         ];
     }
 
     /**
-     * Invoice / document number stored on the ledger row (sales, purchases, payments).
+     * Invoice / document number for the statement column (from ledger reference).
+     * Payment-received lines omit invoice numbers on the statement.
      */
     private function statementInvoiceNumberForEntry(CustomerLedgerEntry|\stdClass $entry): ?string
     {
@@ -281,6 +272,10 @@ class CustomerController extends Controller
             $s = trim((string) ($entry->invoice_number ?? ''));
 
             return $s !== '' ? $s : null;
+        }
+
+        if ($entry->source_type === 'payment_received') {
+            return null;
         }
 
         $s = trim((string) ($entry->reference ?? ''));
@@ -327,7 +322,6 @@ class CustomerController extends Controller
                     $ledgerRows[] = [
                         'date' => $entry->date,
                         'description' => $entry->description,
-                        'customer_code' => $customer->customer_code,
                         'invoice_number' => $this->statementInvoiceNumberForEntry($entry),
                         'debit' => $debit,
                         'credit' => $credit,
@@ -371,7 +365,6 @@ class CustomerController extends Controller
                     $ledgerRows[] = [
                         'date' => $entry->date,
                         'description' => $entry->description,
-                        'customer_code' => $customer->customer_code,
                         'invoice_number' => $this->statementInvoiceNumberForEntry($entry),
                         'debit' => $debit,
                         'credit' => $credit,

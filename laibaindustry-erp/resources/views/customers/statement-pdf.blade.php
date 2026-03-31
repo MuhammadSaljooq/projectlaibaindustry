@@ -163,16 +163,12 @@
         }
         table.ledger th.ledger-col-desc,
         table.ledger td.ledger-col-desc {
-            width: 24%;
+            width: 33%;
             word-wrap: break-word;
-        }
-        table.ledger th.ledger-col-ref,
-        table.ledger td.ledger-col-ref {
-            width: 12%;
         }
         table.ledger th.ledger-col-invoice,
         table.ledger td.ledger-col-invoice {
-            width: 14%;
+            width: 16%;
             word-wrap: break-word;
         }
         table.ledger th.ledger-col-debit,
@@ -185,7 +181,7 @@
         }
         table.ledger th.ledger-col-balance,
         table.ledger td.ledger-col-balance {
-            width: 14%;
+            width: 15%;
         }
         table.ledger td.ledger-code {
             font-family: 'DejaVu Sans Mono', monospace;
@@ -355,7 +351,6 @@
         <tr>
             <th class="ledger-col-date">Date</th>
             <th class="ledger-col-desc">Description</th>
-            <th class="ledger-col-ref">Customer code</th>
             <th class="ledger-col-invoice">Invoice #</th>
             <th class="amt ledger-col-debit">Debit</th>
             <th class="amt ledger-col-credit">Credit</th>
@@ -373,7 +368,6 @@
                 @endif
             </td>
             <td class="ledger-col-desc">{{ $statementFiltered ? 'Balance brought forward' : 'Opening balance' }}</td>
-            <td class="ledger-col-ref ledger-code">{{ $customer->customer_code ?: '—' }}</td>
             <td class="ledger-col-invoice ledger-code">—</td>
             <td class="amt dash ledger-col-debit">—</td>
             <td class="amt dash ledger-col-credit">—</td>
@@ -386,7 +380,6 @@
         <tr>
             <td class="ledger-col-date">{{ $row['date']->format('d/m/Y') }}<br><span class="ledger-cell-time">{{ $row['date']->format('H:i') }}</span></td>
             <td class="ledger-col-desc">{{ $row['description'] }}</td>
-            <td class="ledger-col-ref ledger-code">{{ $row['customer_code'] ?: '—' }}</td>
             <td class="ledger-col-invoice ledger-code">{{ $row['invoice_number'] ?: '—' }}</td>
             <td class="amt ledger-col-debit {{ $row['debit'] > 0 ? 'debit' : 'dash' }}">
                 {{ $row['debit'] > 0 ? ($currencySymbol ?? '$') . ' ' . number_format($row['debit'], 2) : '—' }}
@@ -403,7 +396,7 @@
 
         @if(count($ledgerRows) > 0)
         <tr class="total-row">
-            <td colspan="4" class="ledger-totals-label">Totals</td>
+            <td colspan="3" class="ledger-totals-label">Totals</td>
             <td class="amt debit ledger-col-debit">{{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}</td>
             <td class="amt credit ledger-col-credit">{{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}</td>
             <td class="amt ledger-col-balance {{ $closingBalance > 0 ? 'balance-dr' : 'balance-cr' }}">

@@ -72,6 +72,58 @@ class CustomerStatementDateRangeTest extends TestCase
         $this->assertCount(2, $rows);
     }
 
+    public function test_statement_hides_invoice_for_payment_received_not_for_sale(): void
+    {
+        $user = $this->actingManager();
+        $customer = Customer::create([
+            'customer_code' => 'STMT-INV',
+            'customer_name' => 'Invoice Display Co',
+            'phone' => null,
+            'email' => null,
+            'address' => null,
+            'opening_balance' => 0,
+            'opening_balance_date' => '2025-01-01',
+        ]);
+
+        CustomerLedgerEntry::create([
+            'customer_id' => $customer->id,
+            'date' => '2025-02-01 10:00:00',
+            'description' => 'Sale invoice line',
+            'reference' => 'INV-S-100',
+            'debit' => 100,
+            'credit' => 0,
+            'source_type' => 'sale',
+            'source_id' => null,
+            'notes' => null,
+        ]);
+
+        CustomerLedgerEntry::create([
+            'customer_id' => $customer->id,
+            'date' => '2025-02-15 10:00:00',
+            'description' => 'Payment Received',
+            'reference' => 'INV-ALLOCATED-TO',
+            'debit' => 0,
+            'credit' => 25,
+            'source_type' => 'payment_received',
+            'source_id' => null,
+            'notes' => null,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('customers.statement', $customer));
+
+        $response->assertOk();
+        $rows = $response->viewData('ledgerRows');
+        $this->assertCount(2, $rows);
+
+        $saleRow = collect($rows)->firstWhere('description', 'Sale invoice line');
+        $paymentRow = collect($rows)->firstWhere('source_type', 'payment_received');
+
+        $this->assertNotNull($saleRow);
+        $this->assertNotNull($paymentRow);
+        $this->assertSame('INV-S-100', $saleRow['invoice_number']);
+        $this->assertNull($paymentRow['invoice_number']);
+    }
+
     public function test_statement_orders_same_date_by_created_at_not_id(): void
     {
         $user = $this->actingManager();
