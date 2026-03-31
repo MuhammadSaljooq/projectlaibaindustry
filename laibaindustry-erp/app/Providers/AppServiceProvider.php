@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Currency;
-use App\Support\Schema\InternationalPurchasesSchema;
+use App\Support\Schema\InternationalPayablesSchema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         try {
             if (! app()->isProduction()) {
-                InternationalPurchasesSchema::ensureTableExists();
+                InternationalPayablesSchema::ensureTableExists();
             }
         } catch (\Throwable) {
             // DB unavailable or not migrated yet

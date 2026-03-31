@@ -62,13 +62,9 @@ New entry
 </div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
-<p class="st-label mb-2">Filtered total</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($filteredTotal ?? 0, 2) }}</p>
-</div>
-<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
-<p class="st-label mb-2">Matching entries</p>
+<p class="st-label mb-2">Total entries</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($purchases->total()) }}</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
@@ -77,47 +73,18 @@ New entry
 </div>
 </div>
 
-<form method="GET" action="{{ route('international-purchases.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
-<div class="flex-1 min-w-[200px]">
-<label class="st-label block mb-2" for="ip-search">Search</label>
-<div class="relative">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
-<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="ip-search" type="text" name="search" value="{{ request('search') }}" placeholder="Product name…">
-</div>
-</div>
-<div class="min-w-[140px]">
-<label class="st-label block mb-2" for="ip-from">From</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="ip-from" type="date" name="from" value="{{ request('from') }}">
-</div>
-<div class="min-w-[140px]">
-<label class="st-label block mb-2" for="ip-to">To</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="ip-to" type="date" name="to" value="{{ request('to') }}">
-</div>
-<div class="flex flex-wrap gap-2">
-<button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
-<span class="material-symbols-outlined text-[16px]">filter_list</span>
-Filter
-</button>
-@if(request('search') || request('from') || request('to'))
-<a href="{{ route('international-purchases.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
-<span class="material-symbols-outlined text-[16px]">close</span>
-Clear
-</a>
-@endif
-</div>
-</form>
-
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">International purchase ledger</h3>
-<p class="text-[11px] text-[#586064] mt-1">Date · product · qty · unit price · total · actions</p>
+<p class="text-[11px] text-[#586064] mt-1">Date · supplier · product · qty · unit price · total · actions</p>
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[720px]">
+<table class="w-full text-left border-collapse min-w-[880px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
+<th class="st-th px-4 py-3">Supplier</th>
 <th class="st-th px-4 py-3">Product</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Qty</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Price</th>
@@ -132,6 +99,7 @@ Clear
 <tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
     @if(auth()->user()->role !== 'viewer') data-ip-edit-url="{{ route('international-purchases.edit', $purchase) }}" role="link" tabindex="0" aria-label="Edit {{ e($purchase->product_name) }}" @endif>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $purchase->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm text-[#586064]">{{ $purchase->supplier?->name ?? '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $purchase->product_name }}</td>
 <td class="st-td px-4 py-3 text-sm text-right tabular-nums text-[#586064]">{{ number_format($purchase->quantity) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($purchase->unit_price, 2) }}</td>
@@ -155,7 +123,7 @@ Clear
 </tr>
 @empty
 <tr>
-<td colspan="{{ auth()->user()->role === 'viewer' ? 5 : 6 }}" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="{{ auth()->user()->role === 'viewer' ? 6 : 7 }}" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No international purchases yet</p>
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('international-purchases.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add first entry</a>

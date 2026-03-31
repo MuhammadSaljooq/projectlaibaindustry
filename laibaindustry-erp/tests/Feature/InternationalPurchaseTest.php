@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\InternationalPurchase;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -61,5 +62,33 @@ class InternationalPurchaseTest extends TestCase
         $row = InternationalPurchase::query()->where('product_name', 'Widget')->first();
         $this->assertNotNull($row);
         $this->assertEquals(31.0, (float) $row->total_amount);
+    }
+
+    public function test_manager_can_attach_supplier_to_international_purchase(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create([
+            'name' => 'Overseas Vendor Co',
+            'country' => 'Germany',
+        ]);
+
+        $this->actingAs($user)->post(route('international-purchases.store'), [
+            'supplier_id' => $supplier->id,
+            'date' => '2026-04-01',
+            'product_name' => 'Helmets',
+            'quantity' => 2,
+            'unit_price' => '25',
+        ])->assertRedirect(route('international-purchases.index'));
+
+        $this->assertDatabaseHas('international_purchases', [
+            'supplier_id' => $supplier->id,
+            'product_name' => 'Helmets',
+            'total_amount' => 50.0,
+        ]);
+
+        $this->actingAs($user)->get(route('international-purchases.index'))
+            ->assertOk()
+            ->assertSee('Overseas Vendor Co')
+            ->assertSee('Helmets');
     }
 }

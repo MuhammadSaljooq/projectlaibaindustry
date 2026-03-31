@@ -2,7 +2,7 @@
 
 namespace Tests;
 
-use App\Support\Schema\InternationalPurchasesSchema;
+use App\Support\Schema\InternationalPayablesSchema;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -11,6 +11,6 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        InternationalPurchasesSchema::ensureTableExists();
+        InternationalPayablesSchema::ensureTableExists();
     }
 }
