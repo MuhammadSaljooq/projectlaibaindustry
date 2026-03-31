@@ -118,28 +118,23 @@
 @endif
 
 <div class="st-paper border border-[#ABB3B7] bg-white overflow-x-auto">
-<table class="w-full text-left border-collapse min-w-[720px]">
+<table class="w-full text-left border-collapse min-w-[560px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Payment date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Received</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Remaining</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Action</th>
 </tr>
 </thead>
 <tbody>
 @foreach ($receivables as $r)
-@php $rem = (float)$r->amount - (float)$r->received; @endphp
 <tr class="st-tr">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $r->date->format('Y-m-d') }}</td>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $r->payment_received_at ? $r->payment_received_at->format('Y-m-d') : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $r->invoice_number ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($r->received, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($rem, 2) }}</td>
 <td class="st-td px-4 py-3 text-right">
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('receivables.edit', $r) }}" class="text-[11px] font-bold uppercase tracking-wider text-[#5E5E5E] border border-[#5E5E5E] px-2 py-1 inline-flex items-center gap-1 hover:bg-[#F1F4F6]">

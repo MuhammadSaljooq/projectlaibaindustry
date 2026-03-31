@@ -11,6 +11,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\TaxSetting;
 use App\Models\VatEntry;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -259,8 +260,8 @@ class SaleController extends Controller
             DB::beginTransaction();
 
             $sale->load('items.product');
-            $oldTotal = (float) $sale->total_amount;
             $oldInvoiceRef = $sale->invoice_number;
+            $oldCustomerCode = $sale->customer_code;
 
             foreach ($sale->items as $item) {
                 if ($item->product) {
@@ -322,21 +323,17 @@ class SaleController extends Controller
             }
 
             if ($oldInvoiceRef) {
-                $received = (float) (Receivable::query()
-                    ->where('invoice_number', $oldInvoiceRef)
-                    ->where('amount', $oldTotal)
-                    ->value('received') ?? 0);
-
-                Receivable::query()
-                    ->where('invoice_number', $oldInvoiceRef)
-                    ->where('amount', $oldTotal)
-                    ->update([
+                $receivable = $this->receivablesLinkedToSale($oldInvoiceRef, $oldCustomerCode)->first();
+                if ($receivable) {
+                    $received = (float) $receivable->received;
+                    $receivable->update([
                         'date' => $request->date,
                         'invoice_number' => $request->invoice_number,
                         'customer_name' => $request->customer_name ?: null,
                         'customer_code' => $request->customer_code ?: null,
                         'amount' => max(round($totalAmount, 2), $received),
                     ]);
+                }
             }
 
             // Ledger: update the existing Debit entry for this sale
@@ -390,10 +387,7 @@ class SaleController extends Controller
             }
 
             if ($sale->invoice_number) {
-                Receivable::query()
-                    ->where('invoice_number', $sale->invoice_number)
-                    ->where('amount', $sale->total_amount)
-                    ->delete();
+                $this->receivablesLinkedToSale($sale->invoice_number, $sale->customer_code)->delete();
             }
 
             // Ledger: remove the Debit entry for this sale
@@ -416,5 +410,32 @@ class SaleController extends Controller
 
             return redirect()->route('sales.index')->with('error', 'Failed to delete sale: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Receivable rows created from a sale are keyed by invoice (and customer code when set).
+     * Never require amount to match: after a prior edit, amount may have been raised to max(sale total, received),
+     * so an equality check leaves a stale row and breaks receivable totals / remaining.
+     *
+     * @return Builder<Receivable>
+     */
+    private function receivablesLinkedToSale(?string $invoiceNumber, ?string $customerCode): Builder
+    {
+        $query = Receivable::query();
+        if (! $invoiceNumber) {
+            return $query->whereRaw('0 = 1');
+        }
+
+        $query->where('invoice_number', $invoiceNumber);
+        $trimCode = trim((string) ($customerCode ?? ''));
+        if ($trimCode !== '') {
+            $query->where('customer_code', $trimCode);
+        } else {
+            $query->where(function (Builder $q) {
+                $q->whereNull('customer_code')->orWhere('customer_code', '');
+            });
+        }
+
+        return $query->orderBy('id');
     }
 }
