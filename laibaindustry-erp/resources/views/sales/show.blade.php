@@ -38,7 +38,7 @@
 <div class="flex flex-col gap-1 min-w-0">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">SALE_VIEW_14</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">{{ $sale->invoice_number ?: '#' . $sale->id }}</h1>
-<p class="text-sm text-[#586064] mt-1">{{ $sale->date->format('l, F j, Y \a\t g:i A') }}</p>
+<p class="text-sm text-[#586064] mt-1">{{ format_display_datetime($sale->date) }}</p>
 </div>
 <span class="text-[10px] font-bold uppercase tracking-wider border border-[#ABB3B7] px-3 py-1.5 bg-[#F8F9FA] text-[#586064] shrink-0 self-start">{{ ucfirst($sale->status) }}</span>
 </div>

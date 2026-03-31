@@ -8,11 +8,11 @@
 </div>
 <div class="min-w-[140px]">
 <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">From</label>
-<input class="w-full h-9 px-3 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" type="date" name="from" value="{{ request('from') }}">
+<input class="w-full h-9 px-3 text-sm font-mono rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" type="text" name="from" value="{{ old('from', filter_date_input_value(request('from'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="min-w-[140px]">
 <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">To</label>
-<input class="w-full h-9 px-3 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" type="date" name="to" value="{{ request('to') }}">
+<input class="w-full h-9 px-3 text-sm font-mono rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary" type="text" name="to" value="{{ old('to', filter_date_input_value(request('to'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="flex gap-2">
 <button type="submit" class="h-9 px-4 text-sm font-medium text-white bg-primary hover:bg-blue-600 rounded-lg transition-colors inline-flex items-center gap-1.5">

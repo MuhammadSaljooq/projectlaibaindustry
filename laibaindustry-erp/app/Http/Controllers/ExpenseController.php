@@ -11,17 +11,22 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExpenseController extends Controller
 {
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
+        [$redirect, $from, $to] = parse_list_date_filters();
+        if ($redirect) {
+            return $redirect;
+        }
+
         $query = Expense::query();
 
         if ($search = request('search')) {
             $query->where('type', 'like', "%{$search}%");
         }
-        if ($from = request('from')) {
+        if ($from) {
             $query->whereDate('date', '>=', $from);
         }
-        if ($to = request('to')) {
+        if ($to) {
             $query->whereDate('date', '<=', $to);
         }
 
@@ -52,13 +57,13 @@ class ExpenseController extends Controller
             fputcsv($handle, ['Date', 'Type', 'Amount']);
             foreach ($expenses as $expense) {
                 fputcsv($handle, [
-                    $expense->date->format('Y-m-d'),
+                    format_display_date($expense->date),
                     $expense->type,
                     number_format($expense->amount, 2, '.', ''),
                 ]);
             }
             fclose($handle);
-        }, 'expenses-' . now()->format('Y-m-d') . '.csv', [
+        }, 'expenses-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv',
         ]);
     }
@@ -71,8 +76,8 @@ class ExpenseController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'date'   => ['required', 'date'],
-            'type'   => ['required', 'string', 'max:255'],
+            'date' => ['required', 'date'],
+            'type' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],
         ]);
 
@@ -95,8 +100,8 @@ class ExpenseController extends Controller
     public function update(Request $request, Expense $expense): RedirectResponse
     {
         $validated = $request->validate([
-            'date'   => ['required', 'date'],
-            'type'   => ['required', 'string', 'max:255'],
+            'date' => ['required', 'date'],
+            'type' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],
         ]);
 

@@ -57,6 +57,16 @@ New Purchase
 {{ session('error') }}
 </div>
 @endif
+@if ($errors->any())
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D] space-y-1">
+<p class="font-semibold">Could not apply date filter</p>
+<ul class="list-disc list-inside text-[13px]">
+@foreach ($errors->all() as $err)
+<li>{{ $err }}</li>
+@endforeach
+</ul>
+</div>
+@endif
 
 {{-- Metrics --}}
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:grid md:divide-x md:divide-[#ABB3B7]">
@@ -85,11 +95,11 @@ New Purchase
 </div>
 <div class="min-w-[140px]">
 <label class="st-label block mb-2" for="p-from">From</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="p-from" type="date" name="from" value="{{ request('from') }}">
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="p-from" type="text" name="from" value="{{ old('from', filter_date_input_value(request('from'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="min-w-[140px]">
 <label class="st-label block mb-2" for="p-to">To</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="p-to" type="date" name="to" value="{{ request('to') }}">
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="p-to" type="text" name="to" value="{{ old('to', filter_date_input_value(request('to'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="flex flex-wrap gap-2">
 <button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
@@ -134,7 +144,7 @@ Clear
 @php $purchase = $item->purchase; @endphp
 <tr class="st-tr {{ $purchase ? 'cursor-pointer' : '' }}"
     @if($purchase) onclick="window.location.href='{{ route('purchases.show', $purchase) }}';" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $purchase ? $purchase->date->format('Y-m-d H:i') : '-' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $purchase ? format_display_datetime($purchase->date) : '-' }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $purchase && $purchase->customer_code ? $purchase->customer_code : '-' }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $purchase && $purchase->customer_name ? $purchase->customer_name : '-' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">

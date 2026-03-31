@@ -39,7 +39,7 @@ class InternationalPurchaseController extends Controller
             fputcsv($handle, ['Date', 'Supplier', 'Product', 'Qty', 'Unit price', 'Total']);
             foreach ($rows as $row) {
                 fputcsv($handle, [
-                    $row->date->format('Y-m-d'),
+                    format_display_date($row->date),
                     $row->supplier?->name ?? '',
                     $row->product_name,
                     (string) $row->quantity,

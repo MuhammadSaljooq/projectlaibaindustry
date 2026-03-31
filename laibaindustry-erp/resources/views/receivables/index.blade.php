@@ -105,8 +105,8 @@ aria-label="Open receivables for {{ $aggName }}"
 @endif
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ (int) $g->invoice_count }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestInv ? $latestInv->format('Y-m-d') : '—' }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestPay ? $latestPay->format('Y-m-d') : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestInv ? format_display_date($latestInv) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestPay ? format_display_date($latestPay) : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $g->total_amount, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $g->total_received, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</td>

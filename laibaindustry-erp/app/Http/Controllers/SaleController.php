@@ -19,8 +19,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SaleController extends Controller
 {
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
+        [$redirect, $from, $to] = parse_list_date_filters();
+        if ($redirect) {
+            return $redirect;
+        }
+
         $query = Sale::query()
             ->with(['items.product', 'currency']);
 
@@ -33,10 +38,10 @@ class SaleController extends Controller
                     ->orWhereHas('items.product', fn ($pq) => $pq->where('name', 'like', $like));
             });
         }
-        if ($from = request('from')) {
+        if ($from) {
             $query->whereDate('date', '>=', $from);
         }
-        if ($to = request('to')) {
+        if ($to) {
             $query->whereDate('date', '<=', $to);
         }
 
@@ -67,7 +72,7 @@ class SaleController extends Controller
                 foreach ($sale->items as $item) {
                     $amount = $item->selling_price * $item->quantity;
                     fputcsv($handle, [
-                        $sale->date->format('Y-m-d H:i'),
+                        format_display_datetime($sale->date),
                         $sale->invoice_number,
                         $sale->customer_code ?? '',
                         $sale->customer_name ?? '',

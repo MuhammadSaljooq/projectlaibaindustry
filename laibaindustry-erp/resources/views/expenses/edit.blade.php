@@ -27,7 +27,7 @@
 <div class="flex flex-col gap-1">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">EXP_AMEND_17</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Edit expense</h1>
-<p class="text-sm text-[#586064] mt-2">{{ $expense->type }} · {{ $expense->date->format('Y-m-d') }}</p>
+<p class="text-sm text-[#586064] mt-2">{{ $expense->type }} · {{ format_display_date($expense->date) }}</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>

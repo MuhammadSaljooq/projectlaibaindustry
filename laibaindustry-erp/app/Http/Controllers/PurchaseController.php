@@ -17,9 +17,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PurchaseController extends Controller
 {
-
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
+        [$redirect, $from, $to] = parse_list_date_filters();
+        if ($redirect) {
+            return $redirect;
+        }
+
         $query = PurchaseItem::query()
             ->with('purchase')
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
@@ -28,15 +32,15 @@ class PurchaseController extends Controller
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('purchases.invoice_number', 'like', "%{$search}%")
-                  ->orWhere('purchases.customer_name', 'like', "%{$search}%")
-                  ->orWhere('purchases.customer_code', 'like', "%{$search}%")
-                  ->orWhere('purchase_items.product_name', 'like', "%{$search}%");
+                    ->orWhere('purchases.customer_name', 'like', "%{$search}%")
+                    ->orWhere('purchases.customer_code', 'like', "%{$search}%")
+                    ->orWhere('purchase_items.product_name', 'like', "%{$search}%");
             });
         }
-        if ($from = request('from')) {
+        if ($from) {
             $query->whereDate('purchases.date', '>=', $from);
         }
-        if ($to = request('to')) {
+        if ($to) {
             $query->whereDate('purchases.date', '<=', $to);
         }
 
@@ -68,7 +72,7 @@ class PurchaseController extends Controller
             foreach ($purchases as $purchase) {
                 foreach ($purchase->items as $item) {
                     fputcsv($handle, [
-                        $purchase->date->format('Y-m-d H:i'),
+                        format_display_datetime($purchase->date),
                         $purchase->invoice_number,
                         $purchase->customer_code ?? '',
                         $purchase->customer_name ?? '',
@@ -82,7 +86,7 @@ class PurchaseController extends Controller
                 }
             }
             fclose($handle);
-        }, 'purchases-' . now()->format('Y-m-d') . '.csv', [
+        }, 'purchases-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv',
         ]);
     }
@@ -113,55 +117,55 @@ class PurchaseController extends Controller
             DB::beginTransaction();
 
             $purchaseSubtotal = 0;
-            $purchaseVat      = 0;
+            $purchaseVat = 0;
 
             foreach ($lines as $line) {
-                $price  = (float) ($line['price']    ?? 0);
-                $qty    = (int)   ($line['quantity'] ?? 1);
+                $price = (float) ($line['price'] ?? 0);
+                $qty = (int) ($line['quantity'] ?? 1);
                 $amount = round($price * $qty, 2);
-                $vat    = round($amount * $vatRateDecimal, 2);
+                $vat = round($amount * $vatRateDecimal, 2);
                 $purchaseSubtotal += $amount;
-                $purchaseVat      += $vat;
+                $purchaseVat += $vat;
             }
 
             $purchaseTotal = round($purchaseSubtotal + $purchaseVat, 2);
 
             $purchase = Purchase::create([
-                'date'           => $request->date,
-                'customer_code'  => $request->customer_code  ?: null,
-                'customer_name'  => $request->customer_name  ?: null,
+                'date' => $request->date,
+                'customer_code' => $request->customer_code ?: null,
+                'customer_name' => $request->customer_name ?: null,
                 'invoice_number' => $request->invoice_number,
-                'subtotal'       => round($purchaseSubtotal, 2),
-                'vat_amount'     => round($purchaseVat, 2),
-                'total_amount'   => $purchaseTotal,
-                'currency_id'    => $defaultCurrencyId,
+                'subtotal' => round($purchaseSubtotal, 2),
+                'vat_amount' => round($purchaseVat, 2),
+                'total_amount' => $purchaseTotal,
+                'currency_id' => $defaultCurrencyId,
             ]);
 
             foreach ($lines as $line) {
-                $price    = (float) ($line['price']    ?? 0);
-                $qty      = (int)   ($line['quantity'] ?? 1);
-                $amount   = round($price * $qty, 2);
-                $vat      = round($amount * $vatRateDecimal, 2);
+                $price = (float) ($line['price'] ?? 0);
+                $qty = (int) ($line['quantity'] ?? 1);
+                $amount = round($price * $qty, 2);
+                $vat = round($amount * $vatRateDecimal, 2);
                 $subtotal = round($amount + $vat, 2);
 
                 PurchaseItem::create([
-                    'purchase_id'  => $purchase->id,
+                    'purchase_id' => $purchase->id,
                     'product_name' => trim($line['product_name']),
-                    'price'        => $price,
-                    'quantity'     => $qty,
-                    'amount'       => $amount,
-                    'vat_amount'   => $vat,
-                    'subtotal'     => $subtotal,
+                    'price' => $price,
+                    'quantity' => $qty,
+                    'amount' => $amount,
+                    'vat_amount' => $vat,
+                    'subtotal' => $subtotal,
                 ]);
             }
 
             Payable::create([
-                'purchase_id'    => $purchase->id,
-                'date'           => $request->date,
+                'purchase_id' => $purchase->id,
+                'date' => $request->date,
                 'invoice_number' => $request->invoice_number,
-                'customer_name'  => $request->customer_name  ?: null,
-                'customer_code'  => $request->customer_code  ?: null,
-                'amount'         => $purchaseTotal,
+                'customer_name' => $request->customer_name ?: null,
+                'customer_code' => $request->customer_code ?: null,
+                'amount' => $purchaseTotal,
             ]);
 
             // Only upsert a customer record when a customer_code is explicitly provided
@@ -179,28 +183,28 @@ class PurchaseController extends Controller
             if ($customer) {
                 CustomerLedgerEntry::create([
                     'customer_id' => $customer->id,
-                    'date'        => $request->date,
+                    'date' => $request->date,
                     'description' => 'Purchase',
-                    'reference'   => $request->invoice_number,
-                    'debit'       => 0,
-                    'credit'      => $purchaseTotal,
+                    'reference' => $request->invoice_number,
+                    'debit' => 0,
+                    'credit' => $purchaseTotal,
                     'source_type' => 'purchase',
-                    'source_id'   => $purchase->id,
+                    'source_id' => $purchase->id,
                 ]);
             }
 
             VatEntry::create([
-                'type'           => 'purchase',
-                'source_type'    => Purchase::class,
-                'source_id'      => $purchase->id,
-                'date'           => $request->date,
+                'type' => 'purchase',
+                'source_type' => Purchase::class,
+                'source_id' => $purchase->id,
+                'date' => $request->date,
                 'invoice_number' => $request->invoice_number,
-                'customer_name'  => $request->customer_name ?: null,
-                'customer_code'  => $request->customer_code ?: null,
-                'subtotal'       => round($purchaseSubtotal, 2),
-                'vat_rate'       => $vatRatePercent,
-                'vat_amount'     => round($purchaseVat, 2),
-                'total_amount'   => $purchaseTotal,
+                'customer_name' => $request->customer_name ?: null,
+                'customer_code' => $request->customer_code ?: null,
+                'subtotal' => round($purchaseSubtotal, 2),
+                'vat_rate' => $vatRatePercent,
+                'vat_amount' => round($purchaseVat, 2),
+                'total_amount' => $purchaseTotal,
             ]);
 
             DB::commit();
@@ -211,7 +215,7 @@ class PurchaseController extends Controller
             DB::rollBack();
 
             return redirect()->back()->withInput()
-                ->with('error', 'Failed to create purchase: ' . $e->getMessage());
+                ->with('error', 'Failed to create purchase: '.$e->getMessage());
         }
     }
 
@@ -249,78 +253,78 @@ class PurchaseController extends Controller
             DB::beginTransaction();
 
             $purchaseSubtotal = 0;
-            $purchaseVat      = 0;
+            $purchaseVat = 0;
 
             foreach ($lines as $line) {
-                $price  = (float) ($line['price']    ?? 0);
-                $qty    = (int)   ($line['quantity'] ?? 1);
+                $price = (float) ($line['price'] ?? 0);
+                $qty = (int) ($line['quantity'] ?? 1);
                 $amount = round($price * $qty, 2);
-                $vat    = round($amount * $vatRateDecimal, 2);
+                $vat = round($amount * $vatRateDecimal, 2);
                 $purchaseSubtotal += $amount;
-                $purchaseVat      += $vat;
+                $purchaseVat += $vat;
             }
 
             $purchaseTotal = round($purchaseSubtotal + $purchaseVat, 2);
-            $oldTotal      = (float) $purchase->total_amount;
+            $oldTotal = (float) $purchase->total_amount;
 
             $purchase->update([
-                'date'           => $request->date,
-                'customer_code'  => $request->customer_code  ?: null,
-                'customer_name'  => $request->customer_name  ?: null,
+                'date' => $request->date,
+                'customer_code' => $request->customer_code ?: null,
+                'customer_name' => $request->customer_name ?: null,
                 'invoice_number' => $request->invoice_number,
-                'subtotal'       => round($purchaseSubtotal, 2),
-                'vat_amount'     => round($purchaseVat, 2),
-                'total_amount'   => $purchaseTotal,
-                'currency_id'    => $defaultCurrencyId,
+                'subtotal' => round($purchaseSubtotal, 2),
+                'vat_amount' => round($purchaseVat, 2),
+                'total_amount' => $purchaseTotal,
+                'currency_id' => $defaultCurrencyId,
             ]);
 
             $purchase->items()->delete();
 
             foreach ($lines as $line) {
-                $price    = (float) ($line['price']    ?? 0);
-                $qty      = (int)   ($line['quantity'] ?? 1);
-                $amount   = round($price * $qty, 2);
-                $vat      = round($amount * $vatRateDecimal, 2);
+                $price = (float) ($line['price'] ?? 0);
+                $qty = (int) ($line['quantity'] ?? 1);
+                $amount = round($price * $qty, 2);
+                $vat = round($amount * $vatRateDecimal, 2);
                 $subtotal = round($amount + $vat, 2);
 
                 PurchaseItem::create([
-                    'purchase_id'  => $purchase->id,
+                    'purchase_id' => $purchase->id,
                     'product_name' => trim($line['product_name']),
-                    'price'        => $price,
-                    'quantity'     => $qty,
-                    'amount'       => $amount,
-                    'vat_amount'   => $vat,
-                    'subtotal'     => $subtotal,
+                    'price' => $price,
+                    'quantity' => $qty,
+                    'amount' => $amount,
+                    'vat_amount' => $vat,
+                    'subtotal' => $subtotal,
                 ]);
             }
 
             Payable::where('purchase_id', $purchase->id)->update([
-                'date'           => $request->date,
+                'date' => $request->date,
                 'invoice_number' => $request->invoice_number,
-                'customer_name'  => $request->customer_name  ?: null,
-                'customer_code'  => $request->customer_code  ?: null,
-                'amount'         => max($purchaseTotal, (float) (Payable::where('purchase_id', $purchase->id)->value('received') ?? 0)),
+                'customer_name' => $request->customer_name ?: null,
+                'customer_code' => $request->customer_code ?: null,
+                'amount' => max($purchaseTotal, (float) (Payable::where('purchase_id', $purchase->id)->value('received') ?? 0)),
             ]);
 
             CustomerLedgerEntry::where('source_type', 'purchase')
                 ->where('source_id', $purchase->id)
                 ->update([
-                    'date'      => $request->date,
+                    'date' => $request->date,
                     'reference' => $request->invoice_number,
-                    'credit'    => $purchaseTotal,
+                    'credit' => $purchaseTotal,
                 ]);
 
             VatEntry::where('source_type', Purchase::class)
                 ->where('source_id', $purchase->id)
                 ->update([
-                    'date'           => $request->date,
+                    'date' => $request->date,
                     'invoice_number' => $request->invoice_number,
-                    'customer_name'  => $request->customer_name ?: null,
-                    'customer_code'  => $request->customer_code ?: null,
-                    'subtotal'       => round($purchaseSubtotal, 2),
-                    'vat_rate'       => $vatRatePercent,
-                    'vat_amount'     => round($purchaseVat, 2),
-                    'total_amount'   => $purchaseTotal,
+                    'customer_name' => $request->customer_name ?: null,
+                    'customer_code' => $request->customer_code ?: null,
+                    'subtotal' => round($purchaseSubtotal, 2),
+                    'vat_rate' => $vatRatePercent,
+                    'vat_amount' => round($purchaseVat, 2),
+                    'total_amount' => $purchaseTotal,
                 ]);
 
             DB::commit();
@@ -331,7 +335,7 @@ class PurchaseController extends Controller
             DB::rollBack();
 
             return redirect()->back()->withInput()
-                ->with('error', 'Failed to update purchase: ' . $e->getMessage());
+                ->with('error', 'Failed to update purchase: '.$e->getMessage());
         }
     }
 
@@ -368,7 +372,7 @@ class PurchaseController extends Controller
             DB::rollBack();
 
             return redirect()->route('purchases.index')
-                ->with('error', 'Failed to delete purchase: ' . $e->getMessage());
+                ->with('error', 'Failed to delete purchase: '.$e->getMessage());
         }
     }
 }

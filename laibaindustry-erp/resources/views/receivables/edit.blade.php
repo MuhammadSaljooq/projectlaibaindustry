@@ -53,7 +53,7 @@
 <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-8 pb-8 border-b border-[#ABB3B7]">
 <div>
 <p class="st-label mb-1">Invoice date</p>
-<p class="text-sm font-semibold text-[#2B3437] font-mono">{{ $receivable->date->format('Y-m-d') }}</p>
+<p class="text-sm font-semibold text-[#2B3437] font-mono">{{ format_display_date($receivable->date) }}</p>
 </div>
 <div>
 <p class="st-label mb-1">Invoice</p>

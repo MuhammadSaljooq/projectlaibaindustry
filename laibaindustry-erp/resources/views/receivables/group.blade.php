@@ -96,7 +96,7 @@
 <tbody>
 @foreach ($groupPayments as $gp)
 <tr class="st-tr">
-<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $gp->payment_date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ format_display_date($gp->payment_date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($gp->amount, 2) }}</td>
 <td class="st-td px-4 py-3 text-right">
 @if(auth()->user()->role !== 'viewer')
@@ -131,8 +131,8 @@
 <tbody>
 @foreach ($receivables as $r)
 <tr class="st-tr">
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $r->date->format('Y-m-d') }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $r->payment_received_at ? $r->payment_received_at->format('Y-m-d') : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($r->date) }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $r->payment_received_at ? format_display_date($r->payment_received_at) : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $r->invoice_number ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</td>
 <td class="st-td px-4 py-3 text-right">

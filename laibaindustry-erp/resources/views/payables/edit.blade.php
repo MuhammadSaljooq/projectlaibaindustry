@@ -58,7 +58,7 @@ $isPaid = $balance <= 0;
 <div class="space-y-3 text-sm mb-6 pb-6 border-b border-[#ABB3B7]">
 <div class="flex items-center justify-between gap-4">
 <span class="st-label !mb-0">Date</span>
-<span class="font-semibold text-[#2B3437]">{{ $payable->date->format('Y-m-d') }}</span>
+<span class="font-semibold text-[#2B3437]">{{ format_display_date($payable->date) }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">
 <span class="st-label !mb-0">Invoice</span>

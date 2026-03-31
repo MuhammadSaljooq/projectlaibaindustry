@@ -29,7 +29,7 @@
 <div class="flex flex-col gap-1 min-w-0">
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Overview</h1>
 </div>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">All-time totals · last updated {{ now()->format('Y-m-d H:i') }}</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">All-time totals · last updated {{ format_display_datetime(now()) }}</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>

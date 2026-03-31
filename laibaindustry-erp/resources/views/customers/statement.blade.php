@@ -147,11 +147,11 @@
 <form method="get" action="{{ route('customers.statement', $customer) }}" class="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3">
 <div class="flex flex-col gap-1 min-w-0">
 <label class="text-[10px] font-bold uppercase tracking-widest text-[#586064]" for="stmt_from">From</label>
-<input class="st-input w-full sm:w-44 px-3 py-2 text-sm" type="date" id="stmt_from" name="from" value="{{ old('from', request('from')) }}">
+<input class="st-input w-full sm:w-44 px-3 py-2 text-sm font-mono" type="text" id="stmt_from" name="from" value="{{ old('from', filter_date_input_value(request('from'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="flex flex-col gap-1 min-w-0">
 <label class="text-[10px] font-bold uppercase tracking-widest text-[#586064]" for="stmt_to">To</label>
-<input class="st-input w-full sm:w-44 px-3 py-2 text-sm" type="date" id="stmt_to" name="to" value="{{ old('to', request('to')) }}">
+<input class="st-input w-full sm:w-44 px-3 py-2 text-sm font-mono" type="text" id="stmt_to" name="to" value="{{ old('to', filter_date_input_value(request('to'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="flex flex-wrap items-center gap-2">
 <button type="submit" class="st-btn-primary h-9 px-4 inline-flex items-center gap-2 text-[10px]">Apply</button>
@@ -159,7 +159,7 @@
 </div>
 </form>
 @if ($statementFiltered && isset($periodFrom, $periodTo))
-<p class="text-sm text-[#2B3437] mt-3 font-semibold">Showing {{ $periodFrom->format('j M Y') }} – {{ $periodTo->format('j M Y') }}</p>
+<p class="text-sm text-[#2B3437] mt-3 font-semibold">Showing {{ format_display_date($periodFrom) }} – {{ format_display_date($periodTo) }}</p>
 @endif
 </div>
 
@@ -211,9 +211,9 @@ Email statement
 <p class="text-sm font-mono font-semibold tabular-nums text-[#2B3437] break-words">
 {{ $currencySymbol ?? '$' }} {{ number_format($openingBalance, 2) }}
 @if($statementFiltered && isset($periodFrom))
-<span class="text-[10px] font-sans ml-1 text-[#586064]">at start of period ({{ $periodFrom->format('Y-m-d') }})</span>
+<span class="text-[10px] font-sans ml-1 text-[#586064]">at start of period ({{ format_display_date($periodFrom) }})</span>
 @elseif($customer->opening_balance_date)
-<span class="text-[10px] font-sans ml-1 text-[#586064]">as of {{ $customer->opening_balance_date->format('Y-m-d') }}</span>
+<span class="text-[10px] font-sans ml-1 text-[#586064]">as of {{ format_display_date($customer->opening_balance_date) }}</span>
 @endif
 </p>
 </div>
@@ -283,9 +283,9 @@ Email statement
 <tr class="st-tr bg-[#F8F9FA]">
 <td class="st-td px-4 py-3 text-sm text-[#586064]">
 @if($statementFiltered && isset($periodFrom))
-{{ $periodFrom->format('Y-m-d') }}
+{{ format_display_date($periodFrom) }}
 @else
-{{ $customer->opening_balance_date ? $customer->opening_balance_date->format('Y-m-d') : '—' }}
+{{ $customer->opening_balance_date ? format_display_date($customer->opening_balance_date) : '—' }}
 @endif
 </td>
 <td class="st-td px-4 py-3 text-sm">
@@ -313,7 +313,7 @@ $badge = match($row['source_type']) {
 @endphp
 <tr class="st-tr">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">
-{{ $row['date']->format('Y-m-d') }}
+{{ format_display_date($row['date']) }}
 <span class="text-xs ml-1 text-[#ABB3B7]">{{ $row['date']->format('H:i') }}</span>
 </td>
 <td class="st-td px-4 py-3 text-sm">

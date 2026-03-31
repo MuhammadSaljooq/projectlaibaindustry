@@ -428,14 +428,14 @@ class CustomerController extends Controller
             $filename = sprintf(
                 'statement-%s-%s-%s.pdf',
                 $slug,
-                $period->fromStart->format('Y-m-d'),
-                $period->toEnd->format('Y-m-d')
+                str_replace('/', '-', format_display_date($period->fromStart)),
+                str_replace('/', '-', format_display_date($period->toEnd))
             );
         } else {
             $filename = sprintf(
                 'statement-%s-all-%s.pdf',
                 $slug,
-                now()->format('Y-m-d')
+                str_replace('/', '-', format_display_date(now()))
             );
         }
 

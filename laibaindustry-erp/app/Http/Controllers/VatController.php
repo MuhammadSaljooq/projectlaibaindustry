@@ -10,8 +10,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class VatController extends Controller
 {
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
+        [$redirect, $from, $to] = parse_list_date_filters();
+        if ($redirect) {
+            return $redirect;
+        }
+
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         $query = VatEntry::query();
@@ -19,14 +24,14 @@ class VatController extends Controller
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhere('customer_name', 'like', "%{$search}%")
-                  ->orWhere('customer_code', 'like', "%{$search}%");
+                    ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhere('customer_code', 'like', "%{$search}%");
             });
         }
-        if ($from = request('from')) {
+        if ($from) {
             $query->whereDate('date', '>=', $from);
         }
-        if ($to = request('to')) {
+        if ($to) {
             $query->whereDate('date', '<=', $to);
         }
 
@@ -67,7 +72,7 @@ class VatController extends Controller
             fputcsv($handle, ['Date', 'Type', 'Invoice #', 'Customer/Supplier', 'Subtotal', 'VAT Rate %', 'VAT Amount', 'Total']);
             foreach ($entries as $entry) {
                 fputcsv($handle, [
-                    $entry->date->format('Y-m-d'),
+                    format_display_date($entry->date),
                     ucfirst($entry->type),
                     $entry->invoice_number ?? '',
                     $entry->customer_name ?? $entry->customer_code ?? '',
@@ -78,7 +83,7 @@ class VatController extends Controller
                 ]);
             }
             fclose($handle);
-        }, 'vat-entries-' . now()->format('Y-m-d') . '.csv', [
+        }, 'vat-entries-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv',
         ]);
     }

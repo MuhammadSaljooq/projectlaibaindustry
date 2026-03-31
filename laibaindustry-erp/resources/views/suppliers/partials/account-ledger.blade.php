@@ -37,7 +37,7 @@
 <tbody>
 @forelse($ledgerEntries as $e)
 <tr class="st-tr">
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $e->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($e->date) }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $e->description }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">@if((float)$e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else—@endif</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">@if((float)$e->credit > 0){{ $currencySymbol }} {{ number_format($e->credit, 2) }}@else—@endif</td>

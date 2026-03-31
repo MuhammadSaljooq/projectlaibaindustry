@@ -90,7 +90,7 @@
 @php $balance = (float) $p->amount - (float) $p->received; @endphp
 <tr class="st-tr @if(auth()->user()->role !== 'viewer' && $balance > 0) cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
     @if(auth()->user()->role !== 'viewer' && $balance > 0) data-payable-edit-url="{{ route('payables.edit', $p) }}" role="link" tabindex="0" aria-label="Record payment {{ e($p->invoice_number ?: '#' . $p->id) }}" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $p->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($p->date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $p->invoice_number ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#586064] truncate max-w-[200px]">{{ $p->customer_name ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $p->customer_code ?: '—' }}</td>

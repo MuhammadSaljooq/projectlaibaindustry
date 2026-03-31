@@ -62,6 +62,16 @@ New sale
 {{ session('warning') }}
 </div>
 @endif
+@if ($errors->any())
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D] space-y-1">
+<p class="font-semibold">Could not apply date filter</p>
+<ul class="list-disc list-inside text-[13px]">
+@foreach ($errors->all() as $err)
+<li>{{ $err }}</li>
+@endforeach
+</ul>
+</div>
+@endif
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
@@ -88,11 +98,11 @@ New sale
 </div>
 <div class="min-w-[140px]">
 <label class="st-label block mb-2" for="s-from">From</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="s-from" type="date" name="from" value="{{ request('from') }}">
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="s-from" type="text" name="from" value="{{ old('from', filter_date_input_value(request('from'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="min-w-[140px]">
 <label class="st-label block mb-2" for="s-to">To</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="s-to" type="date" name="to" value="{{ request('to') }}">
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="s-to" type="text" name="to" value="{{ old('to', filter_date_input_value(request('to'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="flex flex-wrap gap-2">
 <button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
@@ -146,7 +156,7 @@ $showLabel = 'View sale '.($sale->invoice_number ?: '#'.$sale->id);
 @endphp
 <tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
     data-sale-show-url="{{ route('sales.show', $sale) }}" role="link" tabindex="0" aria-label="{{ e($showLabel) }}">
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $sale->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_datetime($sale->date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437] truncate max-w-[160px]">{{ $sale->customer_name ?: ($sale->customer_code ?: '—') }}</td>
 <td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
 <a href="{{ route('sales.show', $sale) }}" class="text-[#5E5E5E] hover:underline" onclick="event.stopPropagation()">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>

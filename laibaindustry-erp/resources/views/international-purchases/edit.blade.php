@@ -27,7 +27,7 @@
 <div class="flex flex-col gap-1">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">INT_PURCH_02</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Edit international purchase</h1>
-<p class="text-sm text-[#586064] mt-2">{{ $internationalPurchase->product_name }} · {{ $internationalPurchase->date->format('Y-m-d') }}</p>
+<p class="text-sm text-[#586064] mt-2">{{ $internationalPurchase->product_name }} · {{ format_display_date($internationalPurchase->date) }}</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>

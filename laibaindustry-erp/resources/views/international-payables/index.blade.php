@@ -93,7 +93,7 @@
 @endphp
 <tr class="st-tr @if(auth()->user()->role !== 'viewer' && $bal > 0.009) cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
     @if(auth()->user()->role !== 'viewer' && $bal > 0.009) data-intl-pay-url="{{ route('international-payables.pay', $p) }}" role="link" tabindex="0" aria-label="Record payment {{ e($p->product_name) }}" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $p->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($p->date) }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#586064]">{{ $p->supplier?->name ?? '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $p->product_name }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($billRow, 2) }}</td>

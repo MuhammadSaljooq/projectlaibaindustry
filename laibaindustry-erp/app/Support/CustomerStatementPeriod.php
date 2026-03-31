@@ -27,18 +27,32 @@ final class CustomerStatementPeriod
      */
     public static function validateAndParse(Request $request): array
     {
-        $from = self::normalizeInput($request->input('from'));
-        $to = self::normalizeInput($request->input('to'));
+        $fromRaw = self::normalizeInput($request->input('from'));
+        $toRaw = self::normalizeInput($request->input('to'));
 
-        if ($from === null && $to === null) {
+        if ($fromRaw === null && $toRaw === null) {
             return [false, null];
         }
 
+        $fromIso = $fromRaw !== null ? parse_filter_date($fromRaw) : null;
+        $toIso = $toRaw !== null ? parse_filter_date($toRaw) : null;
+
+        if ($fromRaw !== null && $fromIso === null) {
+            throw ValidationException::withMessages([
+                'from' => 'Enter the date as dd/mm/yyyy.',
+            ]);
+        }
+        if ($toRaw !== null && $toIso === null) {
+            throw ValidationException::withMessages([
+                'to' => 'Enter the date as dd/mm/yyyy.',
+            ]);
+        }
+
         $validator = Validator::make(
-            ['from' => $from, 'to' => $to],
+            ['from' => $fromIso, 'to' => $toIso],
             [
-                'from' => ['required', 'date'],
-                'to' => ['required', 'date', 'after_or_equal:from'],
+                'from' => ['required', 'date_format:Y-m-d'],
+                'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from'],
             ],
             [
                 'from.required' => 'Enter a start date when filtering by period.',
@@ -72,8 +86,8 @@ final class CustomerStatementPeriod
         return [
             true,
             new self(
-                CarbonImmutable::parse($from, $tz)->startOfDay(),
-                CarbonImmutable::parse($to, $tz)->endOfDay(),
+                CarbonImmutable::parse($fromIso, $tz)->startOfDay(),
+                CarbonImmutable::parse($toIso, $tz)->endOfDay(),
             ),
         ];
     }

@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Display date formats (human-readable in UI and exports)
+    |--------------------------------------------------------------------------
+    |
+    | HTML date inputs still use ISO (Y-m-d) in value attributes; these formats
+    | are for tables, labels, and CSV data columns only.
+    |
+    */
+
+    'display_date_format' => 'd/m/Y',
+
+    'display_datetime_format' => 'd/m/Y H:i',
+
 ];

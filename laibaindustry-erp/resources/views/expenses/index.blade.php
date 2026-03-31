@@ -61,6 +61,16 @@ New expense
 {{ session('error') }}
 </div>
 @endif
+@if ($errors->any())
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D] space-y-1">
+<p class="font-semibold">Could not apply date filter</p>
+<ul class="list-disc list-inside text-[13px]">
+@foreach ($errors->all() as $err)
+<li>{{ $err }}</li>
+@endforeach
+</ul>
+</div>
+@endif
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
@@ -87,11 +97,11 @@ New expense
 </div>
 <div class="min-w-[140px]">
 <label class="st-label block mb-2" for="e-from">From</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="e-from" type="date" name="from" value="{{ request('from') }}">
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="e-from" type="text" name="from" value="{{ old('from', filter_date_input_value(request('from'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="min-w-[140px]">
 <label class="st-label block mb-2" for="e-to">To</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="e-to" type="date" name="to" value="{{ request('to') }}">
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="e-to" type="text" name="to" value="{{ old('to', filter_date_input_value(request('to'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
 </div>
 <div class="flex flex-wrap gap-2">
 <button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
@@ -129,7 +139,7 @@ Clear
 @forelse($expenses as $expense)
 <tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
     @if(auth()->user()->role !== 'viewer') data-expense-edit-url="{{ route('expenses.edit', $expense) }}" role="link" tabindex="0" aria-label="Edit expense {{ e($expense->type) }}" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $expense->date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($expense->date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $expense->type }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($expense->amount, 2) }}</td>
 @if(auth()->user()->role !== 'viewer')

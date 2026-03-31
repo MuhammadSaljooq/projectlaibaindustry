@@ -55,7 +55,7 @@
 <div class="space-y-3 text-sm mb-6 pb-6 border-b border-[#ABB3B7]">
 <div class="flex items-center justify-between gap-4">
 <span class="st-label !mb-0">Date</span>
-<span class="font-semibold text-[#2B3437]">{{ $purchase->date->format('Y-m-d') }}</span>
+<span class="font-semibold text-[#2B3437]">{{ format_display_date($purchase->date) }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">
 <span class="st-label !mb-0">Supplier</span>

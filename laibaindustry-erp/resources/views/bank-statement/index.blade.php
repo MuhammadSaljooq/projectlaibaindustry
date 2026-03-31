@@ -109,7 +109,7 @@ Add inflow
 <tbody>
 @forelse($inflows as $row)
 <tr class="st-tr">
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $row->transaction_date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($row->transaction_date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $row->company_name }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($row->amount, 2) }}</td>
 @if($canWrite)
@@ -195,7 +195,7 @@ Add outflow
 <tbody>
 @forelse($outflows as $row)
 <tr class="st-tr">
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $row->transaction_date->format('Y-m-d') }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($row->transaction_date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $row->company_name }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($row->amount, 2) }}</td>
 @if($canWrite)

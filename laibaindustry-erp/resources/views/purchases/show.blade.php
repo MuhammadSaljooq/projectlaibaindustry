@@ -46,7 +46,7 @@
 <div class="flex flex-col gap-1 min-w-0">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">RECORD_VIEW_03</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">{{ $purchase->invoice_number ?: 'Purchase #' . $purchase->id }}</h1>
-<p class="text-sm text-[#586064] mt-1">{{ $purchase->date->format('F j, Y H:i') }}</p>
+<p class="text-sm text-[#586064] mt-1">{{ format_display_datetime($purchase->date) }}</p>
 </div>
 <a href="{{ route('purchases.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 shrink-0">
 <span class="material-symbols-outlined text-[18px]">list</span>
@@ -83,7 +83,7 @@ Ledger
 </div>
 <div>
 <p class="st-label mb-1">Date</p>
-<p class="text-sm font-mono text-[#2B3437]">{{ $purchase->date->format('Y-m-d H:i') }}</p>
+<p class="text-sm font-mono text-[#2B3437]">{{ format_display_datetime($purchase->date) }}</p>
 </div>
 </div>
 
