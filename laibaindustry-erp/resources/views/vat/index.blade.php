@@ -45,6 +45,17 @@ CSV export
 <p class="text-xl font-black uppercase tracking-tight text-[#2B3437]">VAT</p>
 </div>
 
+@if (session('success'))
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
+{{ session('success') }}
+</div>
+@endif
+@if (session('error'))
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
+{{ session('error') }}
+</div>
+@endif
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Output VAT <span class="font-normal normal-case text-[#586064]">(filtered)</span></p>
@@ -117,6 +128,7 @@ Clear
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT %</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT amount</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap w-28">Actions</th>
 </tr>
 </thead>
 <tbody>
@@ -141,10 +153,24 @@ Purchase
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($entry->subtotal, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ number_format($entry->vat_rate, 2) }}%</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums {{ $entry->type === 'sale' ? 'text-[#5E5E5E]' : 'text-[#586064]' }}">{{ $currencySymbol }} {{ number_format($entry->vat_amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-right whitespace-nowrap">
+@if(auth()->user()->role !== 'viewer')
+<form method="post" action="{{ route('vat.destroy', $entry) }}" class="inline" data-confirm-delete="{{ e('Remove this VAT ledger row? The related sale or purchase will not be deleted.') }}">
+@csrf
+@method('DELETE')
+@if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
+@if(request('from'))<input type="hidden" name="from" value="{{ request('from') }}">@endif
+@if(request('to'))<input type="hidden" name="to" value="{{ request('to') }}">@endif
+<button type="submit" class="text-[11px] font-bold uppercase tracking-wider text-[#9F403D] border border-[#9F403D] px-2 py-1 hover:bg-[#F1F4F6]">Delete</button>
+</form>
+@else
+<span class="text-xs text-[#586064]">—</span>
+@endif
+</td>
 </tr>
 @empty
 <tr>
-<td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No VAT entries</p>
 <p class="max-w-md mx-auto">Entries are created when you record sales and purchases.</p>
 </td>

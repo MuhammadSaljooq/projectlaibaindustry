@@ -87,6 +87,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
 
     Route::get('/vat', [VatController::class, 'index'])->name('vat.index');
     Route::get('/vat/export', [VatController::class, 'export'])->name('vat.export');
+    Route::delete('/vat/{vat_entry}', [VatController::class, 'destroy'])->name('vat.destroy');
 
     Route::get('/sales/export/csv', [\App\Http\Controllers\SaleController::class, 'export'])->name('sales.export');
     Route::get('/purchases/export/csv', [\App\Http\Controllers\PurchaseController::class, 'export'])->name('purchases.export');

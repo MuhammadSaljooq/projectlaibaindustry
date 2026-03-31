@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Currency;
 use App\Models\VatEntry;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -80,5 +81,20 @@ class VatController extends Controller
         }, 'vat-entries-' . now()->format('Y-m-d') . '.csv', [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    public function destroy(VatEntry $vat_entry): RedirectResponse
+    {
+        $query = request()->only(['search', 'from', 'to']);
+
+        try {
+            $vat_entry->delete();
+        } catch (\Throwable $e) {
+            return redirect()->route('vat.index', $query)
+                ->with('error', 'Failed to remove VAT entry: '.$e->getMessage());
+        }
+
+        return redirect()->route('vat.index', $query)
+            ->with('success', 'VAT entry removed. The related sale or purchase was not changed.');
     }
 }
