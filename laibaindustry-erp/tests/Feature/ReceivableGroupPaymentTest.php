@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use App\Models\CustomerLedgerReceivableGroupPayment;
 use App\Models\Receivable;
 use App\Models\ReceivableGroupPayment;
 use App\Models\User;
@@ -105,6 +106,20 @@ class ReceivableGroupPaymentTest extends TestCase
             ->where('receivable_group_payment_id', $gp->id)
             ->where('source_type', 'payment_received')
             ->count());
+        $this->assertSame(2, CustomerLedgerReceivableGroupPayment::query()
+            ->where('receivable_group_payment_id', $gp->id)
+            ->count());
+
+        $customer = Customer::where('customer_code', 'FIFO-1')->first();
+        $this->assertNotNull($customer);
+        $stmt = $this->actingAs($user)->get(route('customers.statement', $customer));
+        $stmt->assertOk();
+        $paymentRows = array_values(array_filter(
+            $stmt->viewData('ledgerRows'),
+            fn (array $r) => ($r['source_type'] ?? '') === 'payment_received'
+        ));
+        $this->assertCount(1, $paymentRows);
+        $this->assertEqualsWithDelta(50.0, (float) $paymentRows[0]['credit'], 0.001);
     }
 
     public function test_update_combined_payment_reallocates(): void

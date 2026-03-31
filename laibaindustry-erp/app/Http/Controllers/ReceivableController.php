@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use App\Models\CustomerLedgerReceivableGroupPayment;
 use App\Models\Receivable;
 use App\Models\ReceivableGroupPayment;
 use App\Models\ReceivableGroupPaymentLine;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -530,7 +532,7 @@ class ReceivableController extends Controller
                 : null;
 
             if ($customer) {
-                $entry = CustomerLedgerEntry::create([
+                $ledgerAttrs = [
                     'customer_id' => $customer->id,
                     'date' => $paymentDate,
                     'description' => 'Payment Received',
@@ -539,8 +541,17 @@ class ReceivableController extends Controller
                     'credit' => $slice,
                     'source_type' => 'payment_received',
                     'source_id' => $receivable->id,
-                    'receivable_group_payment_id' => $groupPayment->id,
-                ]);
+                ];
+                if (Schema::hasColumn('customer_ledger_entries', 'receivable_group_payment_id')) {
+                    $ledgerAttrs['receivable_group_payment_id'] = $groupPayment->id;
+                }
+                $entry = CustomerLedgerEntry::create($ledgerAttrs);
+                if (Schema::hasTable('customer_ledger_receivable_group_payments')) {
+                    CustomerLedgerReceivableGroupPayment::create([
+                        'customer_ledger_entry_id' => $entry->id,
+                        'receivable_group_payment_id' => $groupPayment->id,
+                    ]);
+                }
                 ReceivableGroupPaymentLine::create([
                     'receivable_group_payment_id' => $groupPayment->id,
                     'receivable_id' => $receivable->id,

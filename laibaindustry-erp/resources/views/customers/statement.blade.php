@@ -268,12 +268,13 @@ Email statement
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[780px]">
+<table class="w-full text-left border-collapse min-w-[920px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 w-32 whitespace-nowrap">Date</th>
 <th class="st-th px-4 py-3">Description</th>
 <th class="st-th px-4 py-3">Customer code</th>
+<th class="st-th px-4 py-3">Invoice #</th>
 <th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Debit</th>
 <th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Credit</th>
 <th class="st-th px-4 py-3 text-right w-36 whitespace-nowrap">Balance</th>
@@ -292,6 +293,7 @@ Email statement
 <span class="font-semibold text-[#586064]">{{ $statementFiltered ? 'Balance brought forward' : 'Opening balance' }}</span>
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $customer->customer_code ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">—</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#2B3437]">
@@ -323,7 +325,10 @@ $badge = match($row['source_type']) {
 </div>
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">
-{{ $row['reference'] ?: '—' }}
+{{ $row['customer_code'] ?: '—' }}
+</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064] break-words max-w-[10rem]">
+{{ $row['invoice_number'] ?: '—' }}
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums {{ $isDebit ? 'font-bold text-[#2B3437]' : 'text-[#ABB3B7]' }}">
 @if($isDebit)
@@ -350,7 +355,7 @@ $badge = match($row['source_type']) {
 </tr>
 @empty
 <tr>
-<td colspan="6" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">{{ $statementFiltered ? 'No transactions in this period' : 'No transactions yet' }}</p>
 <p class="text-xs">{{ $statementFiltered ? 'Try a different date range or clear the filter to see full history.' : 'Activity appears when sales, purchases, or payments are posted.' }}</p>
 </td>
@@ -361,7 +366,7 @@ $badge = match($row['source_type']) {
 @if(count($ledgerRows) > 0)
 <tfoot>
 <tr class="bg-[#EAEFF1] border-t-2 border-[#ABB3B7]">
-<td colspan="3" class="px-4 py-3 st-label">Totals</td>
+<td colspan="4" class="px-4 py-3 st-label">Totals</td>
 <td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437]">
 {{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}
 </td>

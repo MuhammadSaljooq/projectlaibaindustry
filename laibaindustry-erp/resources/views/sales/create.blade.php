@@ -68,7 +68,7 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 <div>
 <label class="st-label block mb-2" for="date">Date <span class="text-[#9F403D]">*</span></label>
-<input class="st-input w-full h-11 px-4 text-sm" id="date" name="date" type="datetime-local" value="{{ old('date', now()->format('Y-m-d\TH:i')) }}" required>
+<input class="st-input w-full h-11 px-4 text-sm" id="date" name="date" type="date" value="{{ old('date', now()->format('Y-m-d')) }}" required>
 </div>
 <div>
 <label class="st-label block mb-2" for="invoice_number">Invoice number <span class="text-[#9F403D]">*</span></label>

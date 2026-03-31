@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -140,9 +141,8 @@ class CustomerController extends Controller
     }
 
     /**
-     * Chronological order for statement lines: business date, then when the row was posted,
-     * then id. Many entries share the same clock time (date-only from forms); id alone does not
-     * match true posting sequence.
+     * Statement line order: rows appear in the order they were created (posted), not by
+     * transaction date. Null {@see CustomerLedgerEntry::$created_at} sorts last; id breaks ties.
      *
      * @param  Builder<CustomerLedgerEntry>  $query
      * @return Builder<CustomerLedgerEntry>
@@ -150,10 +150,136 @@ class CustomerController extends Controller
     private function applyStatementLedgerOrdering(Builder $query): Builder
     {
         return $query
-            ->orderBy('date')
             ->orderByRaw('CASE WHEN created_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('created_at')
             ->orderBy('id');
+    }
+
+    /**
+     * Combined receivable payments are stored as one ledger row per invoice (FIFO allocation).
+     * On the customer statement, show a single line for the full payment amount.
+     *
+     * @param  Collection<int, CustomerLedgerEntry>  $entries
+     * @return Collection<int, CustomerLedgerEntry|\stdClass>
+     */
+    private function ledgerEntriesForStatementDisplay(Collection $entries): Collection
+    {
+        if ($entries->isEmpty()) {
+            return $entries;
+        }
+
+        $useLink = Schema::hasTable('customer_ledger_receivable_group_payments');
+        $useColumn = Schema::hasColumn('customer_ledger_entries', 'receivable_group_payment_id');
+        if (! $useLink && ! $useColumn) {
+            return $entries;
+        }
+
+        /** @var array<int, list<CustomerLedgerEntry>> $buckets */
+        $buckets = [];
+        $standalone = [];
+
+        foreach ($entries as $entry) {
+            $gid = null;
+            if ($useLink && ($link = $entry->receivableGroupPaymentLink) !== null) {
+                $gid = (int) $link->receivable_group_payment_id;
+            }
+            if ($gid === null && $useColumn && $entry->receivable_group_payment_id) {
+                $gid = (int) $entry->receivable_group_payment_id;
+            }
+            if ($gid !== null) {
+                if (! isset($buckets[$gid])) {
+                    $buckets[$gid] = [];
+                }
+                $buckets[$gid][] = $entry;
+            } else {
+                $standalone[] = $entry;
+            }
+        }
+
+        $merged = [];
+        foreach ($buckets as $sliceEntries) {
+            $merged[] = $this->mergeGroupPaymentLedgerSlicesForStatement($sliceEntries);
+        }
+
+        return collect($standalone)
+            ->merge($merged)
+            ->sort(fn ($a, $b) => $this->ledgerStatementSortKey($a) <=> $this->ledgerStatementSortKey($b))
+            ->values();
+    }
+
+    /**
+     * Match {@see applyStatementLedgerOrdering}: non-null created_at first, created_at, id.
+     *
+     * @param  CustomerLedgerEntry|\stdClass  $e
+     * @return array{0: int, 1: int, 2: int}
+     */
+    private function ledgerStatementSortKey(object $e): array
+    {
+        $createdNull = empty($e->created_at) ? 1 : 0;
+        $createdTs = 0;
+        if (! empty($e->created_at) && $e->created_at instanceof \DateTimeInterface) {
+            $createdTs = $e->created_at->getTimestamp();
+        }
+
+        return [$createdNull, $createdTs, (int) ($e->id ?? 0)];
+    }
+
+    /**
+     * @param  list<CustomerLedgerEntry>  $sliceEntries
+     */
+    private function mergeGroupPaymentLedgerSlicesForStatement(array $sliceEntries): \stdClass
+    {
+        usort(
+            $sliceEntries,
+            fn (CustomerLedgerEntry $a, CustomerLedgerEntry $b): int => $this->ledgerStatementSortKey($a) <=> $this->ledgerStatementSortKey($b)
+        );
+
+        $first = $sliceEntries[0];
+        $sumDebit = 0.0;
+        $sumCredit = 0.0;
+        foreach ($sliceEntries as $e) {
+            $sumDebit += (float) $e->debit;
+            $sumCredit += (float) $e->credit;
+        }
+
+        $desc = trim((string) ($first->description ?? ''));
+
+        $invoiceRefs = [];
+        foreach ($sliceEntries as $e) {
+            $r = trim((string) ($e->reference ?? ''));
+            if ($r !== '') {
+                $invoiceRefs[] = $r;
+            }
+        }
+        $invoiceRefs = array_values(array_unique($invoiceRefs));
+        $invoiceDisplay = $invoiceRefs !== [] ? implode(', ', $invoiceRefs) : null;
+
+        return (object) [
+            'date' => $first->date,
+            'description' => $desc !== '' ? $desc : 'Payment received',
+            'debit' => $sumDebit,
+            'credit' => $sumCredit,
+            'source_type' => $first->source_type,
+            'created_at' => $first->created_at,
+            'id' => $first->id,
+            'invoice_number' => $invoiceDisplay,
+        ];
+    }
+
+    /**
+     * Invoice / document number stored on the ledger row (sales, purchases, payments).
+     */
+    private function statementInvoiceNumberForEntry(CustomerLedgerEntry|\stdClass $entry): ?string
+    {
+        if ($entry instanceof \stdClass) {
+            $s = trim((string) ($entry->invoice_number ?? ''));
+
+            return $s !== '' ? $s : null;
+        }
+
+        $s = trim((string) ($entry->reference ?? ''));
+
+        return $s !== '' ? $s : null;
     }
 
     /**
@@ -176,9 +302,13 @@ class CustomerController extends Controller
 
         if ($hasLedger) {
             if ($period === null) {
-                $entries = $this->applyStatementLedgerOrdering(
-                    CustomerLedgerEntry::query()->where('customer_id', $customer->id)
-                )->get();
+                $ledgerQuery = CustomerLedgerEntry::query()->where('customer_id', $customer->id);
+                if (Schema::hasTable('customer_ledger_receivable_group_payments')) {
+                    $ledgerQuery->with('receivableGroupPaymentLink');
+                }
+                $entries = $this->ledgerEntriesForStatementDisplay(
+                    $this->applyStatementLedgerOrdering($ledgerQuery)->get()
+                );
 
                 foreach ($entries as $entry) {
                     $debit = (float) $entry->debit;
@@ -191,7 +321,8 @@ class CustomerController extends Controller
                     $ledgerRows[] = [
                         'date' => $entry->date,
                         'description' => $entry->description,
-                        'reference' => $customer->customer_code,
+                        'customer_code' => $customer->customer_code,
+                        'invoice_number' => $this->statementInvoiceNumberForEntry($entry),
                         'debit' => $debit,
                         'credit' => $credit,
                         'running_balance' => $runningBalance,
@@ -212,12 +343,16 @@ class CustomerController extends Controller
                 $runningBalance = $periodOpening;
                 $openingBalanceForStatementRow = $periodOpening;
 
-                $entries = $this->applyStatementLedgerOrdering(
-                    CustomerLedgerEntry::query()
-                        ->where('customer_id', $customer->id)
-                        ->where('date', '>=', $fromStart)
-                        ->where('date', '<=', $toEnd)
-                )->get();
+                $periodLedgerQuery = CustomerLedgerEntry::query()
+                    ->where('customer_id', $customer->id)
+                    ->where('date', '>=', $fromStart)
+                    ->where('date', '<=', $toEnd);
+                if (Schema::hasTable('customer_ledger_receivable_group_payments')) {
+                    $periodLedgerQuery->with('receivableGroupPaymentLink');
+                }
+                $entries = $this->ledgerEntriesForStatementDisplay(
+                    $this->applyStatementLedgerOrdering($periodLedgerQuery)->get()
+                );
 
                 foreach ($entries as $entry) {
                     $debit = (float) $entry->debit;
@@ -230,7 +365,8 @@ class CustomerController extends Controller
                     $ledgerRows[] = [
                         'date' => $entry->date,
                         'description' => $entry->description,
-                        'reference' => $customer->customer_code,
+                        'customer_code' => $customer->customer_code,
+                        'invoice_number' => $this->statementInvoiceNumberForEntry($entry),
                         'debit' => $debit,
                         'credit' => $credit,
                         'running_balance' => $runningBalance,

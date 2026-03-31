@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CustomerLedgerEntry extends Model
 {
@@ -36,5 +37,11 @@ class CustomerLedgerEntry extends Model
     public function receivableGroupPayment(): BelongsTo
     {
         return $this->belongsTo(ReceivableGroupPayment::class);
+    }
+
+    /** @return HasOne<CustomerLedgerReceivableGroupPayment, $this> */
+    public function receivableGroupPaymentLink(): HasOne
+    {
+        return $this->hasOne(CustomerLedgerReceivableGroupPayment::class);
     }
 }
