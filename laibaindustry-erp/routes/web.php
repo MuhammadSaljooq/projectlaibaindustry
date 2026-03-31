@@ -66,6 +66,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::put('receivables/{receivable}/adjust-received', [ReceivableController::class, 'adjustReceivedWithoutLedger'])->name('receivables.adjust-received');
     Route::resource('receivables', ReceivableController::class);
     Route::resource('purchases', PurchaseController::class);
+    Route::get('suppliers/{supplier}/ledger', [SupplierController::class, 'ledger'])->name('suppliers.ledger');
     Route::resource('suppliers', SupplierController::class);
     Route::resource('international-purchases', InternationalPurchaseController::class);
     Route::get('/international-payables', [InternationalPayableController::class, 'index'])->name('international-payables.index');

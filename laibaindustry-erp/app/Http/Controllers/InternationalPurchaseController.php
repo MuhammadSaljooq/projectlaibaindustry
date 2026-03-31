@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\InternationalPurchase;
 use App\Models\Supplier;
+use App\Services\SupplierLedgerSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -71,7 +72,7 @@ class InternationalPurchaseController extends Controller
 
         $totalAmount = round((int) $validated['quantity'] * (float) $validated['unit_price'], 2);
 
-        InternationalPurchase::create([
+        $purchase = InternationalPurchase::create([
             'supplier_id' => $validated['supplier_id'] ?? null,
             'date' => $validated['date'],
             'product_name' => $validated['product_name'],
@@ -79,6 +80,8 @@ class InternationalPurchaseController extends Controller
             'unit_price' => $validated['unit_price'],
             'total_amount' => $totalAmount,
         ]);
+
+        SupplierLedgerSync::syncInternationalPurchase($purchase->fresh());
 
         return redirect()->route('international-purchases.index')
             ->with('success', 'International purchase added successfully.');
@@ -117,6 +120,8 @@ class InternationalPurchaseController extends Controller
             'unit_price' => $validated['unit_price'],
             'total_amount' => $totalAmount,
         ]);
+
+        SupplierLedgerSync::syncInternationalPurchase($international_purchase->fresh());
 
         return redirect()->route('international-purchases.index')
             ->with('success', 'International purchase updated successfully.');

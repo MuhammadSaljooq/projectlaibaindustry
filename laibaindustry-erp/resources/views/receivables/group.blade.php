@@ -101,7 +101,7 @@
 <td class="st-td px-4 py-3 text-right">
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('receivables.group.payments.edit', ['groupKey' => $groupKeyEncoded, 'receivableGroupPayment' => $gp]) }}" class="text-[11px] font-bold uppercase tracking-wider text-[#5E5E5E] border border-[#5E5E5E] px-2 py-1 inline-flex items-center gap-1 hover:bg-[#F1F4F6] mr-2">Edit</a>
-<form method="post" action="{{ route('receivables.group.payments.destroy', ['groupKey' => $groupKeyEncoded, 'receivableGroupPayment' => $gp]) }}" class="inline" onsubmit="return confirm('Remove this combined payment?');">
+<form method="post" action="{{ route('receivables.group.payments.destroy', ['groupKey' => $groupKeyEncoded, 'receivableGroupPayment' => $gp]) }}" class="inline" data-confirm-delete="{{ e('Remove this combined payment?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="text-[11px] font-bold uppercase tracking-wider text-[#9F403D] border border-[#9F403D] px-2 py-1 hover:bg-[#F1F4F6]">Remove</button>

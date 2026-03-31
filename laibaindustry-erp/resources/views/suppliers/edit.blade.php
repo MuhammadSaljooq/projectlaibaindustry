@@ -18,6 +18,10 @@
 <span class="hidden sm:inline">Suppliers</span>
 </a>
 </div>
+<a href="{{ route('suppliers.ledger', $supplier) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span class="hidden sm:inline">Ledger</span>
+</a>
 </header>
 
 <div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
@@ -26,7 +30,7 @@
 <div class="flex flex-col gap-4">
 <div class="flex flex-col gap-1">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">SUP_02</p>
-<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Edit supplier</h1>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">@if(auth()->user()->role === 'viewer')Supplier@else Edit supplier @endif</h1>
 <p class="text-sm text-[#586064] mt-2">{{ $supplier->name }}</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
@@ -44,6 +48,20 @@
 @endif
 
 <div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
+@if(auth()->user()->role === 'viewer')
+<p class="st-label mb-6">Vendor details <span class="text-[10px] font-normal normal-case text-[#586064]">(read-only)</span></p>
+<dl class="space-y-4 max-w-xl text-sm">
+<div><dt class="st-label text-[10px] mb-1">Name</dt><dd class="text-[#2B3437] font-semibold">{{ $supplier->name }}</dd></div>
+<div><dt class="st-label text-[10px] mb-1">Country</dt><dd class="text-[#586064]">{{ $supplier->country ?: '—' }}</dd></div>
+<div><dt class="st-label text-[10px] mb-1">Contact name</dt><dd class="text-[#586064]">{{ $supplier->contact_name ?: '—' }}</dd></div>
+<div><dt class="st-label text-[10px] mb-1">Phone</dt><dd class="text-[#586064]">{{ $supplier->phone ?: '—' }}</dd></div>
+<div><dt class="st-label text-[10px] mb-1">Email</dt><dd class="text-[#586064]">{{ $supplier->email ?: '—' }}</dd></div>
+<div><dt class="st-label text-[10px] mb-1">Notes</dt><dd class="text-[#586064] whitespace-pre-wrap">{{ $supplier->notes ?: '—' }}</dd></div>
+</dl>
+<div class="mt-8 pt-6 border-t border-[#ABB3B7]">
+<a href="{{ route('suppliers.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2">Back to suppliers</a>
+</div>
+@else
 <form method="POST" action="{{ route('suppliers.update', $supplier) }}">
 @csrf
 @method('PUT')
@@ -84,15 +102,14 @@ Update
 <a href="{{ route('suppliers.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2">Cancel</a>
 </div>
 </form>
-</div>
 
-<div class="border border-[#9F403D] bg-white p-6">
+<div class="border border-[#9F403D] bg-white p-6 mt-8">
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 <div>
 <p class="st-label st-label--error mb-1">Hazard · delete</p>
 <p class="text-xs text-[#586064]">International purchase lines will keep history; supplier link is cleared.</p>
 </div>
-<form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" onsubmit="return confirm('Delete this supplier?');">
+<form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" data-confirm-delete="{{ e('Delete this supplier?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2 border-[#9F403D] text-[#9F403D] hover:bg-[#F1F4F6] shrink-0">
@@ -101,6 +118,8 @@ Delete
 </button>
 </form>
 </div>
+</div>
+@endif
 </div>
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© 2026 Laiba Safety. All rights reserved.</p>

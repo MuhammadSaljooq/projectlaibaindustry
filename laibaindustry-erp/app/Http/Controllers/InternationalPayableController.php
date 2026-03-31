@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\InternationalPayablePayment;
 use App\Models\InternationalPurchase;
+use App\Services\SupplierLedgerSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,12 +75,14 @@ class InternationalPayableController extends Controller
         try {
             DB::beginTransaction();
 
-            InternationalPayablePayment::create([
+            $payment = InternationalPayablePayment::create([
                 'international_purchase_id' => $international_purchase->id,
                 'payment_date' => $validated['payment_date'],
                 'amount' => $validated['amount'],
                 'notes' => $validated['notes'] ?? null,
             ]);
+
+            SupplierLedgerSync::recordPayment($payment, $international_purchase);
 
             DB::commit();
         } catch (\Throwable $e) {

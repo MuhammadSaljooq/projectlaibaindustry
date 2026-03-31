@@ -95,7 +95,7 @@ Update
 <p class="st-label st-label--error mb-1">Hazard · delete</p>
 <p class="text-xs text-[#586064]">Remove this record permanently.</p>
 </div>
-<form method="POST" action="{{ route('international-purchases.destroy', $internationalPurchase) }}" onsubmit="return confirm('Delete this entry?');">
+<form method="POST" action="{{ route('international-purchases.destroy', $internationalPurchase) }}" data-confirm-delete="{{ e('Delete this entry?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2 border-[#9F403D] text-[#9F403D] hover:bg-[#F1F4F6] shrink-0">

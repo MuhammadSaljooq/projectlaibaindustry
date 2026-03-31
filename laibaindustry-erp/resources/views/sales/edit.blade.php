@@ -180,7 +180,7 @@ Update sale
 <div class="border border-[#9F403D] bg-white p-6 md:p-8">
 <p class="st-label st-label--error mb-2">Hazard · delete</p>
 <p class="text-xs text-[#586064] mb-5">Permanently delete this sale. Stock will be restored and the related receivable removed.</p>
-<form method="POST" action="{{ route('sales.destroy', $sale) }}" onsubmit="return confirm('Delete this sale? Stock will be restored and the related receivable removed.');">
+<form method="POST" action="{{ route('sales.destroy', $sale) }}" data-confirm-delete="{{ e('Delete this sale? Stock will be restored and the related receivable removed.') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="h-11 px-6 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">

@@ -60,7 +60,7 @@ Update customer
 <div class="border border-[#9F403D] bg-white p-6 md:p-8">
 <p class="st-label st-label--error mb-2">Hazard · delete</p>
 <p class="text-xs text-[#586064] mb-5">Permanently remove this customer. This cannot be undone.</p>
-<form method="POST" action="{{ route('customers.destroy', $customer) }}" onsubmit="return confirm('Are you sure? This action cannot be undone.');">
+<form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm-delete="{{ e('Are you sure? This action cannot be undone.') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="h-11 px-6 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">

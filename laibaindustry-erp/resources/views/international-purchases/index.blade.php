@@ -110,7 +110,7 @@ New entry
 <a href="{{ route('international-purchases.edit', $purchase) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="Edit">
 <span class="material-symbols-outlined text-[18px]">edit</span>
 </a>
-<form method="POST" action="{{ route('international-purchases.destroy', $purchase) }}" class="inline-flex" onsubmit="return confirm('Delete this entry?');">
+<form method="POST" action="{{ route('international-purchases.destroy', $purchase) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this entry?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">

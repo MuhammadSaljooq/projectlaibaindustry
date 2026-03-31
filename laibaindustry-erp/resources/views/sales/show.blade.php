@@ -135,7 +135,7 @@ All sales
 <span class="material-symbols-outlined text-[18px]">edit</span>
 Edit sale
 </a>
-<form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline-flex" onsubmit="return confirm('Delete this sale? Stock will be restored and the related receivable removed.');">
+<form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this sale? Stock will be restored and the related receivable removed.') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="h-10 px-5 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">

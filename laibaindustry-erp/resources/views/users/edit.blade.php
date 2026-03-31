@@ -72,7 +72,7 @@ Update user
 <p class="st-label st-label--error mb-1">Hazard · delete</p>
 <p class="text-xs text-[#586064]">Remove this user from the system. Cannot delete yourself or the last admin.</p>
 </div>
-<form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirm('Delete this user? This cannot be undone.');">
+<form method="POST" action="{{ route('users.destroy', $user) }}" data-confirm-delete="{{ e('Delete this user? This cannot be undone.') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2 border-[#9F403D] text-[#9F403D] hover:bg-[#F1F4F6] shrink-0">

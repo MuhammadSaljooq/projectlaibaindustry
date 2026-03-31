@@ -84,7 +84,7 @@ Update entry
 <p class="st-label st-label--error mb-1">Delete entry</p>
 <p class="text-sm text-[#586064]">This cannot be undone.</p>
 </div>
-<form method="POST" action="{{ route('bank-statement.destroy', $entry) }}" onsubmit="return confirm('Delete this entry permanently?');">
+<form method="POST" action="{{ route('bank-statement.destroy', $entry) }}" data-confirm-delete="{{ e('Delete this entry permanently?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="st-btn-secondary h-10 px-4 border-[#9F403D] text-[#9F403D] hover:bg-[#FDF5F5] inline-flex items-center gap-2">

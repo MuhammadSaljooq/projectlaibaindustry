@@ -115,7 +115,7 @@ Paid
 </span>
 @endif
 @if(in_array(auth()->user()->role, ['admin', 'manager']))
-<form method="POST" action="{{ route('payables.destroy', $p) }}" class="inline-flex" onsubmit="return confirm('Delete this payable? This cannot be undone.');">
+<form method="POST" action="{{ route('payables.destroy', $p) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this payable? This cannot be undone.') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">

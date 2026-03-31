@@ -26,7 +26,7 @@
 <span class="material-symbols-outlined text-[18px]">edit</span>
 <span class="hidden sm:inline">Edit</span>
 </a>
-<form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirm('Delete this purchase? This cannot be undone.');">
+<form method="POST" action="{{ route('purchases.destroy', $purchase) }}" data-confirm-delete="{{ e('Delete this purchase? This cannot be undone.') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="h-9 px-3 inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">

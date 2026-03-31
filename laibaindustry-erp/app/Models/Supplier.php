@@ -22,4 +22,9 @@ class Supplier extends Model
     {
         return $this->hasMany(InternationalPurchase::class, 'supplier_id');
     }
+
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(SupplierLedgerEntry::class, 'supplier_id');
+    }
 }

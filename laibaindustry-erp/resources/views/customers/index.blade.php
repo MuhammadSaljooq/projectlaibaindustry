@@ -111,7 +111,7 @@ Add customer
 <a href="{{ route('customers.edit', $customer) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="Edit">
 <span class="material-symbols-outlined text-[18px]">edit</span>
 </a>
-<form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline-flex" onsubmit="return confirm('Delete this customer?');">
+<form method="POST" action="{{ route('customers.destroy', $customer) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this customer?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">

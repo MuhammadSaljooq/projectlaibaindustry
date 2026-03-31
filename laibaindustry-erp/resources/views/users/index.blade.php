@@ -115,7 +115,7 @@ Add user
 <span class="material-symbols-outlined text-[18px]">edit</span>
 </a>
 @can('delete', $u)
-<form method="POST" action="{{ route('users.destroy', $u) }}" class="inline-flex" onsubmit="return confirm('Delete this user?');">
+<form method="POST" action="{{ route('users.destroy', $u) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this user?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">

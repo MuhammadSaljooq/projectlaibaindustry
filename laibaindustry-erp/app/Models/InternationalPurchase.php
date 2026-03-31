@@ -10,6 +10,24 @@ class InternationalPurchase extends Model
 {
     protected $table = 'international_purchases';
 
+    protected static function booted(): void
+    {
+        static::deleting(function (InternationalPurchase $purchase) {
+            SupplierLedgerEntry::query()
+                ->where('source_type', 'international_purchase')
+                ->where('source_id', $purchase->id)
+                ->delete();
+
+            $paymentIds = $purchase->payablePayments()->pluck('id');
+            if ($paymentIds->isNotEmpty()) {
+                SupplierLedgerEntry::query()
+                    ->where('source_type', 'international_payable_payment')
+                    ->whereIn('source_id', $paymentIds)
+                    ->delete();
+            }
+        });
+    }
+
     protected $fillable = [
         'supplier_id',
         'date',

@@ -29,6 +29,10 @@ class BlockViewerWrite
             }
             // Block GET to create or edit pages (viewers must not see forms)
             if (str_ends_with($name, '.create') || str_ends_with($name, '.edit')) {
+                // Supplier edit doubles as read-only supplier + account ledger for viewers.
+                if ($name === 'suppliers.edit') {
+                    return $next($request);
+                }
                 abort(403, 'You do not have permission to access this page. Viewers can only view.');
             }
         }

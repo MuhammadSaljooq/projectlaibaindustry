@@ -117,7 +117,7 @@
 </div>
 <button type="submit" class="st-btn-primary h-10 px-4 text-[10px] uppercase sm:mb-0 mb-1">Save</button>
 </form>
-<form method="POST" action="{{ route('receivables.payments.destroy', [$receivable, $entry]) }}" class="inline" onsubmit="return confirm('Remove this payment from the ledger?');">
+<form method="POST" action="{{ route('receivables.payments.destroy', [$receivable, $entry]) }}" class="inline" data-confirm-delete="{{ e('Remove this payment from the ledger?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="h-10 px-4 text-[10px] font-bold uppercase border border-[#9F403D] text-[#9F403D] hover:bg-[#FDF5F5]">Delete</button>
