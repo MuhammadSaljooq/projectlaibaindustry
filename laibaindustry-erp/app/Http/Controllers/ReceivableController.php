@@ -592,28 +592,39 @@ class ReceivableController extends Controller
 
     private function reverseGroupPaymentLine(ReceivableGroupPaymentLine $line, int $excludeBatchId): void
     {
-        $receivable = $line->receivable;
+        $receivable = $line->receivable_id
+            ? Receivable::query()->find($line->receivable_id)
+            : null;
+
         if ($line->customer_ledger_entry_id) {
             $entry = CustomerLedgerEntry::query()->find($line->customer_ledger_entry_id);
             if ($entry) {
                 $entry->delete();
             }
-            $this->syncReceivedFromLedger($receivable);
+            if ($receivable) {
+                $this->syncReceivedFromLedger($receivable);
+            }
+
+            return;
+        }
+
+        if (! $receivable) {
+            return;
+        }
+
+        $slice = (float) $line->amount;
+        $receivable->decrement('received', $slice);
+        $receivable->refresh();
+        $recv = round((float) $receivable->received, 2);
+        if ($recv <= 0) {
+            $receivable->update([
+                'received' => 0,
+                'payment_received_at' => null,
+            ]);
         } else {
-            $slice = (float) $line->amount;
-            $receivable->decrement('received', $slice);
-            $receivable->refresh();
-            $recv = round((float) $receivable->received, 2);
-            if ($recv <= 0) {
-                $receivable->update([
-                    'received' => 0,
-                    'payment_received_at' => null,
-                ]);
-            } else {
-                $maxOrphan = $this->maxOrphanGroupPaymentDateForReceivable($receivable, $excludeBatchId);
-                if ($maxOrphan) {
-                    $receivable->update(['payment_received_at' => $maxOrphan]);
-                }
+            $maxOrphan = $this->maxOrphanGroupPaymentDateForReceivable($receivable, $excludeBatchId);
+            if ($maxOrphan) {
+                $receivable->update(['payment_received_at' => $maxOrphan]);
             }
         }
     }

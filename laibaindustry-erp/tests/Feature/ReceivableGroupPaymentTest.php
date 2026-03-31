@@ -219,4 +219,57 @@ class ReceivableGroupPaymentTest extends TestCase
         $this->assertNull($r->payment_received_at);
         $this->assertSame(0, ReceivableGroupPayment::query()->count());
     }
+
+    public function test_destroy_combined_payment_succeeds_when_line_references_deleted_receivable(): void
+    {
+        $user = $this->manager();
+
+        Customer::create([
+            'customer_code' => 'OR-1',
+            'customer_name' => 'Orphan Customer',
+            'phone' => null,
+            'email' => null,
+            'address' => null,
+            'opening_balance' => 0,
+            'opening_balance_date' => null,
+        ]);
+
+        Receivable::create([
+            'date' => '2026-01-01 10:00:00',
+            'invoice_number' => 'O-1',
+            'customer_name' => 'Orphan Customer',
+            'customer_code' => 'OR-1',
+            'amount' => 40,
+            'received' => 0,
+            'payment_received_at' => null,
+        ]);
+        Receivable::create([
+            'date' => '2026-02-01 10:00:00',
+            'invoice_number' => 'O-2',
+            'customer_name' => 'Orphan Customer',
+            'customer_code' => 'OR-1',
+            'amount' => 10,
+            'received' => 0,
+            'payment_received_at' => null,
+        ]);
+
+        $key = Receivable::encodeGroupKeyForRoute('code:OR-1');
+        $this->actingAs($user)->post(
+            route('receivables.group.payments.store', ['groupKey' => $key]),
+            ['payment_date' => '2026-03-01', 'amount' => '25.00']
+        );
+
+        $gp = ReceivableGroupPayment::query()->first();
+        $this->assertNotNull($gp);
+
+        Receivable::query()->where('invoice_number', 'O-1')->delete();
+
+        $del = $this->actingAs($user)->delete(
+            route('receivables.group.payments.destroy', ['groupKey' => $key, 'receivableGroupPayment' => $gp])
+        );
+
+        $del->assertRedirect(route('receivables.group', ['groupKey' => $key]));
+        $del->assertSessionHas('success');
+        $this->assertSame(0, ReceivableGroupPayment::query()->count());
+    }
 }
