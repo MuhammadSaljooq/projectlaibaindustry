@@ -18,9 +18,13 @@ class InternationalPurchaseTest extends TestCase
 
         $this->actingAs($user)->post(route('international-purchases.store'), [
             'date' => '2026-03-15',
-            'product_name' => 'Safety gloves bulk',
-            'quantity' => 4,
-            'unit_price' => '12.50',
+            'items' => [
+                [
+                    'product_name' => 'Safety gloves bulk',
+                    'quantity' => 4,
+                    'unit_price' => '12.50',
+                ],
+            ],
         ])->assertRedirect(route('international-purchases.index'))
             ->assertSessionHas('success');
 
@@ -36,15 +40,54 @@ class InternationalPurchaseTest extends TestCase
             ->assertSee('50.00');
     }
 
+    public function test_manager_can_create_multiple_lines_in_one_submit(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create([
+            'name' => 'Overseas Vendor Co',
+            'country' => 'Germany',
+        ]);
+
+        $this->actingAs($user)->post(route('international-purchases.store'), [
+            'supplier_id' => $supplier->id,
+            'date' => '2026-05-10',
+            'items' => [
+                ['product_name' => 'Line A', 'quantity' => 2, 'unit_price' => '10'],
+                ['product_name' => 'Line B', 'quantity' => 1, 'unit_price' => '25.50'],
+            ],
+        ])->assertRedirect(route('international-purchases.index'))
+            ->assertSessionHas('success');
+
+        $this->assertSame(2, InternationalPurchase::query()->count());
+
+        $this->assertDatabaseHas('international_purchases', [
+            'supplier_id' => $supplier->id,
+            'product_name' => 'Line A',
+            'quantity' => 2,
+            'total_amount' => 20.0,
+        ]);
+        $this->assertDatabaseHas('international_purchases', [
+            'supplier_id' => $supplier->id,
+            'product_name' => 'Line B',
+            'quantity' => 1,
+            'total_amount' => 25.5,
+        ]);
+
+        $this->actingAs($user)->get(route('international-purchases.index'))
+            ->assertOk()
+            ->assertSee('Line A')
+            ->assertSee('Line B');
+    }
+
     public function test_viewer_cannot_post_store(): void
     {
         $user = User::factory()->create(['role' => 'viewer']);
 
         $this->actingAs($user)->post(route('international-purchases.store'), [
             'date' => '2026-01-01',
-            'product_name' => 'X',
-            'quantity' => 1,
-            'unit_price' => '10',
+            'items' => [
+                ['product_name' => 'X', 'quantity' => 1, 'unit_price' => '10'],
+            ],
         ])->assertForbidden();
     }
 
@@ -54,9 +97,9 @@ class InternationalPurchaseTest extends TestCase
 
         $this->actingAs($user)->post(route('international-purchases.store'), [
             'date' => '2026-02-01',
-            'product_name' => 'Widget',
-            'quantity' => 3,
-            'unit_price' => '10.333',
+            'items' => [
+                ['product_name' => 'Widget', 'quantity' => 3, 'unit_price' => '10.333'],
+            ],
         ])->assertRedirect(route('international-purchases.index'));
 
         $row = InternationalPurchase::query()->where('product_name', 'Widget')->first();
@@ -75,9 +118,9 @@ class InternationalPurchaseTest extends TestCase
         $this->actingAs($user)->post(route('international-purchases.store'), [
             'supplier_id' => $supplier->id,
             'date' => '2026-04-01',
-            'product_name' => 'Helmets',
-            'quantity' => 2,
-            'unit_price' => '25',
+            'items' => [
+                ['product_name' => 'Helmets', 'quantity' => 2, 'unit_price' => '25'],
+            ],
         ])->assertRedirect(route('international-purchases.index'));
 
         $this->assertDatabaseHas('international_purchases', [

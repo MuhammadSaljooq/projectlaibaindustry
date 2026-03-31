@@ -8,6 +8,7 @@ use App\Models\Supplier;
 use App\Services\SupplierLedgerSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -48,7 +49,7 @@ class InternationalPurchaseController extends Controller
                 ]);
             }
             fclose($handle);
-        }, 'international-purchases-' . now()->format('Y-m-d') . '.csv', [
+        }, 'international-purchases-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv',
         ]);
     }
@@ -57,34 +58,62 @@ class InternationalPurchaseController extends Controller
     {
         return view('international-purchases.create', [
             'suppliers' => Supplier::query()->orderBy('name')->get(),
+            'currencySymbol' => Currency::query()->where('is_default', true)->value('symbol') ?? '$',
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $rawItems = $request->input('items', []);
+        if (! is_array($rawItems)) {
+            $rawItems = [];
+        }
+
+        $items = array_values(array_filter($rawItems, function ($row) {
+            if (! is_array($row)) {
+                return false;
+            }
+
+            return filled(trim((string) ($row['product_name'] ?? '')));
+        }));
+
+        $request->merge(['items' => $items]);
+
         $validated = $request->validate([
             'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
             'date' => ['required', 'date'],
-            'product_name' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_name' => ['required', 'string', 'max:255'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $totalAmount = round((int) $validated['quantity'] * (float) $validated['unit_price'], 2);
+        $supplierId = $validated['supplier_id'] ?? null;
+        $date = $validated['date'];
+        $count = 0;
 
-        $purchase = InternationalPurchase::create([
-            'supplier_id' => $validated['supplier_id'] ?? null,
-            'date' => $validated['date'],
-            'product_name' => $validated['product_name'],
-            'quantity' => $validated['quantity'],
-            'unit_price' => $validated['unit_price'],
-            'total_amount' => $totalAmount,
-        ]);
+        DB::transaction(function () use ($validated, $supplierId, $date, &$count): void {
+            foreach ($validated['items'] as $item) {
+                $totalAmount = round((int) $item['quantity'] * (float) $item['unit_price'], 2);
+                $purchase = InternationalPurchase::create([
+                    'supplier_id' => $supplierId,
+                    'date' => $date,
+                    'product_name' => $item['product_name'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total_amount' => $totalAmount,
+                ]);
+                SupplierLedgerSync::syncInternationalPurchase($purchase->fresh());
+                $count++;
+            }
+        });
 
-        SupplierLedgerSync::syncInternationalPurchase($purchase->fresh());
+        $message = $count === 1
+            ? 'International purchase added successfully.'
+            : "{$count} international purchase lines added successfully.";
 
         return redirect()->route('international-purchases.index')
-            ->with('success', 'International purchase added successfully.');
+            ->with('success', $message);
     }
 
     public function show(InternationalPurchase $international_purchase): RedirectResponse

@@ -42,12 +42,20 @@
 </div>
 @endif
 
-<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
-<form method="POST" action="{{ route('international-purchases.store') }}">
-@csrf
-<p class="st-label mb-6">Line item</p>
+@php
+$itemRows = old('items');
+if (! is_array($itemRows) || count($itemRows) === 0) {
+    $itemRows = [['product_name' => '', 'quantity' => 1, 'unit_price' => '']];
+}
+@endphp
 
-<div class="space-y-5 max-w-xl">
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
+<form method="POST" action="{{ route('international-purchases.store') }}" id="intl-purchase-form" novalidate>
+@csrf
+
+<p class="st-label mb-6">Purchase details</p>
+
+<div class="space-y-5 max-w-xl mb-8">
 <div>
 <label class="st-label block mb-2" for="supplier_id">Supplier</label>
 <select class="st-input w-full h-10 px-3 text-sm" name="supplier_id" id="supplier_id">
@@ -59,21 +67,63 @@
 <p class="text-[11px] text-[#586064] mt-1"><a href="{{ route('suppliers.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add a supplier</a> if missing.</p>
 </div>
 <div>
-<label class="st-label block mb-2" for="date">Date</label>
+<label class="st-label block mb-2" for="date">Date <span class="text-[#9F403D]">*</span></label>
 <input class="st-input w-full h-10 px-3 text-sm" type="date" name="date" id="date" value="{{ old('date', now()->format('Y-m-d')) }}" required>
 </div>
-<div>
-<label class="st-label block mb-2" for="product_name">Product</label>
-<input class="st-input w-full h-10 px-3 text-sm" type="text" name="product_name" id="product_name" value="{{ old('product_name') }}" placeholder="Product name or description" required maxlength="255">
 </div>
-<div>
-<label class="st-label block mb-2" for="quantity">Qty</label>
-<input class="st-input w-full h-10 px-3 text-sm tabular-nums" type="number" name="quantity" id="quantity" value="{{ old('quantity', '1') }}" step="1" min="1" required>
+
+<p class="st-label mb-4">Line items</p>
+
+<div class="overflow-x-auto -mx-2 sm:mx-0 border border-[#ABB3B7]">
+<table class="w-full text-left border-collapse min-w-[560px]">
+<thead>
+<tr class="st-thead">
+<th class="st-th px-4 py-3">Product</th>
+<th class="st-th px-4 py-3 text-right w-24">Qty</th>
+<th class="st-th px-4 py-3 text-right w-[120px]">Unit price</th>
+<th class="st-th px-4 py-3 text-right w-[100px]">Amount</th>
+<th class="st-th px-4 py-3 w-12"></th>
+</tr>
+</thead>
+<tbody id="line-items">
+@foreach($itemRows as $i => $row)
+<tr class="line-item st-tr">
+<td class="st-td px-4 py-3 align-top">
+<input class="product-name-input st-input w-full h-10 px-3 text-sm" type="text" name="items[{{ $i }}][product_name]" value="{{ old("items.$i.product_name", $row['product_name'] ?? '') }}" placeholder="Product name or description" maxlength="255" @if($loop->first) required @endif>
+</td>
+<td class="st-td px-4 py-3">
+<input class="qty-input st-input w-full h-10 px-3 text-sm text-right font-mono tabular-nums" type="number" name="items[{{ $i }}][quantity]" value="{{ old("items.$i.quantity", $row['quantity'] ?? 1) }}" min="1" step="1" @if($loop->first) required @endif>
+</td>
+<td class="st-td px-4 py-3">
+<input class="price-input st-input w-full h-10 px-3 text-sm text-right font-mono tabular-nums" type="number" name="items[{{ $i }}][unit_price]" value="{{ old("items.$i.unit_price", $row['unit_price'] ?? '') }}" step="0.01" min="0" placeholder="0.00" @if($loop->first) required @endif>
+</td>
+<td class="st-td px-4 py-3 text-right">
+<span class="amount-display text-sm font-bold font-mono tabular-nums text-[#2B3437]">0.00</span>
+</td>
+<td class="st-td px-4 py-3">
+<button type="button" class="remove-row p-2 text-[#586064] hover:text-[#9F403D] border border-transparent hover:border-[#ABB3B7]" title="Remove row">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+@endforeach
+</tbody>
+</table>
 </div>
-<div>
-<label class="st-label block mb-2" for="unit_price">Unit price</label>
-<input class="st-input w-full h-10 px-3 text-sm tabular-nums" type="number" name="unit_price" id="unit_price" value="{{ old('unit_price') }}" step="0.01" min="0" placeholder="0.00" required>
-<p class="text-[11px] text-[#586064] mt-1">Total is calculated as qty × unit price.</p>
+
+<button type="button" id="add-row" class="st-btn-secondary mt-3 h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+Add row
+</button>
+
+<p class="text-[11px] text-[#586064] mt-3">Total per line is qty × unit price. Empty product rows are ignored on save.</p>
+
+<div class="flex justify-end pt-6 border-t border-[#ABB3B7] mt-6">
+<div class="text-right space-y-2 min-w-[220px]">
+<div class="flex justify-between gap-8 text-base font-black text-[#2B3437] border-t border-[#ABB3B7] pt-2">
+<span>Total</span>
+<span class="font-mono tabular-nums">{{ $currencySymbol ?? '$' }}<span id="total-display">0.00</span></span>
+</div>
 </div>
 </div>
 
@@ -91,5 +141,83 @@ Save
 </div>
 </div>
 </main>
+
+<script>
+(function() {
+    let rowIndex = {{ count($itemRows) }};
+    const tbody = document.getElementById('line-items');
+    function updateRow(row) {
+        const pi = row.querySelector('.price-input');
+        const qi = row.querySelector('.qty-input');
+        const as = row.querySelector('.amount-display');
+        const a = (parseFloat(pi && pi.value ? pi.value : 0) || 0) * (parseInt(qi && qi.value ? qi.value : 0, 10) || 0);
+        if (as) as.textContent = a.toFixed(2);
+    }
+    function updateTotals() {
+        let s = 0;
+        document.querySelectorAll('.line-item').forEach(function(r) {
+            const p = r.querySelector('.price-input');
+            const q = r.querySelector('.qty-input');
+            s += (parseFloat(p && p.value ? p.value : 0) || 0) * (parseInt(q && q.value ? q.value : 0, 10) || 0);
+        });
+        const tte = document.getElementById('total-display');
+        if (tte) tte.textContent = s.toFixed(2);
+    }
+    function onRowChange() {
+        document.querySelectorAll('.line-item').forEach(function(row) { updateRow(row); });
+        updateTotals();
+    }
+    tbody?.addEventListener('input', function(e) {
+        if (e.target && e.target.closest && e.target.closest('.line-item') && (e.target.classList.contains('price-input') || e.target.classList.contains('qty-input'))) {
+            onRowChange();
+        }
+    });
+    tbody?.addEventListener('click', function(e) {
+        const btn = e.target && e.target.closest ? e.target.closest('.remove-row') : null;
+        if (!btn || !tbody) return;
+        if (tbody.querySelectorAll('.line-item').length <= 1) return;
+        btn.closest('.line-item')?.remove();
+        onRowChange();
+    });
+    document.getElementById('add-row')?.addEventListener('click', function() {
+        const fr = tbody?.querySelector('.line-item');
+        if (!fr || !tbody) return;
+        const nr = fr.cloneNode(true);
+        const pn = nr.querySelector('.product-name-input');
+        const qi = nr.querySelector('.qty-input');
+        const pi = nr.querySelector('.price-input');
+        pn.value = '';
+        pn.name = 'items[' + rowIndex + '][product_name]';
+        pn.removeAttribute('required');
+        qi.value = '1';
+        qi.name = 'items[' + rowIndex + '][quantity]';
+        qi.removeAttribute('required');
+        pi.value = '';
+        pi.name = 'items[' + rowIndex + '][unit_price]';
+        pi.removeAttribute('required');
+        nr.querySelector('.amount-display').textContent = '0.00';
+        tbody.appendChild(nr);
+        rowIndex++;
+        onRowChange();
+    });
+    document.getElementById('intl-purchase-form')?.addEventListener('submit', function() {
+        let idx = 0;
+        document.querySelectorAll('.line-item').forEach(function(row) {
+            const pn = row.querySelector('.product-name-input');
+            if (!pn || !String(pn.value || '').trim()) {
+                row.querySelectorAll('input,select').forEach(function(el) { el.removeAttribute('name'); });
+            } else {
+                const q = row.querySelector('.qty-input');
+                const p = row.querySelector('.price-input');
+                pn.setAttribute('name', 'items[' + idx + '][product_name]');
+                if (q) q.setAttribute('name', 'items[' + idx + '][quantity]');
+                if (p) p.setAttribute('name', 'items[' + idx + '][unit_price]');
+                idx++;
+            }
+        });
+    });
+    onRowChange();
+})();
+</script>
 </body>
 </html>

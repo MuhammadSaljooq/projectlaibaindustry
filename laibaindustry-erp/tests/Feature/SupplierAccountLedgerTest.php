@@ -21,9 +21,9 @@ class SupplierAccountLedgerTest extends TestCase
         $this->actingAs($user)->post(route('international-purchases.store'), [
             'supplier_id' => $supplier->id,
             'date' => '2026-06-01',
-            'product_name' => 'Bolts',
-            'quantity' => 10,
-            'unit_price' => '5',
+            'items' => [
+                ['product_name' => 'Bolts', 'quantity' => 10, 'unit_price' => '5'],
+            ],
         ])->assertRedirect(route('international-purchases.index'));
 
         $this->assertDatabaseHas('supplier_ledger_entries', [
@@ -72,9 +72,9 @@ class SupplierAccountLedgerTest extends TestCase
 
         $this->actingAs($user)->post(route('international-purchases.store'), [
             'date' => '2026-06-01',
-            'product_name' => 'No supplier',
-            'quantity' => 1,
-            'unit_price' => '10',
+            'items' => [
+                ['product_name' => 'No supplier', 'quantity' => 1, 'unit_price' => '10'],
+            ],
         ])->assertRedirect(route('international-purchases.index'));
 
         $this->assertSame(0, SupplierLedgerEntry::query()->count());
