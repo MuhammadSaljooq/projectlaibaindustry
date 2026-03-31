@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Add supplier - ERP'])
+@include('partials.frontend-head', ['title' => 'Add vendor - ERP'])
 @include('partials.stitch-design')
 </head>
 <body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
@@ -15,7 +15,7 @@
 </button>
 <a href="{{ route('suppliers.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-<span class="hidden sm:inline">Suppliers</span>
+<span class="hidden sm:inline">Vendors</span>
 </a>
 </div>
 </header>
@@ -26,7 +26,7 @@
 <div class="flex flex-col gap-4">
 <div class="flex flex-col gap-1">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">SUP_01</p>
-<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">New supplier</h1>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">New vendor</h1>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Edit supplier - ERP'])
+@include('partials.frontend-head', ['title' => 'Edit vendor - ERP'])
 @include('partials.stitch-design')
 </head>
 <body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
@@ -15,7 +15,7 @@
 </button>
 <a href="{{ route('suppliers.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-<span class="hidden sm:inline">Suppliers</span>
+<span class="hidden sm:inline">Vendors</span>
 </a>
 </div>
 <a href="{{ route('suppliers.ledger', $supplier) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
@@ -30,7 +30,7 @@
 <div class="flex flex-col gap-4">
 <div class="flex flex-col gap-1">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">SUP_02</p>
-<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">@if(auth()->user()->role === 'viewer')Supplier@else Edit supplier @endif</h1>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">@if(auth()->user()->role === 'viewer')Vendor@else Edit vendor @endif</h1>
 <p class="text-sm text-[#586064] mt-2">{{ $supplier->name }}</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
@@ -59,7 +59,7 @@
 <div><dt class="st-label text-[10px] mb-1">Notes</dt><dd class="text-[#586064] whitespace-pre-wrap">{{ $supplier->notes ?: '—' }}</dd></div>
 </dl>
 <div class="mt-8 pt-6 border-t border-[#ABB3B7]">
-<a href="{{ route('suppliers.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2">Back to suppliers</a>
+<a href="{{ route('suppliers.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2">Back to vendors</a>
 </div>
 @else
 <form method="POST" action="{{ route('suppliers.update', $supplier) }}">
@@ -107,9 +107,9 @@ Update
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 <div>
 <p class="st-label st-label--error mb-1">Hazard · delete</p>
-<p class="text-xs text-[#586064]">International purchase lines will keep history; supplier link is cleared.</p>
+<p class="text-xs text-[#586064]">International purchase lines will keep history; vendor link is cleared.</p>
 </div>
-<form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" data-confirm-delete="{{ e('Delete this supplier?') }}">
+<form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" data-confirm-delete="{{ e('Delete this vendor?') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2 border-[#9F403D] text-[#9F403D] hover:bg-[#F1F4F6] shrink-0">

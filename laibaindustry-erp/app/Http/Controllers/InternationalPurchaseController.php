@@ -37,7 +37,7 @@ class InternationalPurchaseController extends Controller
 
         return response()->streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Date', 'Supplier', 'Product', 'Qty', 'Unit price', 'Total']);
+            fputcsv($handle, ['Date', 'Vendor', 'Product', 'Qty', 'Unit price', 'Total']);
             foreach ($rows as $row) {
                 fputcsv($handle, [
                     format_display_date($row->date),

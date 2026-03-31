@@ -58,7 +58,7 @@
 <span class="font-semibold text-[#2B3437]">{{ format_display_date($purchase->date) }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">
-<span class="st-label !mb-0">Supplier</span>
+<span class="st-label !mb-0">Vendor</span>
 <span class="font-semibold text-[#2B3437] text-right">{{ $purchase->supplier?->name ?? '—' }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">

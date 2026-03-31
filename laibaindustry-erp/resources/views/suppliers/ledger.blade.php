@@ -15,7 +15,7 @@
 </button>
 <a href="{{ route('suppliers.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-<span class="hidden sm:inline">Suppliers</span>
+<span class="hidden sm:inline">Vendors</span>
 </a>
 </div>
 @if(auth()->user()->role !== 'viewer')

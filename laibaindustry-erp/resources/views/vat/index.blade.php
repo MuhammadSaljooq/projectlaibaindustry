@@ -134,7 +134,7 @@ Clear
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Type</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
-<th class="st-th px-4 py-3">Customer / supplier</th>
+<th class="st-th px-4 py-3">Customer / vendor</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT %</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT amount</th>

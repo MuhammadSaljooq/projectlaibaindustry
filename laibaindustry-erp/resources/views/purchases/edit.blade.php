@@ -65,9 +65,9 @@ Back to record
 <p class="st-label mb-3">Purchase details</p>
 <div class="space-y-4">
 <div>
-<label class="st-label block mb-2" for="customer_select">Customer / Supplier</label>
+<label class="st-label block mb-2" for="customer_select">Customer / Vendor</label>
 <select class="st-select w-full px-4 py-2 text-sm" id="customer_select">
-<option value="">Add new supplier</option>
+<option value="">Add new vendor</option>
 @foreach($customers as $c)
 <option value="{{ $c->id }}" data-code="{{ e($c->customer_code) }}" data-name="{{ e($c->customer_name) }}" {{ old('customer_code', $purchase->customer_code) === $c->customer_code ? 'selected' : '' }}>{{ $c->customer_name }} ({{ $c->customer_code }})</option>
 @endforeach
@@ -86,11 +86,11 @@ Back to record
 </div>
 <div>
 <label class="st-label block mb-2" for="customer_code">Customer Code</label>
-<input class="st-input w-full h-10 px-4 text-sm" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code', $purchase->customer_code) }}" maxlength="100" placeholder="Auto-filled when selecting supplier">
+<input class="st-input w-full h-10 px-4 text-sm" id="customer_code" name="customer_code" type="text" value="{{ old('customer_code', $purchase->customer_code) }}" maxlength="100" placeholder="Auto-filled when selecting vendor">
 </div>
 <div>
 <label class="st-label block mb-2" for="customer_name">Customer Name</label>
-<input class="st-input w-full h-10 px-4 text-sm" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name', $purchase->customer_name) }}" maxlength="255" placeholder="Auto-filled when selecting supplier">
+<input class="st-input w-full h-10 px-4 text-sm" id="customer_name" name="customer_name" type="text" value="{{ old('customer_name', $purchase->customer_name) }}" maxlength="255" placeholder="Auto-filled when selecting vendor">
 </div>
 </div>
 </div>

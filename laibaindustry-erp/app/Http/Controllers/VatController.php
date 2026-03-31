@@ -69,7 +69,7 @@ class VatController extends Controller
 
         return response()->streamDownload(function () use ($entries) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Date', 'Type', 'Invoice #', 'Customer/Supplier', 'Subtotal', 'VAT Rate %', 'VAT Amount', 'Total']);
+            fputcsv($handle, ['Date', 'Type', 'Invoice #', 'Customer/Vendor', 'Subtotal', 'VAT Rate %', 'VAT Amount', 'Total']);
             foreach ($entries as $entry) {
                 fputcsv($handle, [
                     format_display_date($entry->date),

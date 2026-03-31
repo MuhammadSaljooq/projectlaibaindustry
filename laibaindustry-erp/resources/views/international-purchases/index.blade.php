@@ -76,7 +76,7 @@ New entry
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">International purchase ledger</h3>
-<p class="text-[11px] text-[#586064] mt-1">Date · supplier · product · qty · unit price · total · actions</p>
+<p class="text-[11px] text-[#586064] mt-1">Date · vendor · product · qty · unit price · total · actions</p>
 </div>
 
 <div class="overflow-x-auto w-full">
@@ -84,7 +84,7 @@ New entry
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3">Supplier</th>
+<th class="st-th px-4 py-3">Vendor</th>
 <th class="st-th px-4 py-3">Product</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Qty</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Price</th>

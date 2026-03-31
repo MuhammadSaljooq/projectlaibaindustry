@@ -13,7 +13,7 @@
 <div class="border border-[#ABB3B7] bg-white p-4">
 <p class="st-label st-label--primary mb-2">Total paid</p>
 <p class="text-xl font-black font-mono tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($ledgerTotalPaid, 2) }}</p>
-<p class="text-[10px] text-[#586064] mt-1 m-0">Sum of debits (payments to supplier)</p>
+<p class="text-[10px] text-[#586064] mt-1 m-0">Sum of debits (payments to vendor)</p>
 </div>
 <div class="border border-[#ABB3B7] bg-white p-4">
 <p class="st-label st-label--primary mb-2">Remaining balance</p>
@@ -45,7 +45,7 @@
 </tr>
 @empty
 <tr>
-<td colspan="5" class="px-6 py-14 text-center text-sm text-[#586064]">No ledger entries yet. Post international purchases with this supplier or record payments on those lines.</td>
+<td colspan="5" class="px-6 py-14 text-center text-sm text-[#586064]">No ledger entries yet. Post international purchases with this vendor or record payments on those lines.</td>
 </tr>
 @endforelse
 </tbody>

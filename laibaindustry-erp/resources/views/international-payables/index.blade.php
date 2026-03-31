@@ -76,7 +76,7 @@
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3">Supplier</th>
+<th class="st-th px-4 py-3">Vendor</th>
 <th class="st-th px-4 py-3">Product</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Paid</th>

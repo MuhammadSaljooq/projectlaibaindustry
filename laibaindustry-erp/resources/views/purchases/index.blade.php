@@ -90,7 +90,7 @@ New Purchase
 <label class="st-label block mb-2" for="p-search">Search</label>
 <div class="relative">
 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
-<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="p-search" type="text" name="search" value="{{ request('search') }}" placeholder="Invoice, supplier, product…">
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="p-search" type="text" name="search" value="{{ request('search') }}" placeholder="Invoice, vendor, product…">
 </div>
 </div>
 <div class="min-w-[140px]">

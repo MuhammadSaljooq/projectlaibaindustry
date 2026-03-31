@@ -57,14 +57,14 @@ if (! is_array($itemRows) || count($itemRows) === 0) {
 
 <div class="space-y-5 max-w-xl mb-8">
 <div>
-<label class="st-label block mb-2" for="supplier_id">Supplier</label>
+<label class="st-label block mb-2" for="supplier_id">Vendor</label>
 <select class="st-input w-full h-10 px-3 text-sm" name="supplier_id" id="supplier_id">
 <option value="">— None —</option>
 @foreach($suppliers as $s)
 <option value="{{ $s->id }}" @selected((string) old('supplier_id') === (string) $s->id)>{{ $s->name }}</option>
 @endforeach
 </select>
-<p class="text-[11px] text-[#586064] mt-1"><a href="{{ route('suppliers.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add a supplier</a> if missing.</p>
+<p class="text-[11px] text-[#586064] mt-1"><a href="{{ route('suppliers.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add a vendor</a> if missing.</p>
 </div>
 <div>
 <label class="st-label block mb-2" for="date">Date <span class="text-[#9F403D]">*</span></label>

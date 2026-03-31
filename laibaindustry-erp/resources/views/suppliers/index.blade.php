@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-@include('partials.frontend-head', ['title' => 'Suppliers - ERP'])
+@include('partials.frontend-head', ['title' => 'Vendors - ERP'])
 @include('partials.stitch-design')
 <style>
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -17,13 +17,13 @@
 <button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Suppliers</h2>
+<h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Vendors</h2>
 </div>
 @if(auth()->user()->role !== 'viewer')
 <div class="flex items-center gap-2 flex-wrap justify-end">
 <a href="{{ route('suppliers.create') }}" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2 whitespace-nowrap">
 <span class="material-symbols-outlined text-[20px]">add</span>
-New supplier
+New vendor
 </a>
 </div>
 @endif
@@ -35,11 +35,16 @@ New supplier
 <div class="flex flex-col gap-4">
 <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 <div class="flex flex-col gap-1 min-w-0">
-<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Suppliers</h1>
+<h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Vendors</h1>
 </div>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Vendors · international purchase links · @if(auth()->user()->role !== 'viewer') click row to edit @else read-only @endif</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
+</div>
+
+<div class="sm:hidden">
+<p class="st-label">Module</p>
+<p class="text-xl font-black uppercase tracking-tight text-[#2B3437]">Vendors</p>
 </div>
 
 @if (session('success'))
@@ -49,13 +54,13 @@ New supplier
 @endif
 
 <div class="border border-[#5E5E5E] bg-white p-6">
-<p class="st-label st-label--primary mb-2">Total suppliers</p>
+<p class="st-label st-label--primary mb-2">Total vendors</p>
 <p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ number_format($totalSuppliersCount) }}</p>
 </div>
 
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
-<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Supplier directory</h3>
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Vendor directory</h3>
 <p class="text-[11px] text-[#586064] mt-1">Name · country · contact · phone · email · balance owed · ledger, edit, and delete from actions column</p>
 </div>
 
@@ -92,7 +97,7 @@ New supplier
 <a href="{{ route('suppliers.edit', $supplier) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="Edit">
 <span class="material-symbols-outlined text-[18px]">edit</span>
 </a>
-<form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this supplier? Linked international purchases will keep the line but lose the supplier link.') }}">
+<form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this vendor? Linked international purchases will keep the line but lose the vendor link.') }}">
 @csrf
 @method('DELETE')
 <button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
@@ -106,9 +111,9 @@ New supplier
 @empty
 <tr>
 <td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
-<p class="font-semibold text-[#2B3437] mb-1">No suppliers yet</p>
+<p class="font-semibold text-[#2B3437] mb-1">No vendors yet</p>
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('suppliers.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add first supplier</a>
+<a href="{{ route('suppliers.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add first vendor</a>
 @else
 <span>No vendors on file.</span>
 @endif
