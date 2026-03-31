@@ -72,7 +72,7 @@ class CustomerStatementDateRangeTest extends TestCase
         $this->assertCount(2, $rows);
     }
 
-    public function test_statement_orders_by_created_at_not_id_even_when_ids_differ(): void
+    public function test_statement_orders_same_date_by_created_at_not_id(): void
     {
         $user = $this->actingManager();
         $customer = Customer::create([
