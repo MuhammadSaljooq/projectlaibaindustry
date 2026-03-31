@@ -19,6 +19,7 @@ $navItems = [
     ['key' => 'customers',    'icon' => 'group',                  'label' => 'Customers',   'route' => route('customers.index', absolute: false)],
     ['key' => 'receivables',  'icon' => 'account_balance_wallet', 'label' => 'Receivable',  'route' => route('receivables.index', absolute: false)],
     ['key' => 'purchases',    'icon' => 'shopping_cart',          'label' => 'Purchases',   'route' => route('purchases.index', absolute: false)],
+    ['key' => 'international_purchases', 'icon' => 'flight',      'label' => 'International purchases', 'route' => route('international-purchases.index', absolute: false)],
     ['key' => 'payables',     'icon' => 'account_balance',        'label' => 'Payables',    'route' => route('payables.index', absolute: false)],
     ['key' => 'expenses',     'icon' => 'receipt_long',           'label' => 'Expenses',    'route' => route('expenses.index', absolute: false)],
     ['key' => 'bank_statement', 'icon' => 'account_balance',      'label' => 'Bank statement', 'route' => route('bank-statement.index', absolute: false)],

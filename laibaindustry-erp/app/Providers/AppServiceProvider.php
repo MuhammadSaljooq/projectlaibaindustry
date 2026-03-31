@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Currency;
+use App\Support\Schema\InternationalPurchasesSchema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        try {
+            if (! app()->isProduction()) {
+                InternationalPurchasesSchema::ensureTableExists();
+            }
+        } catch (\Throwable) {
+            // DB unavailable or not migrated yet
+        }
+
         try {
             $default = Currency::query()->where('is_default', true)->first();
             View::share('currencySymbol', $default?->symbol ?? '$');

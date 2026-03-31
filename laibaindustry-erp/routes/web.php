@@ -5,6 +5,7 @@ use App\Http\Controllers\BankStatementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\InternationalPurchaseController;
 use App\Http\Controllers\PayableController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
@@ -63,6 +64,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::put('receivables/{receivable}/adjust-received', [ReceivableController::class, 'adjustReceivedWithoutLedger'])->name('receivables.adjust-received');
     Route::resource('receivables', ReceivableController::class);
     Route::resource('purchases', PurchaseController::class);
+    Route::resource('international-purchases', InternationalPurchaseController::class);
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::get('customers/{customer}/statement/pdf', [CustomerController::class, 'statementPdf'])->name('customers.statement.pdf');
@@ -82,6 +84,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('/sales/export/csv', [\App\Http\Controllers\SaleController::class, 'export'])->name('sales.export');
     Route::get('/purchases/export/csv', [\App\Http\Controllers\PurchaseController::class, 'export'])->name('purchases.export');
     Route::get('/expenses/export/csv', [\App\Http\Controllers\ExpenseController::class, 'export'])->name('expenses.export');
+    Route::get('/international-purchases/export/csv', [InternationalPurchaseController::class, 'export'])->name('international-purchases.export');
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
