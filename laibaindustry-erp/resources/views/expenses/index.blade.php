@@ -79,7 +79,7 @@ New expense
 </div>
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Matching entries</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($expenses->total()) }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($expenses->count()) }}</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">All-time total</p>
@@ -175,38 +175,15 @@ Clear
 </table>
 </div>
 
-@if($expenses->hasPages())
-<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $expenses->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $expenses->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $expenses->total() }}</span>
-</p>
-<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$expenses->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $expenses->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($expenses->getUrlRange(max(1, $expenses->currentPage() - 2), min($expenses->lastPage(), $expenses->currentPage() + 2)) ?: [1 => $expenses->url(1)] as $page => $url)
-@if ($page == $expenses->currentPage())
-<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
-@else
-<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($expenses->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $expenses->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
-</div>
-@else
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($expenses->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $expenses->total() }}</span> results
+@if($expenses->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $expenses->count() }}</span> expenses
 @else
 No results
 @endif
 </p>
 </div>
-@endif
 </div>
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>

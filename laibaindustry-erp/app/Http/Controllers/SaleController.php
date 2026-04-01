@@ -48,8 +48,7 @@ class SaleController extends Controller
         $sales = $query
             ->orderByDesc('date')
             ->orderByDesc('id')
-            ->paginate(25)
-            ->appends(request()->query());
+            ->get();
 
         $totals = Sale::query()
             ->selectRaw('COALESCE(SUM(subtotal), 0) as total_subtotal, COALESCE(SUM(tax_amount), 0) as total_vat, COALESCE(SUM(total_amount), 0) as total_sales')

@@ -139,38 +139,15 @@ Paid
 </table>
 </div>
 
-@if($payables->hasPages())
-<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->total() }}</span>
-</p>
-<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$payables->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $payables->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($payables->getUrlRange(max(1, $payables->currentPage() - 2), min($payables->lastPage(), $payables->currentPage() + 2)) ?: [1 => $payables->url(1)] as $page => $url)
-@if ($page == $payables->currentPage())
-<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
-@else
-<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($payables->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $payables->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
-</div>
-@else
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($payables->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->total() }}</span> results
+@if($payables->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->count() }}</span> payables
 @else
 No results
 @endif
 </p>
 </div>
-@endif
 </div>
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>

@@ -57,7 +57,7 @@ Add customer
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Total customers</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $customers->total() }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $customers->count() }}</p>
 </div>
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">This page</p>
@@ -65,7 +65,7 @@ Add customer
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Active records</p>
-<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $customers->total() }}</p>
+<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $customers->count() }}</p>
 </div>
 </div>
 
@@ -136,38 +136,15 @@ Add customer
 </table>
 </div>
 
-@if($customers->hasPages())
-<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->total() }}</span>
-</p>
-<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$customers->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $customers->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($customers->getUrlRange(max(1, $customers->currentPage() - 2), min($customers->lastPage(), $customers->currentPage() + 2)) ?: [1 => $customers->url(1)] as $page => $url)
-@if ($page == $customers->currentPage())
-<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
-@else
-<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($customers->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $customers->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
-</div>
-@else
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($customers->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->total() }}</span> results
+@if($customers->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->count() }}</span> customers
 @else
 No results
 @endif
 </p>
 </div>
-@endif
 </div>
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>

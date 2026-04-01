@@ -118,57 +118,76 @@ Clear
 {{-- Ledger table --}}
 <div class="st-paper flex flex-col flex-1 min-h-[400px] border border-[#ABB3B7] bg-white">
 <div class="px-5 py-4 border-b border-[#ABB3B7] flex flex-wrap items-center justify-between gap-3 bg-[#EAEFF1]">
-<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Line items ledger</h3>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064]">Read-only row · click to open</p>
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Purchase invoices</h3>
+<p class="text-[11px] text-[#586064] mt-0 sm:mt-0">One row per purchase · line details on the purchase page</p>
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[1000px]">
+<table class="w-full text-left border-collapse min-w-[900px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Customer Code</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Customer Name</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice Number</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Product Name</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Price</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Qty</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Amount</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT 15%</th>
+<th class="st-th px-4 py-3 whitespace-nowrap max-w-[160px]">Customer</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
+<th class="st-th px-4 py-3 min-w-[200px]">Product</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
-<th class="st-th px-4 py-3 w-24"></th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Total</th>
+<th class="st-th px-4 py-3 text-right w-28"></th>
 </tr>
 </thead>
 <tbody>
-@forelse($items as $item)
-@php $purchase = $item->purchase; @endphp
-<tr class="st-tr {{ $purchase ? 'cursor-pointer' : '' }}"
-    @if($purchase) onclick="window.location.href='{{ route('purchases.show', $purchase) }}';" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $purchase ? format_display_datetime($purchase->date) : '-' }}</td>
-<td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $purchase && $purchase->customer_code ? $purchase->customer_code : '-' }}</td>
-<td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $purchase && $purchase->customer_name ? $purchase->customer_name : '-' }}</td>
-<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">
-@if($purchase)
-<a href="{{ route('purchases.show', $purchase) }}" class="text-[#5E5E5E] hover:underline font-bold" onclick="event.stopPropagation()">{{ $purchase->invoice_number ?: '#' . $purchase->id }}</a>
-@else
--
+@forelse($purchases as $purchase)
+@php
+$rowSymbol = $purchase->currency && $purchase->currency->symbol ? $purchase->currency->symbol : ($currencySymbol ?? '$');
+$lineCount = $purchase->items->count();
+$firstItem = $purchase->items->first();
+$firstName = $firstItem && trim((string) $firstItem->product_name) !== '' ? $firstItem->product_name : '—';
+if ($lineCount === 0) {
+    $linesSummary = 'No line items';
+} elseif ($lineCount === 1) {
+    $linesSummary = $firstName;
+} else {
+    $linesSummary = $firstName.', +'.($lineCount - 1).' more';
+}
+$showLabel = 'View purchase '.($purchase->invoice_number ?: '#'.$purchase->id);
+@endphp
+<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
+    data-purchase-show-url="{{ route('purchases.show', $purchase) }}" role="link" tabindex="0" aria-label="{{ e($showLabel) }}">
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_datetime($purchase->date) }}</td>
+<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437] truncate max-w-[160px]">{{ $purchase->customer_name ?: ($purchase->customer_code ?: '—') }}</td>
+<td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
+<a href="{{ route('purchases.show', $purchase) }}" class="text-[#5E5E5E] hover:underline" onclick="event.stopPropagation()">{{ $purchase->invoice_number ?: '#' . $purchase->id }}</a>
+</td>
+<td class="st-td px-4 py-3 text-sm text-[#586064] max-w-[280px]" title="{{ e($linesSummary) }}">
+<span class="line-clamp-2">{{ $linesSummary }}</span>
+@if($lineCount > 1)
+<span class="block text-[10px] uppercase tracking-wide text-[#586064] mt-0.5">{{ $lineCount }} products</span>
 @endif
 </td>
-<td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $item->product_name ?: '-' }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($item->price, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#586064]">{{ number_format($item->quantity) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($item->amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($item->vat_amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($item->subtotal, 2) }}</td>
-<td class="st-td px-4 py-3">
-@if($purchase)
-<a href="{{ route('purchases.show', $purchase) }}" class="text-[11px] font-bold uppercase tracking-wider text-[#5E5E5E] border border-[#5E5E5E] px-2 py-1 inline-flex hover:bg-[#F1F4F6]" onclick="event.stopPropagation()">View</a>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $rowSymbol }} {{ number_format($purchase->subtotal ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $rowSymbol }} {{ number_format($purchase->vat_amount ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $rowSymbol }} {{ number_format($purchase->total_amount ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
+<div class="flex items-center justify-end gap-1 flex-wrap">
+<a href="{{ route('purchases.show', $purchase) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View" onclick="event.stopPropagation()">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</a>
+@if(auth()->user()->role !== 'viewer')
+<form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this purchase? Related payables and ledger entries will be removed.') }}">
+@csrf
+@method('DELETE')
+<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</form>
 @endif
+</div>
 </td>
 </tr>
 @empty
 <tr>
-<td colspan="11" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 No purchases yet.
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('purchases.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Create your first purchase</a>
@@ -182,31 +201,14 @@ No purchases yet.
 </table>
 </div>
 
-<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
+<div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($items->total() > 0)
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $items->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $items->total() }}</span> line items
+@if($purchases->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $purchases->count() }}</span> purchases
 @else
 No results
 @endif
 </p>
-@if($items->hasPages())
-<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$items->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $items->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($items->getUrlRange(max(1, $items->currentPage() - 2), min($items->lastPage(), $items->currentPage() + 2)) ?: [1 => $items->url(1)] as $page => $url)
-@if ($page == $items->currentPage())
-<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
-@else
-<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($items->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $items->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
-@endif
 </div>
 </div>
 
@@ -214,5 +216,23 @@ No results
 </div>
 </div>
 </main>
+<script>
+(function () {
+    document.querySelectorAll('tr[data-purchase-show-url]').forEach(function (row) {
+        var url = row.getAttribute('data-purchase-show-url');
+        if (!url) return;
+        row.addEventListener('click', function (e) {
+            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
+            window.location.href = url;
+        });
+        row.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
+            e.preventDefault();
+            window.location.href = url;
+        });
+    });
+})();
+</script>
 </body>
 </html>

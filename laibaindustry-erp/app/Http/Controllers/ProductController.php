@@ -23,7 +23,7 @@ class ProductController extends Controller
         if (($catId = $request->query('category_id')) && $catId !== 'all') {
             $query->where('category_id', $catId);
         }
-        $products = $query->orderBy('name')->paginate(15)->withQueryString();
+        $products = $query->orderBy('name')->get();
         $totalItems = Product::count();
         $lowStockCount = Product::lowStock()->count();
         $totalValue = Product::query()->selectRaw('COALESCE(SUM(cost_price * stock_quantity), 0) as v')->value('v') ?? 0;
@@ -44,6 +44,7 @@ class ProductController extends Controller
     public function create(): View
     {
         $categories = Category::orderBy('name')->get();
+
         return view('products.create', ['categories' => $categories]);
     }
 
@@ -65,12 +66,14 @@ class ProductController extends Controller
         $validated['stock_quantity'] = $validated['stock_quantity'] ?? 0;
         $validated['reorder_level'] = $validated['reorder_level'] ?? 10;
         Product::create($validated);
+
         return redirect()->route('inventory.dashboard')->with('success', 'Product added successfully.');
     }
 
     public function edit(Product $product): View
     {
         $categories = Category::orderBy('name')->get();
+
         return view('products.edit', ['product' => $product, 'categories' => $categories]);
     }
 
@@ -79,7 +82,7 @@ class ProductController extends Controller
         $validated = $request->validate(
             [
                 'name' => ['required', 'string', 'max:255'],
-                'sku' => ['required', 'string', 'max:100', 'unique:products,sku,' . $product->id],
+                'sku' => ['required', 'string', 'max:100', 'unique:products,sku,'.$product->id],
                 'category_id' => ['required', 'exists:categories,id'],
                 'cost_price' => ['required', 'numeric', 'min:0'],
                 'selling_price' => ['nullable', 'numeric', 'min:0'],
@@ -92,6 +95,7 @@ class ProductController extends Controller
         $validated['stock_quantity'] = $validated['stock_quantity'] ?? 0;
         $validated['reorder_level'] = $validated['reorder_level'] ?? 10;
         $product->update($validated);
+
         return redirect()->route('inventory.dashboard')->with('success', 'Product updated successfully.');
     }
 
@@ -99,10 +103,11 @@ class ProductController extends Controller
     {
         try {
             $product->delete();
+
             return redirect()->route('inventory.dashboard')->with('success', 'Product deleted successfully.');
         } catch (\Throwable $e) {
             return redirect()->route('inventory.dashboard')
-                ->with('error', 'Cannot delete "' . $product->name . '" because it is referenced by existing sales. Remove those sales first.');
+                ->with('error', 'Cannot delete "'.$product->name.'" because it is referenced by existing sales. Remove those sales first.');
         }
     }
 

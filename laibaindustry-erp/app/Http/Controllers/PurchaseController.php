@@ -24,32 +24,28 @@ class PurchaseController extends Controller
             return $redirect;
         }
 
-        $query = PurchaseItem::query()
-            ->with('purchase')
-            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
-            ->select('purchase_items.*');
+        $query = Purchase::query()->with(['items', 'currency']);
 
         if ($search = request('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('purchases.invoice_number', 'like', "%{$search}%")
-                    ->orWhere('purchases.customer_name', 'like', "%{$search}%")
-                    ->orWhere('purchases.customer_code', 'like', "%{$search}%")
-                    ->orWhere('purchase_items.product_name', 'like', "%{$search}%");
+            $like = '%'.$search.'%';
+            $query->where(function ($q) use ($like) {
+                $q->where('invoice_number', 'like', $like)
+                    ->orWhere('customer_name', 'like', $like)
+                    ->orWhere('customer_code', 'like', $like)
+                    ->orWhereHas('items', fn ($iq) => $iq->where('product_name', 'like', $like));
             });
         }
         if ($from) {
-            $query->whereDate('purchases.date', '>=', $from);
+            $query->whereDate('date', '>=', $from);
         }
         if ($to) {
-            $query->whereDate('purchases.date', '<=', $to);
+            $query->whereDate('date', '<=', $to);
         }
 
-        $items = $query
-            ->orderByDesc('purchases.date')
-            ->orderBy('purchases.id')
-            ->orderBy('purchase_items.id')
-            ->paginate(25)
-            ->appends(request()->query());
+        $purchases = $query
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get();
 
         $totals = Purchase::query()
             ->selectRaw('
@@ -59,7 +55,7 @@ class PurchaseController extends Controller
             ')
             ->first();
 
-        return view('purchases.index', compact('items', 'totals'));
+        return view('purchases.index', compact('purchases', 'totals'));
     }
 
     public function export(): StreamedResponse

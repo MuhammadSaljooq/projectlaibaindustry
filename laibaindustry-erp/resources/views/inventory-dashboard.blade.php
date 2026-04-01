@@ -185,32 +185,11 @@ Clear
 </table>
 </div>
 
-@if(isset($products) && $products->hasPages())
-<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $products->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->total() }}</span>
-</p>
-<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$products->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $products->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($products->getUrlRange(max(1, $products->currentPage() - 2), min($products->lastPage(), $products->currentPage() + 2)) ?: [1 => $products->url(1)] as $page => $url)
-@if ($page == $products->currentPage())
-<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
-@else
-<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($products->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $products->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
-</div>
-@else
+@if(isset($products))
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if(isset($products) && $products->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->total() }}</span> results
+@if($products->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->count() }}</span> products
 @else
 No results
 @endif

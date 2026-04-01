@@ -19,7 +19,7 @@ class InternationalPayableController extends Controller
             ->with('supplier')
             ->withSum('payablePayments', 'amount')
             ->orderByDesc('date')
-            ->paginate(25);
+            ->get();
 
         $billTotal = (float) InternationalPurchase::query()->sum('total_amount');
         $paidTotal = (float) InternationalPayablePayment::query()->sum('amount');
@@ -65,11 +65,11 @@ class InternationalPayableController extends Controller
                 'required',
                 'numeric',
                 'min:0.01',
-                'max:' . $balance,
+                'max:'.$balance,
             ],
             'notes' => ['nullable', 'string', 'max:500'],
         ], [
-            'amount.max' => 'Payment cannot exceed the remaining balance (' . number_format($balance, 2) . ').',
+            'amount.max' => 'Payment cannot exceed the remaining balance ('.number_format($balance, 2).').',
         ]);
 
         try {
@@ -89,10 +89,10 @@ class InternationalPayableController extends Controller
             DB::rollBack();
 
             return redirect()->back()->withInput()
-                ->with('error', 'Failed to record payment: ' . $e->getMessage());
+                ->with('error', 'Failed to record payment: '.$e->getMessage());
         }
 
         return redirect()->route('international-payables.index')
-            ->with('success', 'Payment of ' . number_format((float) $validated['amount'], 2) . ' recorded successfully.');
+            ->with('success', 'Payment of '.number_format((float) $validated['amount'], 2).' recorded successfully.');
     }
 }

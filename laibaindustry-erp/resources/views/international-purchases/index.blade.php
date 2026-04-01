@@ -65,7 +65,7 @@ New entry
 <div class="grid grid-cols-1 md:grid-cols-2 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Total entries</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($purchases->total()) }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($purchases->count()) }}</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">All-time total</p>
@@ -137,38 +137,15 @@ New entry
 </table>
 </div>
 
-@if($purchases->hasPages())
-<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $purchases->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $purchases->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $purchases->total() }}</span>
-</p>
-<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$purchases->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $purchases->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($purchases->getUrlRange(max(1, $purchases->currentPage() - 2), min($purchases->lastPage(), $purchases->currentPage() + 2)) ?: [1 => $purchases->url(1)] as $page => $url)
-@if ($page == $purchases->currentPage())
-<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
-@else
-<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($purchases->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $purchases->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
-</div>
-@else
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($purchases->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $purchases->total() }}</span> results
+@if($purchases->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $purchases->count() }}</span> international purchases
 @else
 No results
 @endif
 </p>
 </div>
-@endif
 </div>
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>

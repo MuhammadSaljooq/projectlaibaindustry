@@ -13,7 +13,7 @@ class SupplierController extends Controller
 {
     public function index(): View
     {
-        $suppliers = Supplier::query()->orderBy('name')->paginate(25);
+        $suppliers = Supplier::query()->orderBy('name')->get();
 
         $balances = SupplierLedgerEntry::query()
             ->selectRaw('supplier_id, COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) as balance')

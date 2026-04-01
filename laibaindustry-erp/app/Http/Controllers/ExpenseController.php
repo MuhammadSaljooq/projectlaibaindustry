@@ -34,8 +34,7 @@ class ExpenseController extends Controller
 
         $expenses = $query
             ->orderByDesc('date')
-            ->paginate(25)
-            ->appends(request()->query());
+            ->get();
 
         $totalAmount = Expense::query()->sum('amount');
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';

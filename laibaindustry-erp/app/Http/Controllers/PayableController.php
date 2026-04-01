@@ -17,7 +17,7 @@ class PayableController extends Controller
     {
         $payables = Payable::query()
             ->orderByDesc('date')
-            ->paginate(25);
+            ->get();
 
         $totals = Payable::query()
             ->selectRaw('
@@ -68,7 +68,7 @@ class PayableController extends Controller
                 "max:{$balance}",
             ],
         ], [
-            'payment.max' => "Payment cannot exceed the remaining balance (" . number_format($balance, 2) . ").",
+            'payment.max' => 'Payment cannot exceed the remaining balance ('.number_format($balance, 2).').',
         ]);
 
         $payment = (float) $validated['payment'];
@@ -85,24 +85,25 @@ class PayableController extends Controller
             if ($customer) {
                 CustomerLedgerEntry::create([
                     'customer_id' => $customer->id,
-                    'date'        => now(),
+                    'date' => now(),
                     'description' => 'Payment Made',
-                    'reference'   => $payable->invoice_number,
-                    'debit'       => $payment,
-                    'credit'      => 0,
+                    'reference' => $payable->invoice_number,
+                    'debit' => $payment,
+                    'credit' => 0,
                     'source_type' => 'payment_made',
-                    'source_id'   => $payable->id,
+                    'source_id' => $payable->id,
                 ]);
             }
 
             DB::commit();
 
             return redirect()->route('payables.index')
-                ->with('success', 'Payment of ' . number_format($payment, 2) . ' recorded successfully.');
+                ->with('success', 'Payment of '.number_format($payment, 2).' recorded successfully.');
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return redirect()->back()->withInput()
-                ->with('error', 'Failed to record payment: ' . $e->getMessage());
+                ->with('error', 'Failed to record payment: '.$e->getMessage());
         }
     }
 

@@ -19,7 +19,7 @@ class InternationalPurchaseController extends Controller
         $purchases = InternationalPurchase::query()
             ->with('supplier')
             ->orderByDesc('date')
-            ->paginate(25);
+            ->get();
 
         $totalAmount = InternationalPurchase::query()->sum('total_amount');
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';

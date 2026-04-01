@@ -41,8 +41,7 @@ class VatController extends Controller
 
         $entries = $query
             ->orderByDesc('date')
-            ->paginate(25)
-            ->appends(request()->query());
+            ->get();
 
         $totals = VatEntry::query()
             ->selectRaw("

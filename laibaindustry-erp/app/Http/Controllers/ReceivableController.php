@@ -38,8 +38,7 @@ class ReceivableController extends Controller
             ->selectRaw('MAX(payment_received_at) as latest_payment_at')
             ->groupByRaw($expr)
             ->orderByDesc(DB::raw($maxDateSql))
-            ->paginate(15)
-            ->withQueryString();
+            ->get();
 
         $totals = Receivable::query()
             ->selectRaw('

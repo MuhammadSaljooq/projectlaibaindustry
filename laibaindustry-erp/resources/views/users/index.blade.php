@@ -67,7 +67,7 @@ Add user
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Total users</p>
-<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ number_format($users->total()) }}</p>
+<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ number_format($users->count()) }}</p>
 </div>
 </div>
 
@@ -138,38 +138,15 @@ Add user
 </table>
 </div>
 
-@if($users->hasPages())
-<div class="p-4 border-t border-[#ABB3B7] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $users->firstItem() }}</span>–<span class="font-bold text-[#2B3437] tabular-nums">{{ $users->lastItem() }}</span> of <span class="font-bold text-[#2B3437] tabular-nums">{{ $users->total() }}</span>
-</p>
-<nav class="flex items-stretch border border-[#ABB3B7] bg-white divide-x divide-[#ABB3B7]" aria-label="Pagination">
-@if (!$users->onFirstPage())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $users->previousPageUrl() }}" aria-label="Previous"><span class="material-symbols-outlined text-[20px]">chevron_left</span></a>
-@endif
-@foreach ($users->getUrlRange(max(1, $users->currentPage() - 2), min($users->lastPage(), $users->currentPage() + 2)) ?: [1 => $users->url(1)] as $page => $url)
-@if ($page == $users->currentPage())
-<span class="px-3 py-2 text-xs font-bold uppercase tracking-wider bg-[#5E5E5E] text-[#F8F8F8] inline-flex items-center justify-center min-w-[2.5rem]">{{ $page }}</span>
-@else
-<a class="px-3 py-2 text-xs font-bold text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center min-w-[2.5rem]" href="{{ $url }}">{{ $page }}</a>
-@endif
-@endforeach
-@if ($users->hasMorePages())
-<a class="p-2 text-[#586064] hover:bg-[#F1F4F6] inline-flex items-center justify-center" href="{{ $users->nextPageUrl() }}" aria-label="Next"><span class="material-symbols-outlined text-[20px]">chevron_right</span></a>
-@endif
-</nav>
-</div>
-@else
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($users->total() > 0)
-Showing all <span class="font-bold text-[#2B3437] tabular-nums">{{ $users->total() }}</span> results
+@if($users->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $users->count() }}</span> users
 @else
 No results
 @endif
 </p>
 </div>
-@endif
 </div>
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-6 pb-2">© 2026 Laiba Safety. All rights reserved.</p>

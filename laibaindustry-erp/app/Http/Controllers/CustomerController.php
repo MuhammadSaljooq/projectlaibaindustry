@@ -59,7 +59,7 @@ class CustomerController extends Controller
     {
         $customers = Customer::query()
             ->orderBy('customer_name')
-            ->paginate(15);
+            ->get();
 
         return view('customers.index', ['customers' => $customers]);
     }

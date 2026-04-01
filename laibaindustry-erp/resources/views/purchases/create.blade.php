@@ -267,18 +267,20 @@ Add row
         recalcTotals();
     }
 
-    function bindRowEvents() {
-        document.querySelectorAll('.line-item').forEach(function (row) {
-            row.querySelector('.price-input')?.addEventListener('input', onRowChange);
-            row.querySelector('.qty-input')?.addEventListener('input', onRowChange);
-        });
-
-        document.querySelectorAll('.remove-row').forEach(function (btn) {
-            btn.onclick = function () {
-                if (document.querySelectorAll('.line-item').length <= 1) return;
-                this.closest('.line-item').remove();
+    var lineItemsBody = document.getElementById('line-items');
+    if (lineItemsBody) {
+        lineItemsBody.addEventListener('input', function (e) {
+            if (e.target.classList.contains('price-input') || e.target.classList.contains('qty-input')) {
                 onRowChange();
-            };
+            }
+        });
+        lineItemsBody.addEventListener('click', function (e) {
+            var btn = e.target.closest('.remove-row');
+            if (!btn || !lineItemsBody.contains(btn)) return;
+            e.preventDefault();
+            if (document.querySelectorAll('.line-item').length <= 1) return;
+            btn.closest('.line-item').remove();
+            onRowChange();
         });
     }
 
@@ -301,11 +303,10 @@ Add row
 
         tbody.appendChild(newRow);
         rowIndex++;
-        bindRowEvents();
+        onRowChange();
         newRow.querySelector('.product-name-input')?.focus();
     });
 
-    bindRowEvents();
     onRowChange();
 })();
 </script>

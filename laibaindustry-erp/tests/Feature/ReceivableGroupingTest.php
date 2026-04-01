@@ -43,8 +43,8 @@ class ReceivableGroupingTest extends TestCase
 
         $response->assertOk();
         $groups = $response->viewData('receivableGroups');
-        $this->assertSame(1, $groups->total());
-        $row = $groups->items()[0];
+        $this->assertSame(1, $groups->count());
+        $row = $groups->first();
         $this->assertSame(2, (int) $row->invoice_count);
         $this->assertEqualsWithDelta(150.0, (float) $row->total_amount, 0.001);
         $this->assertEqualsWithDelta(10.0, (float) $row->total_received, 0.001);
@@ -78,8 +78,8 @@ class ReceivableGroupingTest extends TestCase
 
         $response->assertOk();
         $groups = $response->viewData('receivableGroups');
-        $this->assertSame(1, $groups->total());
-        $row = $groups->items()[0];
+        $this->assertSame(1, $groups->count());
+        $row = $groups->first();
         $this->assertSame(2, (int) $row->invoice_count);
         $this->assertStringStartsWith('name:', $row->ar_group_key);
     }
