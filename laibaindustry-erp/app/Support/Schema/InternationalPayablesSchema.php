@@ -17,8 +17,8 @@ final class InternationalPayablesSchema
         if (! Schema::hasTable('international_payable_payments')) {
             Schema::create('international_payable_payments', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('international_purchase_id')
-                    ->constrained('international_purchases')
+                $table->foreignId('international_purchase_order_id')
+                    ->constrained('international_purchase_orders')
                     ->cascadeOnDelete();
                 $table->date('payment_date');
                 $table->decimal('amount', 10, 2);

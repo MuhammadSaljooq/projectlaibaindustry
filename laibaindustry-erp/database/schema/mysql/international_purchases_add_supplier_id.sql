@@ -1,9 +1,7 @@
 -- =============================================================================
--- Live / manual MySQL: link international_purchases to suppliers (existing DBs)
---
--- Run AFTER suppliers.sql if `international_purchases` already exists without
--- `supplier_id`. Skip if you recreated international_purchases from the updated
--- international_purchases.sql that already includes supplier_id.
+-- LEGACY: pre–invoice-header schema. New installs use international_purchase_orders
+-- + line items (see international_purchase_orders.sql, international_purchases.sql).
+-- Prefer `php artisan migrate` (2026_04_02_120000_...) for upgrades.
 -- =============================================================================
 
 ALTER TABLE `international_purchases`

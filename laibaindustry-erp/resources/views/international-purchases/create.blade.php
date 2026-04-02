@@ -70,6 +70,10 @@ if (! is_array($itemRows) || count($itemRows) === 0) {
 <label class="st-label block mb-2" for="date">Date <span class="text-[#9F403D]">*</span></label>
 <input class="st-input w-full h-10 px-3 text-sm" type="date" name="date" id="date" value="{{ old('date', now()->format('Y-m-d')) }}" required>
 </div>
+<div>
+<label class="st-label block mb-2" for="invoice_number">Invoice / reference #</label>
+<input class="st-input w-full h-10 px-3 text-sm font-mono" type="text" name="invoice_number" id="invoice_number" value="{{ old('invoice_number') }}" maxlength="191" placeholder="Optional — same as sales invoice field">
+</div>
 </div>
 
 <p class="st-label mb-4">Line items</p>

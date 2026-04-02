@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Currency;
 use App\Models\InternationalPayablePayment;
-use App\Models\InternationalPurchase;
+use App\Models\InternationalPurchaseOrder;
 use App\Services\SupplierLedgerSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,20 +15,21 @@ class InternationalPayableController extends Controller
 {
     public function index(): View
     {
-        $purchases = InternationalPurchase::query()
-            ->with('supplier')
+        $orders = InternationalPurchaseOrder::query()
+            ->with(['supplier', 'lines'])
             ->withSum('payablePayments', 'amount')
             ->orderByDesc('date')
+            ->orderByDesc('id')
             ->get();
 
-        $billTotal = (float) InternationalPurchase::query()->sum('total_amount');
+        $billTotal = (float) InternationalPurchaseOrder::query()->sum('total_amount');
         $paidTotal = (float) InternationalPayablePayment::query()->sum('amount');
         $outstanding = max(0, $billTotal - $paidTotal);
 
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         return view('international-payables.index', [
-            'purchases' => $purchases,
+            'orders' => $orders,
             'billTotal' => $billTotal,
             'paidTotal' => $paidTotal,
             'outstanding' => $outstanding,
@@ -36,9 +37,10 @@ class InternationalPayableController extends Controller
         ]);
     }
 
-    public function pay(InternationalPurchase $international_purchase): View
+    public function pay(InternationalPurchaseOrder $international_purchase): View
     {
-        $international_purchase->load('supplier');
+        $international_purchase->load(['supplier', 'lines']);
+
         $paid = (float) $international_purchase->payablePayments()->sum('amount');
         $bill = (float) $international_purchase->total_amount;
         $balance = max(0, $bill - $paid);
@@ -46,14 +48,14 @@ class InternationalPayableController extends Controller
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         return view('international-payables.pay', [
-            'purchase' => $international_purchase,
+            'order' => $international_purchase,
             'paid' => $paid,
             'balance' => $balance,
             'currencySymbol' => $currencySymbol,
         ]);
     }
 
-    public function storePayment(Request $request, InternationalPurchase $international_purchase): RedirectResponse
+    public function storePayment(Request $request, InternationalPurchaseOrder $international_purchase): RedirectResponse
     {
         $paid = (float) $international_purchase->payablePayments()->sum('amount');
         $bill = (float) $international_purchase->total_amount;
@@ -76,7 +78,7 @@ class InternationalPayableController extends Controller
             DB::beginTransaction();
 
             $payment = InternationalPayablePayment::create([
-                'international_purchase_id' => $international_purchase->id,
+                'international_purchase_order_id' => $international_purchase->id,
                 'payment_date' => $validated['payment_date'],
                 'amount' => $validated['amount'],
                 'notes' => $validated['notes'] ?? null,

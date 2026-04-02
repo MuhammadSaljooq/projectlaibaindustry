@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Currency;
+use App\Models\InternationalPurchaseOrder;
 use App\Support\Schema\InternationalPayablesSchema;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Route::bind('international_purchase', function (string $value) {
+            return InternationalPurchaseOrder::findOrFail($value);
+        });
+
         try {
             if (! app()->isProduction()) {
                 InternationalPayablesSchema::ensureTableExists();

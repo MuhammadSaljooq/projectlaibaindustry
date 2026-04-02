@@ -18,9 +18,9 @@ class Supplier extends Model
         'notes',
     ];
 
-    public function internationalPurchases(): HasMany
+    public function internationalPurchaseOrders(): HasMany
     {
-        return $this->hasMany(InternationalPurchase::class, 'supplier_id');
+        return $this->hasMany(InternationalPurchaseOrder::class, 'supplier_id');
     }
 
     public function ledgerEntries(): HasMany

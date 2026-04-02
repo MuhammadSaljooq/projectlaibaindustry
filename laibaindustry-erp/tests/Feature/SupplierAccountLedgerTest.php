@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\InternationalPurchase;
+use App\Models\InternationalPurchaseOrder;
 use App\Models\Supplier;
 use App\Models\SupplierLedgerEntry;
 use App\Models\User;
+use App\Services\SupplierLedgerSync;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,10 +30,14 @@ class SupplierAccountLedgerTest extends TestCase
 
         $this->assertDatabaseHas('supplier_ledger_entries', [
             'supplier_id' => $supplier->id,
-            'source_type' => 'international_purchase',
+            'source_type' => 'international_purchase_order',
             'credit' => 50,
             'debit' => 0,
         ]);
+
+        $this->assertSame(1, SupplierLedgerEntry::query()
+            ->where('source_type', 'international_purchase_order')
+            ->count());
 
         $this->actingAs($user)->get(route('suppliers.ledger', $supplier))
             ->assertOk()
@@ -43,17 +49,22 @@ class SupplierAccountLedgerTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'manager']);
         $supplier = Supplier::create(['name' => 'Pay Co']);
-        $purchase = InternationalPurchase::create([
+        $order = InternationalPurchaseOrder::create([
             'supplier_id' => $supplier->id,
             'date' => '2026-06-01',
+            'invoice_number' => null,
+            'total_amount' => 100,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $order->id,
             'product_name' => 'Item',
             'quantity' => 1,
             'unit_price' => 100,
             'total_amount' => 100,
         ]);
-        \App\Services\SupplierLedgerSync::syncInternationalPurchase($purchase);
+        SupplierLedgerSync::syncInternationalPurchaseOrder($order->fresh(['lines']));
 
-        $this->actingAs($user)->post(route('international-payables.pay.store', $purchase), [
+        $this->actingAs($user)->post(route('international-payables.pay.store', $order), [
             'payment_date' => '2026-06-15',
             'amount' => '40',
         ])->assertRedirect(route('international-payables.index'));

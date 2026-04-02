@@ -50,27 +50,52 @@
 @php $isPaid = $balance <= 0.009; @endphp
 
 <div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white max-w-2xl">
-<p class="st-label mb-6">International purchase line</p>
+<p class="st-label mb-6">International purchase invoice</p>
 
 <div class="space-y-3 text-sm mb-6 pb-6 border-b border-[#ABB3B7]">
 <div class="flex items-center justify-between gap-4">
 <span class="st-label !mb-0">Date</span>
-<span class="font-semibold text-[#2B3437]">{{ format_display_date($purchase->date) }}</span>
+<span class="font-semibold text-[#2B3437]">{{ format_display_date($order->date) }}</span>
 </div>
 <div class="flex items-center justify-between gap-4">
 <span class="st-label !mb-0">Vendor</span>
-<span class="font-semibold text-[#2B3437] text-right">{{ $purchase->supplier?->name ?? '—' }}</span>
+<span class="font-semibold text-[#2B3437] text-right">{{ $order->supplier?->name ?? '—' }}</span>
 </div>
+@if($order->invoice_number)
 <div class="flex items-center justify-between gap-4">
-<span class="st-label !mb-0">Product</span>
-<span class="font-semibold text-[#2B3437] text-right">{{ $purchase->product_name }}</span>
+<span class="st-label !mb-0">Invoice / reference</span>
+<span class="font-mono font-semibold text-[#2B3437] text-right">{{ $order->invoice_number }}</span>
 </div>
+@endif
 </div>
+
+@if($order->lines->isNotEmpty())
+<div class="mb-6 border border-[#ABB3B7] overflow-hidden">
+<table class="w-full text-left text-sm">
+<thead class="bg-[#EAEFF1]">
+<tr>
+<th class="px-3 py-2 font-bold text-[10px] uppercase tracking-wider text-[#586064]">Product</th>
+<th class="px-3 py-2 font-bold text-[10px] uppercase tracking-wider text-[#586064] text-right">Qty</th>
+<th class="px-3 py-2 font-bold text-[10px] uppercase tracking-wider text-[#586064] text-right">Amount</th>
+</tr>
+</thead>
+<tbody>
+@foreach($order->lines as $line)
+<tr class="border-t border-[#ABB3B7]">
+<td class="px-3 py-2 text-[#2B3437]">{{ $line->product_name }}</td>
+<td class="px-3 py-2 text-right tabular-nums text-[#586064]">{{ number_format($line->quantity) }}</td>
+<td class="px-3 py-2 text-right font-mono tabular-nums">{{ $currencySymbol }} {{ number_format($line->total_amount, 2) }}</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+</div>
+@endif
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white sm:divide-x sm:divide-[#ABB3B7] mb-8">
 <div class="p-4 border-b sm:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Bill</p>
-<p class="text-lg font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format((float) $purchase->total_amount, 2) }}</p>
+<p class="text-lg font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format((float) $order->total_amount, 2) }}</p>
 </div>
 <div class="p-4 border-b sm:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Paid</p>
@@ -83,7 +108,7 @@
 </div>
 
 @if(!$isPaid && auth()->user()->role !== 'viewer')
-<form method="POST" action="{{ route('international-payables.pay.store', $purchase) }}" novalidate>
+<form method="POST" action="{{ route('international-payables.pay.store', $order) }}" novalidate>
 @csrf
 <div class="space-y-5 max-w-md">
 <div>
@@ -129,7 +154,7 @@ Record payment
 @else
 <div class="border border-[#ABB3B7] bg-[#F8F9FA] px-4 py-4 flex items-start gap-3">
 <span class="material-symbols-outlined text-[#5E5E5E] text-[24px] shrink-0">check_circle</span>
-<p class="text-sm font-semibold text-[#2B3437]">This line is fully paid.</p>
+<p class="text-sm font-semibold text-[#2B3437]">This invoice is fully paid.</p>
 </div>
 <a href="{{ route('international-payables.index') }}" class="st-btn-secondary h-10 px-5 inline-flex items-center gap-2 mt-6 w-fit">
 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
