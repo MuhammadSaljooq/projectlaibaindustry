@@ -28,8 +28,11 @@ final class StatementCompany
         'Contracting Establishment',
     ];
 
+    /** Path relative to the `public/` directory (PNG/SVG/JPEG recommended for PDFs). */
+    private const DEFAULT_LOGO = 'images/company/laiba-logo.png';
+
     /**
-     * @return array{name: string, address_lines: list<string>, registration: string, vat_number: string, phone_label: string, phone: string, email: string, pdf_header_name_lines: list<string>, pdf_block_name_lines: list<string>}
+     * @return array{name: string, address_lines: list<string>, registration: string, vat_number: string, phone_label: string, phone: string, email: string, logo: string, pdf_header_name_lines: list<string>, pdf_block_name_lines: list<string>}
      */
     public static function defaults(): array
     {
@@ -41,6 +44,7 @@ final class StatementCompany
             'phone_label' => 'Mobile & WhatsApp',
             'phone' => '+966-564520210',
             'email' => 'info@jawadallail.com',
+            'logo' => self::DEFAULT_LOGO,
             'pdf_header_name_lines' => [...self::DEFAULT_PDF_HEADER_NAME_LINES],
             'pdf_block_name_lines' => [...self::DEFAULT_PDF_BLOCK_NAME_LINES],
         ];
@@ -56,7 +60,7 @@ final class StatementCompany
     /**
      * Build company array from environment (used by config/company.php).
      *
-     * @return array{name: string, address_lines: list<string>, registration: string, vat_number: string, phone_label: string, phone: string, email: string}
+     * @return array{name: string, address_lines: list<string>, registration: string, vat_number: string, phone_label: string, phone: string, email: string, logo: string, pdf_header_name_lines: list<string>, pdf_block_name_lines: list<string>}
      */
     public static function resolvedFromEnvironment(): array
     {
@@ -79,6 +83,7 @@ final class StatementCompany
             'phone_label' => self::envNonEmptyString('COMPANY_PHONE_LABEL', 'Mobile & WhatsApp'),
             'phone' => self::envNonEmptyString('COMPANY_PHONE', '+966-564520210'),
             'email' => self::envNonEmptyString('COMPANY_EMAIL', 'info@jawadallail.com'),
+            'logo' => self::envNonEmptyString('COMPANY_LOGO', self::DEFAULT_LOGO),
             'pdf_header_name_lines' => [...self::DEFAULT_PDF_HEADER_NAME_LINES],
             'pdf_block_name_lines' => [...self::DEFAULT_PDF_BLOCK_NAME_LINES],
         ];
@@ -87,7 +92,7 @@ final class StatementCompany
     /**
      * Merge config('company') with defaults so missing keys, null, or blank strings never hide issuer details.
      *
-     * @return array{name: string, address_lines: list<string>, registration: string, vat_number: string, phone_label: string, phone: string, email: string, pdf_header_name_lines: list<string>, pdf_block_name_lines: list<string>}
+     * @return array{name: string, address_lines: list<string>, registration: string, vat_number: string, phone_label: string, phone: string, email: string, logo: string, pdf_header_name_lines: list<string>, pdf_block_name_lines: list<string>}
      */
     public static function normalize(mixed $config): array
     {
@@ -96,7 +101,7 @@ final class StatementCompany
             return $out;
         }
 
-        foreach (['name', 'registration', 'vat_number', 'phone_label', 'phone', 'email'] as $key) {
+        foreach (['name', 'registration', 'vat_number', 'phone_label', 'phone', 'email', 'logo'] as $key) {
             if (! array_key_exists($key, $config)) {
                 continue;
             }

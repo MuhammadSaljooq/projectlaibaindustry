@@ -7,13 +7,14 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InternationalPayableController;
 use App\Http\Controllers\InternationalPurchaseController;
-use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PayableController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ReceivableController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VatController;
 use Illuminate\Http\Request;
@@ -56,6 +57,9 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
 
     Route::resource('products', ProductController::class);
     Route::resource('sales', SaleController::class);
+    Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'pdf'])->name('quotations.pdf');
+    Route::get('quotations/{quotation}/preview', [QuotationController::class, 'preview'])->name('quotations.preview');
+    Route::resource('quotations', QuotationController::class);
     Route::get('receivables/group/{groupKey}', [ReceivableController::class, 'showGroup'])->name('receivables.group');
     Route::post('receivables/group/{groupKey}/payments', [ReceivableController::class, 'storeGroupPayment'])->name('receivables.group.payments.store');
     Route::get('receivables/group/{groupKey}/payments/{receivableGroupPayment}/edit', [ReceivableController::class, 'editGroupPayment'])->name('receivables.group.payments.edit');

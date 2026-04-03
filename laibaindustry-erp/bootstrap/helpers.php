@@ -35,6 +35,22 @@ if (! function_exists('format_display_datetime')) {
     }
 }
 
+if (! function_exists('format_day_month_year_date')) {
+    /**
+     * Format a date as day, full month name, year (e.g. "3 April 2026").
+     */
+    function format_day_month_year_date(?DateTimeInterface $value): string
+    {
+        if ($value === null) {
+            return '—';
+        }
+
+        return Date::instance($value)
+            ->timezone(config('app.timezone'))
+            ->translatedFormat('j F Y');
+    }
+}
+
 if (! function_exists('parse_filter_date')) {
     /**
      * Parse a date from filter inputs: d/m/Y, j/n/Y, or Y-m-d (bookmarks / redirects).
