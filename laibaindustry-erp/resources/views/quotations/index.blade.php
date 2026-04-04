@@ -55,7 +55,10 @@ New quotation
 </thead>
 <tbody>
 @forelse ($quotations as $q)
-<tr class="st-tr hover:bg-[#F8F9FA]">
+<tr class="st-tr hover:bg-[#F8F9FA] cursor-pointer"
+    data-open-url="{{ route('quotations.show', $q) }}"
+    title="Open quotation"
+    onclick="if (!event.target.closest('a, button')) { window.location.href = this.dataset.openUrl; }">
 <td class="st-td px-4 py-3 font-mono font-semibold">
 <a href="{{ route('quotations.show', $q) }}" class="text-[#137fec] hover:underline">{{ $q->quotation_number }}</a>
 </td>
@@ -72,7 +75,7 @@ New quotation
 @endif">{{ $q->status }}</span>
 </td>
 <td class="st-td px-4 py-3 text-right font-mono tabular-nums">SAR {{ number_format((float) $q->total_amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-right">
+<td class="st-td px-4 py-3 text-right" onclick="event.stopPropagation();">
 <div class="flex flex-wrap justify-end gap-1">
 <a href="{{ route('quotations.preview', $q) }}?v={{ $q->updated_at?->timestamp ?? $q->id }}" target="_blank" rel="noopener" class="st-btn-secondary h-8 px-2 text-[10px] inline-flex items-center gap-1">Preview</a>
 <a href="{{ route('quotations.pdf', $q) }}?v={{ $q->updated_at?->timestamp ?? $q->id }}" class="st-btn-secondary h-8 px-2 text-[10px] inline-flex items-center gap-1">PDF</a>

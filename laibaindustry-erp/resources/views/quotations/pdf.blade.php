@@ -1,6 +1,6 @@
 {{--
     resources/views/quotations/pdf.blade.php
-    DomPDF — bilingual (EN/AR). Logo: config company.logo, with sensible fallbacks.
+    DomPDF quotation layout. Logo: config company.logo (QuotationPdfLogo).
 --}}
 @php
     $company = \App\Support\StatementCompany::normalize(config('company'));
@@ -18,15 +18,15 @@
 
     /* White margin on all sides of the page (DomPDF @page) */
     @page {
-        margin: 26mm 24mm 26mm 24mm; /* top, right, bottom, left */
+        margin: 22mm 22mm 24mm 22mm; /* top, right, bottom, left — balanced frame */
     }
 
     body {
         font-family: 'DejaVu Sans', 'Arial', sans-serif;
         font-size: 9.5pt;
-        line-height: 1.55;
-        word-spacing: 0.08em;
-        letter-spacing: 0.01em;
+        line-height: 1.45;
+        word-spacing: normal;
+        letter-spacing: normal;
         color: #1a1a1a;
         background: #fff;
         padding: 0;
@@ -41,7 +41,11 @@
         --muted: #4a4a4a;
     }
 
-    .page { width: 100%; padding: 0; }
+    .page {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+    }
 
     .text-right { text-align: right; }
     .text-center { text-align: center; }
@@ -53,41 +57,36 @@
     .small { font-size: 8pt; line-height: 1.5; }
     .section { margin-bottom: 10px; }
 
-    /* Bilingual label: English LTR, Arabic RTL — avoids DomPDF gluing text */
-    .label-en {
-        display: block;
-        direction: ltr;
-        unicode-bidi: isolate;
+    .field-label {
         font-size: 8pt;
         font-weight: bold;
         color: #1a237e;
-        line-height: 1.45;
-        margin-bottom: 3px;
-        letter-spacing: 0.02em;
-    }
-    .label-ar {
-        display: block;
-        direction: rtl;
-        unicode-bidi: embed;
-        font-size: 8.5pt;
-        font-weight: bold;
-        color: #2e3a8f;
-        line-height: 1.5;
+        line-height: 1.35;
     }
     .value-ltr {
         direction: ltr;
         unicode-bidi: isolate;
         text-align: left;
-        padding: 8px 12px;
+        padding: 6px 10px;
         font-size: 9pt;
-        line-height: 1.5;
-        word-spacing: 0.06em;
+        line-height: 1.4;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: auto;
+    }
+    .header-table,
+    .details-table,
+    .customer-table,
+    .items-table,
+    .totals-wrap {
         table-layout: fixed;
+    }
+    .totals-right-table {
+        table-layout: fixed;
+        width: 100%;
     }
     td, th { padding: 0; vertical-align: middle; }
 
@@ -96,24 +95,22 @@
         border: 2px solid var(--dark-blue);
     }
     .header-logo-cell {
-        width: 24%;
+        width: 22%;
         background: #ffffff;
         text-align: center;
         vertical-align: middle;
-        padding: 0;
+        padding: 4px 6px;
         border-right: 2px solid var(--dark-blue);
-        overflow: visible;
     }
     .header-logo-wrap {
-        width: 100%;
         text-align: center;
         line-height: 0;
-        overflow: visible;
     }
-    /* Narrow column + larger pt; no max-width so logo is not shrunk to cell width */
+    /* Fit inside column; width + height:auto keeps aspect ratio (no horizontal stretch) */
     .header-logo-cell img {
-        width: 136pt;
-        max-height: 118pt;
+        max-width: 100%;
+        width: auto;
+        max-height: 72pt;
         height: auto;
         display: block;
         margin: 0 auto;
@@ -126,19 +123,18 @@
         line-height: 1.4;
     }
     .header-info-cell {
-        width: 46%;
+        width: 48%;
         background: #ffffff;
         padding: 14px 18px;
         vertical-align: middle;
         text-align: center;
     }
     .header-info-cell .company-name-line {
-        font-size: 11pt;
+        font-size: 10.5pt;
         font-weight: bold;
         color: var(--dark-blue);
-        line-height: 1.4;
+        line-height: 1.35;
         margin-bottom: 2px;
-        letter-spacing: 0.02em;
     }
     .header-info-cell .company-name-line + .company-name-line {
         font-size: 10pt;
@@ -147,9 +143,8 @@
     .header-info-cell .company-detail {
         font-size: 8pt;
         color: var(--muted);
-        line-height: 1.65;
+        line-height: 1.45;
         margin-top: 2px;
-        word-spacing: 0.1em;
     }
     .header-title-cell {
         width: 30%;
@@ -158,37 +153,21 @@
         padding: 16px 14px;
         vertical-align: middle;
     }
-    .header-title-cell .title-en {
-        font-size: 17pt;
+    .header-title-cell .doc-title {
+        font-size: 16pt;
         font-weight: bold;
         color: #ffffff;
-        line-height: 1.35;
-        letter-spacing: 0.04em;
-        direction: ltr;
-        unicode-bidi: isolate;
-    }
-    .header-title-cell .title-ar {
-        font-size: 15pt;
-        font-weight: bold;
-        color: #ffffff;
-        line-height: 1.45;
-        margin-top: 4px;
-        direction: rtl;
-        unicode-bidi: embed;
+        line-height: 1.25;
     }
     .header-title-cell .title-divider {
         color: rgba(255,255,255,0.45);
         font-size: 7pt;
-        margin: 8px 0;
-        letter-spacing: 0.15em;
+        margin: 6px 0;
     }
     .header-title-cell .brand-sub {
         font-size: 8pt;
         font-weight: bold;
         color: #d0d4ff;
-        letter-spacing: 0.12em;
-        direction: ltr;
-        unicode-bidi: isolate;
         margin-top: 2px;
     }
 
@@ -199,12 +178,12 @@
         vertical-align: top;
     }
     .details-table .label-cell {
-        width: 22%;
+        width: 20%;
         background: var(--label-bg);
         padding: 8px 10px;
     }
     .details-table .value-cell {
-        width: 28%;
+        width: 30%;
         background: #fff;
     }
     .section-header-row td {
@@ -216,20 +195,6 @@
         padding: 10px 14px;
         border: 1px solid var(--dark-blue);
         line-height: 1.5;
-    }
-    .section-header-row .hdr-en {
-        display: block;
-        direction: ltr;
-        unicode-bidi: isolate;
-        letter-spacing: 0.03em;
-    }
-    .section-header-row .hdr-ar {
-        display: block;
-        direction: rtl;
-        unicode-bidi: embed;
-        font-size: 10pt;
-        margin-top: 4px;
-        opacity: 0.95;
     }
     /* Customer block: compact, two fields per row (label | value | label | value) */
     .customer-table-compact td {
@@ -254,14 +219,8 @@
         text-align: left;
         font-size: 8.5pt;
         line-height: 1.4;
-        word-spacing: 0.05em;
     }
-    .customer-table-compact .label-en {
-        font-size: 7pt;
-        margin-bottom: 1px;
-        line-height: 1.25;
-    }
-    .customer-table-compact .label-ar {
+    .customer-table-compact .field-label {
         font-size: 7.5pt;
         line-height: 1.25;
     }
@@ -288,20 +247,19 @@
     }
     .items-table td {
         border: 1px solid var(--border);
-        padding: 8px 8px;
+        padding: 6px 7px;
         font-size: 9pt;
-        line-height: 1.5;
+        line-height: 1.4;
         vertical-align: middle;
-        word-spacing: 0.06em;
     }
     .items-table tr.row-alt td { background: var(--row-alt); }
     .items-table tr.row-white td { background: #ffffff; }
-    .col-sno { width: 6%; text-align: center; }
-    .col-desc { width: 38%; text-align: left; direction: ltr; unicode-bidi: isolate; }
+    .col-sno { width: 7%; text-align: center; }
+    .col-desc { width: 36%; text-align: left; direction: ltr; unicode-bidi: isolate; }
     .col-qty { width: 10%; text-align: center; }
     .col-price { width: 14%; text-align: right; direction: ltr; unicode-bidi: isolate; }
-    .col-tax { width: 14%; text-align: right; direction: ltr; unicode-bidi: isolate; }
-    .col-amount { width: 18%; text-align: right; direction: ltr; unicode-bidi: isolate; }
+    .col-tax { width: 13%; text-align: right; direction: ltr; unicode-bidi: isolate; }
+    .col-amount { width: 20%; text-align: right; direction: ltr; unicode-bidi: isolate; }
 
     /* ── Totals ─────────────────────────────────────────────────────── */
     .totals-wrap td { vertical-align: top; }
@@ -311,27 +269,16 @@
         padding: 12px 14px;
         vertical-align: middle;
     }
-    .totals-words-label .tw-en {
-        display: block;
-        direction: ltr;
+    .totals-words-label {
         font-weight: bold;
         font-size: 8.5pt;
-        margin-bottom: 4px;
-        letter-spacing: 0.02em;
-    }
-    .totals-words-label .tw-ar {
-        display: block;
-        direction: rtl;
-        font-weight: bold;
-        font-size: 9pt;
-        color: #2e3a8f;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+        color: #1a237e;
     }
     .totals-words-value {
         font-style: italic;
         color: #333;
-        line-height: 1.55;
-        word-spacing: 0.08em;
+        line-height: 1.4;
         direction: ltr;
         unicode-bidi: isolate;
     }
@@ -344,22 +291,7 @@
         line-height: 1.5;
         vertical-align: middle;
     }
-    .totals-right-table .total-label { background: #f4f4f4; width: 64%; }
-    .totals-right-table .total-label .tl-en {
-        display: block;
-        direction: ltr;
-        font-weight: bold;
-        font-size: 8pt;
-        color: #333;
-        margin-bottom: 3px;
-    }
-    .totals-right-table .total-label .tl-ar {
-        display: block;
-        direction: rtl;
-        font-weight: bold;
-        font-size: 8.5pt;
-        color: #444;
-    }
+    .totals-right-table .total-label { background: #f4f4f4; width: 64%; font-weight: bold; font-size: 8.5pt; color: #333; }
     .totals-right-table .total-value {
         text-align: right;
         background: #fff;
@@ -373,23 +305,9 @@
         color: #fff;
         text-align: center;
         border: 1px solid var(--dark-blue);
-        padding: 10px 8px !important;
-    }
-    .totals-right-table .grand-label .gl-en {
-        display: block;
-        direction: ltr;
-        unicode-bidi: isolate;
+        padding: 8px 6px !important;
         font-weight: bold;
         font-size: 9.5pt;
-        letter-spacing: 0.03em;
-        margin-bottom: 3px;
-    }
-    .totals-right-table .grand-label .gl-ar {
-        display: block;
-        direction: rtl;
-        unicode-bidi: embed;
-        font-weight: bold;
-        font-size: 10pt;
     }
     .totals-right-table .grand-value {
         background: var(--light-blue);
@@ -416,8 +334,7 @@
     .sig-title {
         font-weight: bold;
         font-size: 9.5pt;
-        margin-bottom: 18px;
-        letter-spacing: 0.06em;
+        margin-bottom: 14px;
     }
     .sig-line {
         border-bottom: 1px solid #333;
@@ -433,8 +350,7 @@
         text-align: center;
         font-size: 7.5pt;
         color: #666;
-        line-height: 1.65;
-        word-spacing: 0.12em;
+        line-height: 1.45;
     }
 </style>
 </head>
@@ -447,7 +363,7 @@
                 @if ($logoSrc)
                     <div class="header-logo-wrap">
                         {{-- Explicit width (pt) helps DomPDF; height auto keeps aspect ratio --}}
-                        <img src="{{ $logoSrc }}" alt="Logo" width="182" style="width: 136pt; max-height: 118pt; height: auto;">
+                        <img src="{{ $logoSrc }}" alt="Logo" style="max-width:100%; width:auto; max-height:72pt; height:auto;">
                     </div>
                 @else
                     <div class="header-logo-placeholder">Logo not found. Place PNG at public/{{ $logoPathHint }} (or set COMPANY_LOGO).</div>
@@ -472,8 +388,7 @@
                 </div>
             </td>
             <td class="header-title-cell">
-                <div class="title-en">Quotation</div>
-                <div class="title-ar">اقتباس</div>
+                <div class="doc-title">Quotation</div>
                 <div class="title-divider">─────────────</div>
                 <div class="brand-sub">LAIBA INDUSTRY</div>
             </td>
@@ -482,74 +397,41 @@
 
     <table class="details-table section">
         <tr>
-            <td class="label-cell">
-                <span class="label-en">Quotation No</span>
-                <span class="label-ar">رقم الاقتباس</span>
-            </td>
+            <td class="label-cell"><span class="field-label">Quotation No</span></td>
             <td class="value-cell value-ltr bold dark-blue">{{ $quotation->quotation_number }}</td>
-            <td class="label-cell">
-                <span class="label-en">Quotation Date</span>
-                <span class="label-ar">تاريخ الاقتباس</span>
-            </td>
+            <td class="label-cell"><span class="field-label">Quotation Date</span></td>
             <td class="value-cell value-ltr">{{ $quotation->quotation_date->format('d M Y') }}</td>
         </tr>
         <tr>
-            <td class="label-cell">
-                <span class="label-en">Expiration</span>
-                <span class="label-ar">انتهاء</span>
-            </td>
+            <td class="label-cell"><span class="field-label">Expiration</span></td>
             <td class="value-cell value-ltr">
                 {{ $quotation->expiration_date ? $quotation->expiration_date->format('d M Y') : '—' }}
             </td>
-            <td class="label-cell">
-                <span class="label-en">Salesperson</span>
-                <span class="label-ar">مندوب مبيعات</span>
-            </td>
+            <td class="label-cell"><span class="field-label">Salesperson</span></td>
             <td class="value-cell value-ltr">{{ $quotation->salesperson ?? '—' }}</td>
         </tr>
     </table>
 
     <table class="customer-table customer-table-compact section">
         <tr class="section-header-row">
-            <td colspan="4">
-                <span class="hdr-en">Customer Details</span>
-                <span class="hdr-ar">بيانات العميل</span>
-            </td>
+            <td colspan="4">Customer Details</td>
         </tr>
         <tr>
-            <td class="customer-label">
-                <span class="label-en">Customer Name</span>
-                <span class="label-ar">اسم العميل</span>
-            </td>
+            <td class="customer-label"><span class="field-label">Customer Name</span></td>
             <td class="customer-value bold">{{ $quotation->customer_name }}</td>
-            <td class="customer-label">
-                <span class="label-en">VAT Number</span>
-                <span class="label-ar">الرقم الضريبي</span>
-            </td>
+            <td class="customer-label"><span class="field-label">VAT Number</span></td>
             <td class="customer-value">{{ $quotation->customer_vat_number ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="customer-label">
-                <span class="label-en">CR Number</span>
-                <span class="label-ar">السجل التجاري</span>
-            </td>
+            <td class="customer-label"><span class="field-label">CR Number</span></td>
             <td class="customer-value">{{ $quotation->customer_cr_number ?? '—' }}</td>
-            <td class="customer-label">
-                <span class="label-en">Phone</span>
-                <span class="label-ar">رقم الهاتف</span>
-            </td>
+            <td class="customer-label"><span class="field-label">Phone</span></td>
             <td class="customer-value">{{ $quotation->customer_phone ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="customer-label">
-                <span class="label-en">Email</span>
-                <span class="label-ar">البريد الإلكتروني</span>
-            </td>
+            <td class="customer-label"><span class="field-label">Email</span></td>
             <td class="customer-value">{{ $quotation->customer_email ?? '—' }}</td>
-            <td class="customer-label">
-                <span class="label-en">Address</span>
-                <span class="label-ar">العنوان</span>
-            </td>
+            <td class="customer-label"><span class="field-label">Address</span></td>
             <td class="customer-value">{{ $quotation->customer_address ?? '—' }}</td>
         </tr>
     </table>
@@ -561,12 +443,12 @@
         {{-- First row in tbody with <th>: DomPDF sometimes drops <thead>; inline styles avoid var() issues --}}
         <tbody>
             <tr>
-                <th scope="col" class="items-col-h col-sno" style="{{ $ih }} text-align:center; width:6%;">Sr no</th>
-                <th scope="col" class="items-col-h col-desc" style="{{ $ih }} text-align:left; width:38%;">Description</th>
+                <th scope="col" class="items-col-h col-sno" style="{{ $ih }} text-align:center; width:7%;">Sr no</th>
+                <th scope="col" class="items-col-h col-desc" style="{{ $ih }} text-align:left; width:36%;">Description</th>
                 <th scope="col" class="items-col-h col-qty" style="{{ $ih }} text-align:center; width:10%;">QTV</th>
                 <th scope="col" class="items-col-h col-price" style="{{ $ih }} text-align:right; width:14%;">Price</th>
-                <th scope="col" class="items-col-h col-tax" style="{{ $ih }} text-align:right; width:14%;">Vat</th>
-                <th scope="col" class="items-col-h col-amount" style="{{ $ih }} text-align:right; width:18%;">Total</th>
+                <th scope="col" class="items-col-h col-tax" style="{{ $ih }} text-align:right; width:13%;">Vat</th>
+                <th scope="col" class="items-col-h col-amount" style="{{ $ih }} text-align:right; width:20%;">Total</th>
             </tr>
             @foreach ($quotation->items as $index => $item)
             <tr class="{{ $index % 2 === 0 ? 'row-white' : 'row-alt' }}">
@@ -597,33 +479,21 @@
     <table class="totals-wrap section">
         <tr>
             <td class="totals-words-cell">
-                <div class="totals-words-label">
-                    <span class="tw-en">Amount in Words</span>
-                    <span class="tw-ar">المبلغ كتابةً</span>
-                </div>
+                <div class="totals-words-label">Amount in Words</div>
                 <div class="totals-words-value">{{ $quotation->totalInWords() }}</div>
             </td>
             <td class="totals-right-cell">
                 <table class="totals-right-table">
                     <tr>
-                        <td class="total-label">
-                            <span class="tl-en">Untaxed Amount</span>
-                            <span class="tl-ar">المبلغ غير الخاضع للضريبة</span>
-                        </td>
+                        <td class="total-label">Untaxed Amount</td>
                         <td class="total-value">SAR {{ number_format((float) $quotation->untaxed_amount, 2) }}</td>
                     </tr>
                     <tr>
-                        <td class="total-label">
-                            <span class="tl-en">VAT</span>
-                            <span class="tl-ar">ضريبة القيمة المضافة</span>
-                        </td>
+                        <td class="total-label">VAT</td>
                         <td class="total-value">SAR {{ number_format((float) $quotation->vat_amount, 2) }}</td>
                     </tr>
                     <tr>
-                        <td class="grand-label">
-                            <span class="gl-en">Total</span>
-                            <span class="gl-ar">المجموع</span>
-                        </td>
+                        <td class="grand-label">Total</td>
                         <td class="grand-value">SAR {{ number_format((float) $quotation->total_amount, 2) }}</td>
                     </tr>
                 </table>

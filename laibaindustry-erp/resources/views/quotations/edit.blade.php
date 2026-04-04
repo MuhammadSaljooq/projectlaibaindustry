@@ -8,20 +8,26 @@
 @include('products.partials.sidebar', ['activeNav' => 'quotations'])
 
 <main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
-<header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
-<div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<header class="h-16 shrink-0 z-10 flex items-center justify-between gap-3 px-4 sm:px-6 border-b border-[#ABB3B7] bg-white min-w-0">
+<div class="flex items-center gap-2 sm:gap-4 min-w-0">
+<button class="md:hidden shrink-0 p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<a href="{{ route('quotations.show', $quotation) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
-<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<a href="{{ route('quotations.show', $quotation) }}" class="st-btn-secondary h-10 px-3 sm:px-4 inline-flex items-center justify-center gap-2 shrink-0 whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px] shrink-0 leading-none">arrow_back</span>
 <span class="hidden sm:inline">Back</span>
 </a>
 </div>
-<div class="flex items-center gap-2 flex-wrap justify-end">
-<a href="{{ route('quotations.preview', $quotation) }}?v={{ $quotation->updated_at?->timestamp ?? $quotation->id }}" target="_blank" rel="noopener" class="st-btn-secondary h-9 px-3 text-[10px]">Preview</a>
-<a href="{{ route('quotations.pdf', $quotation) }}?v={{ $quotation->updated_at?->timestamp ?? $quotation->id }}" class="st-btn-secondary h-9 px-3 text-[10px]">PDF</a>
-</div>
+<nav class="flex items-center gap-2 shrink-0" aria-label="Quotation actions">
+<a href="{{ route('quotations.preview', $quotation) }}?v={{ $quotation->updated_at?->timestamp ?? $quotation->id }}" target="_blank" rel="noopener" class="st-btn-secondary h-10 px-3 sm:px-4 inline-flex items-center justify-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px] shrink-0 leading-none" aria-hidden="true">visibility</span>
+<span>Preview</span>
+</a>
+<a href="{{ route('quotations.pdf', $quotation) }}?v={{ $quotation->updated_at?->timestamp ?? $quotation->id }}" class="st-btn-secondary h-10 px-3 sm:px-4 inline-flex items-center justify-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px] shrink-0 leading-none" aria-hidden="true">picture_as_pdf</span>
+<span>PDF</span>
+</a>
+</nav>
 </header>
 
 <div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">
