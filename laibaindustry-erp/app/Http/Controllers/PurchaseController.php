@@ -10,6 +10,7 @@ use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\TaxSetting;
 use App\Models\VatEntry;
+use App\Services\PurchaseDeletionService;
 use App\Services\PurchaseReceivableOffsetService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -381,27 +382,7 @@ class PurchaseController extends Controller
         try {
             DB::beginTransaction();
 
-            // Delete the linked payable — primary lookup via purchase_id (reliable),
-            // fallback to invoice_number for legacy rows created before the FK was added.
-            $deleted = Payable::where('purchase_id', $purchase->id)->delete();
-
-            if (! $deleted && $purchase->invoice_number) {
-                Payable::where('invoice_number', $purchase->invoice_number)->delete();
-            }
-
-            // Ledger: remove the Credit entry for this purchase
-            CustomerLedgerEntry::where('source_type', 'purchase')
-                ->where('source_id', $purchase->id)
-                ->delete();
-
-            app(PurchaseReceivableOffsetService::class)->clearPurchaseOffsets($purchase);
-
-            VatEntry::where('source_type', Purchase::class)
-                ->where('source_id', $purchase->id)
-                ->delete();
-
-            $purchase->items()->delete();
-            $purchase->delete();
+            app(PurchaseDeletionService::class)->delete($purchase);
 
             DB::commit();
 

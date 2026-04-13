@@ -9,7 +9,13 @@ use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\CustomerReceivablePurchaseOffset;
+use App\Models\Payable;
+use App\Models\Purchase;
 use App\Models\Receivable;
+use App\Models\Sale;
+use App\Services\PurchaseDeletionService;
+use App\Services\PurchaseReceivableOffsetService;
+use App\Services\SaleDeletionService;
 use App\Support\CustomerStatementPeriod;
 use App\Support\StatementCompany;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -57,13 +63,25 @@ class CustomerController extends Controller
         return $data;
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $customers = Customer::query()
-            ->orderBy('customer_name')
-            ->get();
+        $search = trim((string) $request->query('search', ''));
+        $query = Customer::query()->orderBy('customer_name');
+        if ($search !== '') {
+            $term = '%'.addcslashes($search, '%_\\').'%';
+            $query->where(function (Builder $q) use ($term) {
+                $q->where('customer_name', 'like', $term)
+                    ->orWhere('customer_code', 'like', $term);
+            });
+        }
+        $customers = $query->get();
+        $totalCustomers = Customer::query()->count();
 
-        return view('customers.index', ['customers' => $customers]);
+        return view('customers.index', [
+            'customers' => $customers,
+            'search' => $search,
+            'totalCustomers' => $totalCustomers,
+        ]);
     }
 
     public function create(): View
@@ -376,6 +394,8 @@ class CustomerController extends Controller
                         'credit' => $credit,
                         'running_balance' => $runningBalance,
                         'source_type' => $entry->source_type,
+                        'ledger_entry_id' => $entry instanceof CustomerLedgerEntry ? $entry->id : null,
+                        'is_merged_statement_row' => ! ($entry instanceof CustomerLedgerEntry),
                     ];
                 }
             } else {
@@ -419,6 +439,8 @@ class CustomerController extends Controller
                         'credit' => $credit,
                         'running_balance' => $runningBalance,
                         'source_type' => $entry->source_type,
+                        'ledger_entry_id' => $entry instanceof CustomerLedgerEntry ? $entry->id : null,
+                        'is_merged_statement_row' => ! ($entry instanceof CustomerLedgerEntry),
                     ];
                 }
             }
@@ -505,6 +527,94 @@ class CustomerController extends Controller
         $data = $this->getStatementData($customer, $period);
 
         return view('customers.statement', $data);
+    }
+
+    public function destroyLedgerEntry(Customer $customer, CustomerLedgerEntry $customerLedgerEntry): RedirectResponse
+    {
+        if ((int) $customerLedgerEntry->customer_id !== (int) $customer->id) {
+            abort(404);
+        }
+
+        if (Schema::hasTable('customer_ledger_receivable_group_payments')) {
+            $customerLedgerEntry->loadMissing('receivableGroupPaymentLink');
+            if ($customerLedgerEntry->receivableGroupPaymentLink !== null) {
+                return redirect()->back()
+                    ->with('error', 'This line is part of a combined receivable payment. Remove or edit it from Receivables.');
+            }
+        }
+
+        if (Schema::hasColumn('customer_ledger_entries', 'receivable_group_payment_id')
+            && $customerLedgerEntry->receivable_group_payment_id) {
+            return redirect()->back()
+                ->with('error', 'This line is part of a combined receivable payment. Remove or edit it from Receivables.');
+        }
+
+        $sourceType = (string) ($customerLedgerEntry->source_type ?? '');
+
+        try {
+            DB::beginTransaction();
+
+            $success = 'Ledger entry removed.';
+
+            if ($sourceType === 'sale') {
+                $saleId = (int) ($customerLedgerEntry->source_id ?? 0);
+                if ($saleId > 0) {
+                    $sale = Sale::query()->find($saleId);
+                    if ($sale) {
+                        app(SaleDeletionService::class)->delete($sale);
+                        $success = 'Sale and related records (receivable, ledger, VAT) were removed.';
+                    } else {
+                        $customerLedgerEntry->delete();
+                    }
+                } else {
+                    $customerLedgerEntry->delete();
+                }
+            } elseif ($sourceType === 'purchase') {
+                $purchaseId = (int) ($customerLedgerEntry->source_id ?? 0);
+                if ($purchaseId > 0) {
+                    $purchase = Purchase::query()->find($purchaseId);
+                    if ($purchase) {
+                        app(PurchaseDeletionService::class)->delete($purchase);
+                        $success = 'Purchase and related records (payable, ledger, VAT, purchase offsets) were removed.';
+                    } else {
+                        $customerLedgerEntry->delete();
+                    }
+                } else {
+                    $customerLedgerEntry->delete();
+                }
+            } elseif ($sourceType === 'payment_made') {
+                $payableId = (int) ($customerLedgerEntry->source_id ?? 0);
+                $debit = (float) $customerLedgerEntry->debit;
+                if ($payableId > 0 && $debit > 0.00001) {
+                    $payable = Payable::query()->find($payableId);
+                    if ($payable) {
+                        $newReceived = max(0, round((float) $payable->received - $debit, 2));
+                        $payable->update(['received' => $newReceived]);
+                    }
+                }
+                $customerLedgerEntry->delete();
+                $success = 'Payment removed from the ledger; payable received amount was adjusted.';
+            } elseif ($sourceType === 'payment_received') {
+                $receivableId = $customerLedgerEntry->source_id ? (int) $customerLedgerEntry->source_id : null;
+                $customerLedgerEntry->delete();
+                if ($receivableId && Receivable::query()->whereKey($receivableId)->exists()) {
+                    app(PurchaseReceivableOffsetService::class)->syncReceivable(
+                        Receivable::query()->findOrFail($receivableId)
+                    );
+                }
+                $success = 'Payment removed from the ledger; receivable totals were updated.';
+            } else {
+                $customerLedgerEntry->delete();
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', $success);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Could not remove ledger entry: '.$e->getMessage());
+        }
     }
 
     public function statementPdf(Request $request, Customer $customer): Response|RedirectResponse

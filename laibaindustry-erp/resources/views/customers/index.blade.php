@@ -15,10 +15,10 @@
 </button>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Customers</h2>
 </div>
-<div class="flex items-center gap-2">
+<div class="flex items-center gap-2 flex-wrap justify-end">
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('customers.create') }}" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
-<span class="material-symbols-outlined text-[18px]">add</span>
+<a href="{{ route('customers.create') }}" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[20px]">add</span>
 Add customer
 </a>
 @endif
@@ -57,17 +57,39 @@ Add customer
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Total customers</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $customers->count() }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $totalCustomers ?? $customers->count() }}</p>
 </div>
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
-<p class="st-label mb-2">This page</p>
+<p class="st-label mb-2">{{ !empty($search) ? 'Matching search' : 'Listed' }}</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $customers->count() }}</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
-<p class="st-label st-label--primary mb-2">Active records</p>
-<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $customers->count() }}</p>
+<p class="st-label st-label--primary mb-2">Search</p>
+<p class="text-sm font-mono text-[#5E5E5E] break-all">{{ !empty($search) ? $search : '—' }}</p>
 </div>
 </div>
+
+<form method="GET" action="{{ route('customers.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<div class="flex-1 min-w-[200px]">
+<label class="st-label block mb-2" for="c-search">Search</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="c-search" type="text" name="search" value="{{ $search ?? request('search') }}" placeholder="Customer name or code…" autocomplete="off">
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+Filter
+</button>
+@if(($search ?? '') !== '')
+<a href="{{ route('customers.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">close</span>
+Clear
+</a>
+@endif
+</div>
+</form>
 
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
@@ -139,9 +161,13 @@ Add customer
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
 @if($customers->count() > 0)
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->count() }}</span> customers
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->count() }}</span> @if(!empty($search))matching "{{ $search }}" @endif customer{{ $customers->count() === 1 ? '' : 's' }}
+@else
+@if(!empty($search))
+No customers match "{{ $search }}". <a href="{{ route('customers.index') }}" class="font-bold text-[#5E5E5E] underline underline-offset-2">Clear search</a>
 @else
 No results
+@endif
 @endif
 </p>
 </div>

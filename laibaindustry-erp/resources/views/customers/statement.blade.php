@@ -277,6 +277,7 @@ Email statement
 <th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Debit</th>
 <th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Credit</th>
 <th class="st-th px-4 py-3 text-right w-36 whitespace-nowrap">Balance</th>
+<th class="st-th px-4 py-3 text-right w-16 whitespace-nowrap no-print">Action</th>
 </tr>
 </thead>
 <tbody>
@@ -297,6 +298,7 @@ Email statement
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#2B3437]">
 {{ $currencySymbol ?? '$' }} {{ number_format($openingBalance, 2) }}
 </td>
+<td class="st-td px-4 py-3 no-print"></td>
 </tr>
 
 @forelse($ledgerRows as $row)
@@ -309,6 +311,13 @@ $badge = match($row['source_type']) {
     'purchase'         => 'Purchase',
     'payment_made'     => 'Paid Out',
     default            => 'Entry',
+};
+$deleteConfirmMsg = match($row['source_type'] ?? '') {
+    'sale' => 'This removes the entire sale (receivable, VAT, stock movements, and related ledger lines). This cannot be undone.',
+    'purchase' => 'This removes the entire purchase (payable, VAT, offsets, and related ledger lines). This cannot be undone.',
+    'payment_made' => 'This removes this payment from the supplier account and adjusts the payable. Continue?',
+    'payment_received' => 'This removes this payment and updates the receivable balance. Continue?',
+    default => 'Delete this ledger line? This cannot be undone.',
 };
 @endphp
 <tr class="st-tr">
@@ -347,10 +356,23 @@ $badge = match($row['source_type']) {
 <span class="text-[10px] font-bold ml-0.5 text-[#586064]">CR</span>
 @endif
 </td>
+<td class="st-td px-4 py-3 text-right align-middle no-print" data-stop-row-nav>
+@if(auth()->user()->role !== 'viewer' && !empty($row['ledger_entry_id']))
+<form method="POST" action="{{ route('customers.ledger-entries.destroy', [$customer, $row['ledger_entry_id']]) }}" class="inline-flex" onsubmit="return confirm({!! json_encode($deleteConfirmMsg) !!});">
+@csrf
+@method('DELETE')
+<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6] rounded-none" title="Delete ledger entry">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</form>
+@else
+<span class="text-[#ABB3B7] text-xs">—</span>
+@endif
+</td>
 </tr>
 @empty
 <tr>
-<td colspan="6" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">{{ $statementFiltered ? 'No transactions in this period' : 'No transactions yet' }}</p>
 <p class="text-xs">{{ $statementFiltered ? 'Try a different date range or clear the filter to see full history.' : 'Activity appears when sales, purchases, or payments are posted.' }}</p>
 </td>
@@ -362,6 +384,7 @@ $badge = match($row['source_type']) {
 <tfoot>
 <tr class="bg-[#EAEFF1] border-t-2 border-[#ABB3B7]">
 <td colspan="3" class="px-4 py-3 st-label">Totals</td>
+<td class="px-4 py-3 no-print"></td>
 <td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437]">
 {{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}
 </td>

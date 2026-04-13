@@ -11,7 +11,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\TaxSetting;
 use App\Models\VatEntry;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\SaleDeletionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -327,7 +327,7 @@ class SaleController extends Controller
             }
 
             if ($oldInvoiceRef) {
-                $receivable = $this->receivablesLinkedToSale($oldInvoiceRef, $oldCustomerCode)->first();
+                $receivable = app(SaleDeletionService::class)->receivablesLinkedToSale($oldInvoiceRef, $oldCustomerCode)->first();
                 if ($receivable) {
                     $received = (float) $receivable->received;
                     $receivable->update([
@@ -382,29 +382,7 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
 
-            $sale->load('items.product');
-
-            foreach ($sale->items as $item) {
-                if ($item->product) {
-                    $item->product->increment('stock_quantity', $item->quantity);
-                }
-            }
-
-            if ($sale->invoice_number) {
-                $this->receivablesLinkedToSale($sale->invoice_number, $sale->customer_code)->delete();
-            }
-
-            // Ledger: remove the Debit entry for this sale
-            CustomerLedgerEntry::where('source_type', 'sale')
-                ->where('source_id', $sale->id)
-                ->delete();
-
-            VatEntry::where('source_type', Sale::class)
-                ->where('source_id', $sale->id)
-                ->delete();
-
-            $sale->items()->delete();
-            $sale->delete();
+            app(SaleDeletionService::class)->delete($sale);
 
             DB::commit();
 
@@ -414,32 +392,5 @@ class SaleController extends Controller
 
             return redirect()->route('sales.index')->with('error', 'Failed to delete sale: '.$e->getMessage());
         }
-    }
-
-    /**
-     * Receivable rows created from a sale are keyed by invoice (and customer code when set).
-     * Never require amount to match: after a prior edit, amount may have been raised to max(sale total, received),
-     * so an equality check leaves a stale row and breaks receivable totals / remaining.
-     *
-     * @return Builder<Receivable>
-     */
-    private function receivablesLinkedToSale(?string $invoiceNumber, ?string $customerCode): Builder
-    {
-        $query = Receivable::query();
-        if (! $invoiceNumber) {
-            return $query->whereRaw('0 = 1');
-        }
-
-        $query->where('invoice_number', $invoiceNumber);
-        $trimCode = trim((string) ($customerCode ?? ''));
-        if ($trimCode !== '') {
-            $query->where('customer_code', $trimCode);
-        } else {
-            $query->where(function (Builder $q) {
-                $q->whereNull('customer_code')->orWhere('customer_code', '');
-            });
-        }
-
-        return $query->orderBy('id');
     }
 }
