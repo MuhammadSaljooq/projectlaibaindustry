@@ -10,6 +10,7 @@ use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\TaxSetting;
 use App\Models\VatEntry;
+use App\Services\PurchaseReceivableOffsetService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -189,6 +190,12 @@ class PurchaseController extends Controller
                 ]);
             }
 
+            app(PurchaseReceivableOffsetService::class)->syncPurchaseOffsets(
+                $purchase,
+                $request->customer_code,
+                \Carbon\Carbon::parse($request->date, config('app.timezone'))->startOfDay()
+            );
+
             VatEntry::create([
                 'type' => 'purchase',
                 'source_type' => Purchase::class,
@@ -217,7 +224,7 @@ class PurchaseController extends Controller
 
     public function show(Purchase $purchase): View
     {
-        $purchase->load(['items', 'currency']);
+        $purchase->load(['items', 'currency', 'receivableOffsets.receivable']);
 
         return view('purchases.show', compact('purchase'));
     }
@@ -261,8 +268,6 @@ class PurchaseController extends Controller
             }
 
             $purchaseTotal = round($purchaseSubtotal + $purchaseVat, 2);
-            $oldTotal = (float) $purchase->total_amount;
-
             $purchase->update([
                 'date' => $request->date,
                 'customer_code' => $request->customer_code ?: null,
@@ -302,13 +307,43 @@ class PurchaseController extends Controller
                 'amount' => max($purchaseTotal, (float) (Payable::where('purchase_id', $purchase->id)->value('received') ?? 0)),
             ]);
 
+            $customerCode = trim($request->customer_code ?? '');
+            $customerName = trim($request->customer_name ?? '');
+            $customer = null;
+            if ($customerCode !== '') {
+                $customer = Customer::firstOrCreate(
+                    ['customer_code' => $customerCode],
+                    ['customer_name' => $customerName ?: $customerCode]
+                );
+            }
+
             CustomerLedgerEntry::where('source_type', 'purchase')
                 ->where('source_id', $purchase->id)
                 ->update([
+                    'customer_id' => $customer?->id,
                     'date' => $request->date,
                     'reference' => $request->invoice_number,
                     'credit' => $purchaseTotal,
                 ]);
+
+            if ($customer && ! CustomerLedgerEntry::where('source_type', 'purchase')->where('source_id', $purchase->id)->exists()) {
+                CustomerLedgerEntry::create([
+                    'customer_id' => $customer->id,
+                    'date' => $request->date,
+                    'description' => 'Purchase',
+                    'reference' => $request->invoice_number,
+                    'debit' => 0,
+                    'credit' => $purchaseTotal,
+                    'source_type' => 'purchase',
+                    'source_id' => $purchase->id,
+                ]);
+            }
+
+            if (! $customer) {
+                CustomerLedgerEntry::where('source_type', 'purchase')
+                    ->where('source_id', $purchase->id)
+                    ->delete();
+            }
 
             VatEntry::where('source_type', Purchase::class)
                 ->where('source_id', $purchase->id)
@@ -322,6 +357,12 @@ class PurchaseController extends Controller
                     'vat_amount' => round($purchaseVat, 2),
                     'total_amount' => $purchaseTotal,
                 ]);
+
+            app(PurchaseReceivableOffsetService::class)->syncPurchaseOffsets(
+                $purchase,
+                $request->customer_code,
+                \Carbon\Carbon::parse($request->date, config('app.timezone'))->startOfDay()
+            );
 
             DB::commit();
 
@@ -352,6 +393,8 @@ class PurchaseController extends Controller
             CustomerLedgerEntry::where('source_type', 'purchase')
                 ->where('source_id', $purchase->id)
                 ->delete();
+
+            app(PurchaseReceivableOffsetService::class)->clearPurchaseOffsets($purchase);
 
             VatEntry::where('source_type', Purchase::class)
                 ->where('source_id', $purchase->id)

@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\CustomerLedgerReceivableGroupPayment;
+use App\Models\CustomerReceivablePurchaseOffset;
 use App\Models\Receivable;
 use App\Models\ReceivableGroupPayment;
 use App\Models\ReceivableGroupPaymentLine;
+use App\Services\PurchaseReceivableOffsetService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +49,9 @@ class ReceivableController extends Controller
                 COALESCE(SUM(amount) - SUM(received), 0)   AS total_remaining
             ')
             ->first();
+        $totals->total_purchase_offsets = Schema::hasTable('customer_receivable_purchase_offsets')
+            ? (float) (CustomerReceivablePurchaseOffset::query()->sum('amount') ?? 0)
+            : 0.0;
 
         return view('receivables.index', compact('receivableGroups', 'totals'));
     }
@@ -65,6 +70,35 @@ class ReceivableController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $offsetTotals = CustomerReceivablePurchaseOffset::query()
+            ->whereIn('receivable_id', $receivables->pluck('id'))
+            ->selectRaw('receivable_id, SUM(amount) as total_amount')
+            ->groupBy('receivable_id')
+            ->pluck('total_amount', 'receivable_id');
+        $paymentTotals = CustomerLedgerEntry::query()
+            ->where('source_type', 'payment_received')
+            ->whereIn('source_id', $receivables->pluck('id'))
+            ->selectRaw('source_id, SUM(credit) as total_amount')
+            ->groupBy('source_id')
+            ->pluck('total_amount', 'source_id');
+
+        foreach ($receivables as $receivable) {
+            $offset = round((float) ($offsetTotals[$receivable->id] ?? 0), 2);
+            $payment = round((float) ($paymentTotals[$receivable->id] ?? 0), 2);
+            $received = round((float) $receivable->received, 2);
+            $remaining = round((float) $receivable->amount - $received, 2);
+            $receivable->setAttribute(
+                'purchase_offset_total',
+                $offset
+            );
+            $receivable->setAttribute('direct_payment_total', $payment);
+            $receivable->setAttribute('remaining_balance', $remaining);
+        }
+        $totalDirectPayments = round((float) $receivables->sum(fn (Receivable $r) => (float) ($r->direct_payment_total ?? 0)), 2);
+        $totalPurchaseOffsets = round((float) $receivables->sum(fn (Receivable $r) => (float) ($r->purchase_offset_total ?? 0)), 2);
+        $openReceivables = $receivables->filter(fn (Receivable $r) => (float) $r->remaining_balance > 0.00001)->values();
+        $settledReceivables = $receivables->filter(fn (Receivable $r) => (float) $r->remaining_balance <= 0.00001)->values();
+
         if ($receivables->isEmpty()) {
             throw new NotFoundHttpException;
         }
@@ -76,6 +110,8 @@ class ReceivableController extends Controller
         $groupTotals = [
             'total_bill' => round((float) $receivables->sum('amount'), 2),
             'total_received' => round((float) $receivables->sum('received'), 2),
+            'total_direct_payments' => $totalDirectPayments,
+            'total_purchase_offsets' => $totalPurchaseOffsets,
             'total_remaining' => round((float) $receivables->sum('amount') - (float) $receivables->sum('received'), 2),
         ];
 
@@ -92,6 +128,8 @@ class ReceivableController extends Controller
             'groupKeyEncoded' => $groupKeyEncoded,
             'displayName' => $displayName,
             'receivables' => $receivables,
+            'openReceivables' => $openReceivables,
+            'settledReceivables' => $settledReceivables,
             'groupTotals' => $groupTotals,
             'groupPayments' => $groupPayments,
         ]);
@@ -458,15 +496,7 @@ class ReceivableController extends Controller
     private function syncReceivedFromLedger(Receivable $receivable): void
     {
         $receivable->refresh();
-        $sum = (float) $receivable->paymentLedgerEntries()->sum('credit');
-        $maxDate = $receivable->paymentLedgerEntries()->max('date');
-
-        $receivable->update([
-            'received' => round($sum, 2),
-            'payment_received_at' => $sum > 0 && $maxDate
-                ? Carbon::parse($maxDate, config('app.timezone'))
-                : null,
-        ]);
+        app(PurchaseReceivableOffsetService::class)->syncReceivable($receivable);
     }
 
     private function receivablesFifoForGroup(string $decoded): Collection

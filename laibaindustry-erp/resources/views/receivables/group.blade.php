@@ -32,7 +32,7 @@
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-<p class="text-[11px] text-[#586064] max-w-2xl">Each invoice has its own payment history. Open <span class="font-bold text-[#5E5E5E]">Manage</span> to record or adjust payments for that invoice. Use <span class="font-bold text-[#5E5E5E]">combined payments</span> below to pay the total balance across invoices (oldest invoices first).</p>
+<p class="text-[11px] text-[#586064] max-w-2xl">Invoices are split into open and settled sections for easier review. Each row separates <span class="font-bold text-[#5E5E5E]">direct payments</span> and <span class="font-bold text-[#5E5E5E]">purchase offsets</span> so balances stay clear.</p>
 
 @if (session('success'))
 <div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
@@ -47,10 +47,18 @@
 
 <div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
 <p class="st-label mb-4">Totals for this customer</p>
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
 <div>
 <p class="st-label mb-1">Total bill (all invoices)</p>
 <p class="text-lg font-bold font-mono tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($groupTotals['total_bill'], 2) }}</p>
+</div>
+<div>
+<p class="st-label mb-1">Direct payment</p>
+<p class="text-lg font-bold font-mono tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($groupTotals['total_direct_payments'] ?? 0, 2) }}</p>
+</div>
+<div>
+<p class="st-label mb-1">Purchase offset</p>
+<p class="text-lg font-bold font-mono tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format($groupTotals['total_purchase_offsets'] ?? 0, 2) }}</p>
 </div>
 <div>
 <p class="st-label mb-1">Total received</p>
@@ -118,23 +126,41 @@
 @endif
 
 <div class="st-paper border border-[#ABB3B7] bg-white overflow-x-auto">
-<table class="w-full text-left border-collapse min-w-[560px]">
+<div class="px-4 pt-4 pb-2 border-b border-[#ABB3B7] bg-[#F8F9FA] sticky left-0">
+<p class="st-label">Open invoices</p>
+</div>
+<div class="min-w-[760px]">
+<table class="w-full text-left border-collapse">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Payment date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Direct payment</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Purchase offset</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Received total</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Remaining</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Status</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Action</th>
 </tr>
 </thead>
 <tbody>
-@foreach ($receivables as $r)
+@forelse ($openReceivables as $r)
 <tr class="st-tr">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($r->date) }}</td>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $r->payment_received_at ? format_display_date($r->payment_received_at) : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $r->invoice_number ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($r->amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) ($r->direct_payment_total ?? 0), 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) ($r->purchase_offset_total ?? 0), 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $r->received, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#5E5E5E]">
+{{ $currencySymbol ?? '$' }} {{ number_format((float) $r->remaining_balance, 2) }}
+</td>
+<td class="st-td px-4 py-3 text-right">
+<span class="text-[10px] font-bold uppercase tracking-wider text-[#5E5E5E]">Open</span>
+</td>
 <td class="st-td px-4 py-3 text-right">
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('receivables.edit', $r) }}" class="text-[11px] font-bold uppercase tracking-wider text-[#5E5E5E] border border-[#5E5E5E] px-2 py-1 inline-flex items-center gap-1 hover:bg-[#F1F4F6]">
@@ -146,10 +172,53 @@ Manage
 @endif
 </td>
 </tr>
+@empty
+<tr>
+<td colspan="10" class="px-6 py-10 text-center text-sm text-[#586064]">No open invoices for this customer.</td>
+</tr>
+@endforelse
+</tbody>
+</table>
+</div>
+</div>
+
+@if($settledReceivables->isNotEmpty())
+<div class="st-paper border border-[#ABB3B7] bg-white overflow-x-auto">
+<div class="px-4 pt-4 pb-2 border-b border-[#ABB3B7] bg-[#F8F9FA] sticky left-0">
+<p class="st-label">Settled invoices</p>
+</div>
+<div class="min-w-[760px]">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="st-thead">
+<th class="st-th px-4 py-3 whitespace-nowrap">Invoice date</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Direct payment</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Purchase offset</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Received total</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Status</th>
+</tr>
+</thead>
+<tbody>
+@foreach ($settledReceivables as $r)
+<tr class="st-tr">
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($r->date) }}</td>
+<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $r->invoice_number ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $r->amount, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) ($r->direct_payment_total ?? 0), 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) ($r->purchase_offset_total ?? 0), 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $r->received, 2) }}</td>
+<td class="st-td px-4 py-3 text-right">
+<span class="text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-1 inline-block bg-[#F8F9FA]">Paid</span>
+</td>
+</tr>
 @endforeach
 </tbody>
 </table>
 </div>
+</div>
+@endif
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
 </div>

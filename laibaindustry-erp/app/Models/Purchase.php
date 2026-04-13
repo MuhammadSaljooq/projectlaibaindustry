@@ -32,4 +32,10 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseItem::class);
     }
+
+    /** @return HasMany<CustomerReceivablePurchaseOffset, $this> */
+    public function receivableOffsets(): HasMany
+    {
+        return $this->hasMany(CustomerReceivablePurchaseOffset::class);
+    }
 }

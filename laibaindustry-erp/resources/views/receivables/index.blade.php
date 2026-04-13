@@ -46,18 +46,22 @@
 </div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
-<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<div class="grid grid-cols-1 md:grid-cols-2 border border-[#ABB3B7] bg-white">
+<div class="p-5 md:p-6 border-b border-r-0 md:border-r border-[#ABB3B7] min-h-[140px] flex flex-col justify-center">
 <p class="st-label mb-2">Total Invoiced</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_amount ?? 0, 2) }}</p>
+<p class="text-[34px] md:text-[42px] leading-none font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_amount ?? 0, 2) }}</p>
 </div>
-<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<div class="p-5 md:p-6 border-b border-[#ABB3B7] min-h-[140px] flex flex-col justify-center">
 <p class="st-label mb-2">Total Received</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_received ?? 0, 2) }}</p>
+<p class="text-[34px] md:text-[42px] leading-none font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_received ?? 0, 2) }}</p>
 </div>
-<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
+<div class="p-5 md:p-6 border-r-0 md:border-r border-[#ABB3B7] min-h-[140px] flex flex-col justify-center">
+<p class="st-label mb-2">Purchase Offset</p>
+<p class="text-[34px] md:text-[42px] leading-none font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_purchase_offsets ?? 0, 2) }}</p>
+</div>
+<div class="p-5 md:p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px min-h-[140px] flex flex-col justify-center">
 <p class="st-label mb-2 text-[#5E5E5E]">Outstanding</p>
-<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_remaining ?? 0, 2) }}</p>
+<p class="text-[34px] md:text-[42px] leading-none font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($totals->total_remaining ?? 0, 2) }}</p>
 </div>
 </div>
 

@@ -32,6 +32,12 @@ class Receivable extends Model
             ->orderBy('id');
     }
 
+    /** @return HasMany<CustomerReceivablePurchaseOffset, $this> */
+    public function purchaseOffsets(): HasMany
+    {
+        return $this->hasMany(CustomerReceivablePurchaseOffset::class);
+    }
+
     /**
      * Canonical AR group key (must match {@see static::groupKeySqlExpression()}).
      */

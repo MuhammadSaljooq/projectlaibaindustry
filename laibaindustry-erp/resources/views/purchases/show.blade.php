@@ -129,6 +129,36 @@ Ledger
 <span class="font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($purchase->total_amount, 2) }}</span>
 </div>
 </div>
+
+@php
+    $offsetTotal = (float) $purchase->receivableOffsets->sum('amount');
+@endphp
+@if ($purchase->receivableOffsets->isNotEmpty())
+<div class="mt-6 pt-6 border-t border-[#ABB3B7]">
+<p class="st-label mb-3">Receivable offsets (auto-applied)</p>
+<div class="overflow-x-auto border border-[#ABB3B7]">
+<table class="w-full text-left border-collapse min-w-[560px]">
+<thead>
+<tr class="st-thead">
+<th class="st-th px-4 py-3">Receivable Invoice</th>
+<th class="st-th px-4 py-3">Offset Date</th>
+<th class="st-th px-4 py-3 text-right">Offset Amount</th>
+</tr>
+</thead>
+<tbody>
+@foreach ($purchase->receivableOffsets as $offset)
+<tr class="st-tr">
+<td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $offset->receivable?->invoice_number ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $offset->offset_date ? format_display_date($offset->offset_date) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $offset->amount, 2) }}</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+</div>
+<p class="text-xs text-[#586064] mt-3">Total auto-offset from this purchase: <span class="font-mono font-bold text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($offsetTotal, 2) }}</span></p>
+</div>
+@endif
 </div>
 </div>
 
