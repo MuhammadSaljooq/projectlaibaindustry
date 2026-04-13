@@ -16,11 +16,13 @@ class Receivable extends Model
         'amount',
         'received',
         'payment_received_at',
+        'is_opening_balance',
     ];
 
     protected $casts = [
         'date' => 'datetime',
         'payment_received_at' => 'datetime',
+        'is_opening_balance' => 'boolean',
     ];
 
     /** @return HasMany<CustomerLedgerEntry, $this> */

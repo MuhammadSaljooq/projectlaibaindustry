@@ -182,7 +182,7 @@ class SaleController extends Controller
             if ($customerCode !== '') {
                 Customer::firstOrCreate(
                     ['customer_code' => $customerCode],
-                    ['customer_name' => $customerName ?: $customerCode, 'phone' => null, 'email' => null, 'address' => null]
+                    ['customer_name' => $customerName ?: $customerCode, 'phone' => null, 'email' => null, 'address' => null, 'opening_balance' => 0, 'opening_balance_date' => null]
                 );
             }
 

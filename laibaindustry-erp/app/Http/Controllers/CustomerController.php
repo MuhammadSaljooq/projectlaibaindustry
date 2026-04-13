@@ -8,6 +8,8 @@ use App\Mail\CustomerStatementMail;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use App\Models\CustomerReceivablePurchaseOffset;
+use App\Models\Receivable;
 use App\Support\CustomerStatementPeriod;
 use App\Support\StatementCompany;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -71,7 +73,10 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
-        Customer::create($this->prepareSaveData($request->validated()));
+        $customer = Customer::create($this->prepareSaveData($request->validated()));
+        if ($this->hasLedgerColumns()) {
+            $customer->syncOpeningBalanceReceivable();
+        }
 
         return redirect()
             ->route('customers.index')
@@ -94,6 +99,29 @@ class CustomerController extends Controller
         $oldName = $customer->customer_name;
         $newCode = $request->validated()['customer_code'];
         $newName = $request->validated()['customer_name'];
+        $newOpening = (float) ($request->validated()['opening_balance'] ?? 0);
+
+        if ($this->hasLedgerColumns() && Schema::hasColumn('receivables', 'is_opening_balance')) {
+            $openingReceivable = Receivable::query()
+                ->where('customer_code', $oldCode)
+                ->where('is_opening_balance', true)
+                ->first();
+            if ($openingReceivable && $newOpening > 0) {
+                $paid = (float) CustomerLedgerEntry::query()
+                    ->where('source_type', 'payment_received')
+                    ->where('source_id', $openingReceivable->id)
+                    ->sum('credit');
+                $paid += (float) CustomerReceivablePurchaseOffset::query()
+                    ->where('receivable_id', $openingReceivable->id)
+                    ->sum('amount');
+                if ($newOpening + 0.00001 < $paid) {
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('error', 'Opening balance cannot be less than payments and purchase offsets already applied to it ('.number_format($paid, 2).').');
+                }
+            }
+        }
 
         try {
             DB::beginTransaction();
@@ -116,6 +144,11 @@ class CustomerController extends Controller
                 }
             }
 
+            $customer->refresh();
+            if ($this->hasLedgerColumns()) {
+                $customer->syncOpeningBalanceReceivable();
+            }
+
             DB::commit();
 
             return redirect()
@@ -133,6 +166,22 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer): RedirectResponse
     {
+        if (Schema::hasColumn('receivables', 'is_opening_balance')) {
+            $openingIds = Receivable::query()
+                ->where('customer_code', $customer->customer_code)
+                ->where('is_opening_balance', true)
+                ->pluck('id');
+            foreach ($openingIds as $id) {
+                CustomerLedgerEntry::query()
+                    ->where('source_type', 'payment_received')
+                    ->where('source_id', (int) $id)
+                    ->delete();
+            }
+            if ($openingIds->isNotEmpty()) {
+                Receivable::query()->whereIn('id', $openingIds)->delete();
+            }
+        }
+
         $customer->delete();
 
         return redirect()

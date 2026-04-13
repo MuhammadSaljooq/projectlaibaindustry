@@ -171,7 +171,7 @@ class PurchaseController extends Controller
             if ($customerCode !== '') {
                 Customer::firstOrCreate(
                     ['customer_code' => $customerCode],
-                    ['customer_name' => $customerName ?: $customerCode]
+                    ['customer_name' => $customerName ?: $customerCode, 'opening_balance' => 0, 'opening_balance_date' => null]
                 );
             }
 
@@ -313,7 +313,7 @@ class PurchaseController extends Controller
             if ($customerCode !== '') {
                 $customer = Customer::firstOrCreate(
                     ['customer_code' => $customerCode],
-                    ['customer_name' => $customerName ?: $customerCode]
+                    ['customer_name' => $customerName ?: $customerCode, 'opening_balance' => 0, 'opening_balance_date' => null]
                 );
             }
 
