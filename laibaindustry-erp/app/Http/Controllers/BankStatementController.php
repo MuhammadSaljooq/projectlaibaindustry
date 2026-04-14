@@ -28,13 +28,16 @@ class BankStatementController extends Controller
             ->get();
 
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $inflowTotal = (float) $inflows->sum('amount');
+        $outflowTotal = (float) $outflows->sum('amount');
 
         return view('bank-statement.index', [
             'inflows' => $inflows,
             'outflows' => $outflows,
             'currencySymbol' => $currencySymbol,
-            'inflowTotal' => $inflows->sum('amount'),
-            'outflowTotal' => $outflows->sum('amount'),
+            'inflowTotal' => $inflowTotal,
+            'outflowTotal' => $outflowTotal,
+            'netTotal' => $inflowTotal - $outflowTotal,
         ]);
     }
 

@@ -40,14 +40,18 @@
 </div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Total cash inflow</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($inflowTotal ?? 0, 2) }}</p>
 </div>
-<div class="p-6">
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Total cash outflow</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($outflowTotal ?? 0, 2) }}</p>
+</div>
+<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
+<p class="st-label st-label--primary mb-2">Remaining (Inflow - Outflow)</p>
+<p class="text-2xl font-black font-mono tabular-nums {{ ($netTotal ?? 0) < 0 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($netTotal ?? 0, 2) }}</p>
 </div>
 </div>
 
