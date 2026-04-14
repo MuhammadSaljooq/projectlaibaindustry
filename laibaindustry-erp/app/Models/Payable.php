@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payable extends Model
 {
@@ -20,16 +21,24 @@ class Payable extends Model
     ];
 
     protected $casts = [
-        'date'           => 'datetime',
-        'received_date'  => 'date',
+        'date' => 'datetime',
+        'received_date' => 'date',
         'remaining_date' => 'date',
-        'amount'         => 'decimal:2',
-        'received'       => 'decimal:2',
+        'amount' => 'decimal:2',
+        'received' => 'decimal:2',
     ];
 
     public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
+    }
+
+    public function paymentLedgerEntries(): HasMany
+    {
+        return $this->hasMany(CustomerLedgerEntry::class, 'source_id')
+            ->where('source_type', 'payment_made')
+            ->orderByDesc('date')
+            ->orderByDesc('id');
     }
 
     public function getBalanceAttribute(): float

@@ -78,6 +78,9 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::post('/international-payables/{international_purchase}/pay', [InternationalPayableController::class, 'storePayment'])->name('international-payables.pay.store');
     Route::patch('/international-payables/{international_purchase}/payments/{internationalPayablePayment}', [InternationalPayableController::class, 'updatePayment'])->name('international-payables.payments.update');
     Route::delete('/international-payables/{international_purchase}/payments/{internationalPayablePayment}', [InternationalPayableController::class, 'destroyPayment'])->name('international-payables.payments.destroy');
+    Route::patch('payables/{payable}/payments/{customerLedgerEntry}', [PayableController::class, 'updatePayment'])->name('payables.payments.update');
+    Route::delete('payables/{payable}/payments/{customerLedgerEntry}', [PayableController::class, 'destroyPayment'])->name('payables.payments.destroy');
+    Route::put('payables/{payable}/adjust-received', [PayableController::class, 'adjustReceivedWithoutLedger'])->name('payables.adjust-received');
     Route::delete('customers/{customer}/ledger-entries/{customerLedgerEntry}', [CustomerController::class, 'destroyLedgerEntry'])->name('customers.ledger-entries.destroy');
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
