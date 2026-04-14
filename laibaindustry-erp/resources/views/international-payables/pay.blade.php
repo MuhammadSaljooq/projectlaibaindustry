@@ -107,6 +107,66 @@
 </div>
 </div>
 
+@if(($payments ?? collect())->isNotEmpty() && auth()->user()->role !== 'viewer')
+<div class="mb-10 pb-10 border-b border-[#ABB3B7]">
+<p class="st-label mb-4">Recorded payments</p>
+<p class="text-xs text-[#586064] mb-4">Edit amount/date or remove a payment row. This matches receivable payment handling.</p>
+<div class="overflow-x-auto border border-[#ABB3B7]">
+<table class="w-full text-left border-collapse min-w-[680px]">
+<thead>
+<tr class="bg-[#EAEFF1]">
+<th class="st-th px-3 py-2 text-[10px] uppercase whitespace-nowrap">Date</th>
+<th class="st-th px-3 py-2 text-[10px] uppercase text-right whitespace-nowrap">Amount</th>
+<th class="st-th px-3 py-2 text-[10px] uppercase whitespace-nowrap">Notes</th>
+<th class="st-th px-3 py-2 text-[10px] uppercase text-right w-40 whitespace-nowrap">Actions</th>
+</tr>
+</thead>
+<tbody>
+@foreach(($payments ?? collect()) as $payment)
+<tr class="border-t border-[#ABB3B7] align-top">
+<td class="st-td px-3 py-3" colspan="4">
+<div class="flex flex-col gap-3">
+<form method="POST" action="{{ route('international-payables.payments.update', [$order, $payment]) }}" class="grid grid-cols-1 lg:grid-cols-[180px_140px_minmax(200px,1fr)_auto] gap-3 items-end">
+@csrf
+@method('PATCH')
+<div>
+<label class="st-label block mb-1 text-[10px]" for="payment-date-{{ $payment->id }}">Payment date</label>
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="payment-date-{{ $payment->id }}" name="payment_date_{{ $payment->id }}" type="date" value="{{ old('payment_date_'.$payment->id, $payment->payment_date?->format('Y-m-d')) }}" required>
+@error('payment_date_'.$payment->id)
+<p class="text-xs text-[#9F403D] mt-1">{{ $message }}</p>
+@enderror
+</div>
+<div>
+<label class="st-label block mb-1 text-[10px]" for="payment-amount-{{ $payment->id }}">Amount</label>
+<input class="st-input w-full h-10 px-3 text-sm font-mono text-right tabular-nums" id="payment-amount-{{ $payment->id }}" name="amount_{{ $payment->id }}" type="number" step="0.01" min="0.01" value="{{ old('amount_'.$payment->id, number_format((float) $payment->amount, 2, '.', '')) }}" required>
+@error('amount_'.$payment->id)
+<p class="text-xs text-[#9F403D] mt-1">{{ $message }}</p>
+@enderror
+</div>
+<div>
+<label class="st-label block mb-1 text-[10px]" for="payment-notes-{{ $payment->id }}">Notes</label>
+<input class="st-input w-full h-10 px-3 text-sm" id="payment-notes-{{ $payment->id }}" name="notes_{{ $payment->id }}" type="text" maxlength="500" value="{{ old('notes_'.$payment->id, $payment->notes) }}" placeholder="Optional reference">
+@error('notes_'.$payment->id)
+<p class="text-xs text-[#9F403D] mt-1">{{ $message }}</p>
+@enderror
+</div>
+<button type="submit" class="st-btn-primary h-10 px-4 text-[10px] uppercase">Save</button>
+</form>
+<form method="POST" action="{{ route('international-payables.payments.destroy', [$order, $payment]) }}" class="inline" data-confirm-delete="{{ e('Remove this international payment entry?') }}">
+@csrf
+@method('DELETE')
+<button type="submit" class="h-10 px-4 text-[10px] font-bold uppercase border border-[#9F403D] text-[#9F403D] hover:bg-[#FDF5F5]">Delete</button>
+</form>
+</div>
+</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+</div>
+</div>
+@endif
+
 @if(!$isPaid && auth()->user()->role !== 'viewer')
 <form method="POST" action="{{ route('international-payables.pay.store', $order) }}" novalidate>
 @csrf
