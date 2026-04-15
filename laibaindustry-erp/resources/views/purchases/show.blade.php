@@ -129,6 +129,7 @@ Ledger
 <span class="font-mono tabular-nums">{{ $currencySymbol ?? '$' }} {{ number_format($purchase->total_amount, 2) }}</span>
 </div>
 </div>
+</div>
 
 @php
     $offsetTotal = (float) $purchase->receivableOffsets->sum('amount');
@@ -159,7 +160,6 @@ Ledger
 <p class="text-xs text-[#586064] mt-3">Total auto-offset from this purchase: <span class="font-mono font-bold text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format($offsetTotal, 2) }}</span></p>
 </div>
 @endif
-</div>
 </div>
 
 <p class="text-center text-[10px] uppercase tracking-widest text-[#586064] pt-4 pb-2">© 2026 Laiba Safety. All rights reserved.</p>
