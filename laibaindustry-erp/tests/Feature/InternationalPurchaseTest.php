@@ -39,8 +39,14 @@ class InternationalPurchaseTest extends TestCase
 
         $this->actingAs($user)->get(route('international-purchases.index'))
             ->assertOk()
-            ->assertSee('Safety gloves bulk')
+            ->assertSee('Unknown vendor')
             ->assertSee('50.00');
+
+        $order = InternationalPurchaseOrder::query()->latest('id')->firstOrFail();
+        $groupKey = rtrim(strtr(base64_encode('order:'.$order->id), '+/', '-_'), '=');
+        $this->actingAs($user)->get(route('international-purchases.group', ['groupKey' => $groupKey]))
+            ->assertOk()
+            ->assertSee('Safety gloves bulk');
     }
 
     public function test_manager_can_create_multiple_lines_in_one_submit_produces_one_invoice_row(): void
@@ -84,14 +90,13 @@ class InternationalPurchaseTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('international-purchases.index'));
         $response->assertOk()
-            ->assertSee('Line A')
             ->assertSee('45.50')
+            ->assertSee('Overseas Vendor Co');
+        $groupKey = rtrim(strtr(base64_encode('name:overseas vendor co'), '+/', '-_'), '=');
+        $this->actingAs($user)->get(route('international-purchases.group', ['groupKey' => $groupKey]))
+            ->assertOk()
+            ->assertSee('Line A')
             ->assertSee('INV-INT-99');
-        $this->assertSame(
-            1,
-            substr_count($response->getContent(), 'Overseas Vendor Co'),
-            'Vendor name should appear once (one invoice row)'
-        );
         $this->assertSame(1, SupplierLedgerEntry::query()
             ->where('source_type', 'international_purchase_order')
             ->where('supplier_id', $supplier->id)
@@ -156,7 +161,58 @@ class InternationalPurchaseTest extends TestCase
 
         $this->actingAs($user)->get(route('international-purchases.index'))
             ->assertOk()
-            ->assertSee('Overseas Vendor Co')
+            ->assertSee('Overseas Vendor Co');
+        $groupKey = rtrim(strtr(base64_encode('name:overseas vendor co'), '+/', '-_'), '=');
+        $this->actingAs($user)->get(route('international-purchases.group', ['groupKey' => $groupKey]))
+            ->assertOk()
             ->assertSee('Helmets');
+    }
+
+    public function test_index_groups_same_vendor_name_into_one_row_and_group_page_shows_all_invoices(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplierA = Supplier::create(['name' => 'Unified Vendor']);
+        $supplierB = Supplier::create(['name' => 'Unified Vendor']);
+
+        $orderA = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplierA->id,
+            'date' => '2026-06-01',
+            'invoice_number' => 'INV-A',
+            'total_amount' => 40,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $orderA->id,
+            'product_name' => 'Mask A',
+            'quantity' => 1,
+            'unit_price' => 40,
+            'total_amount' => 40,
+        ]);
+
+        $orderB = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplierB->id,
+            'date' => '2026-06-02',
+            'invoice_number' => 'INV-B',
+            'total_amount' => 60,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $orderB->id,
+            'product_name' => 'Mask B',
+            'quantity' => 1,
+            'unit_price' => 60,
+            'total_amount' => 60,
+        ]);
+
+        $index = $this->actingAs($user)->get(route('international-purchases.index'));
+        $index->assertOk()
+            ->assertSee('Unified Vendor')
+            ->assertSee('2')
+            ->assertSee('100.00');
+
+        $groupKey = rtrim(strtr(base64_encode('name:unified vendor'), '+/', '-_'), '=');
+        $group = $this->actingAs($user)->get(route('international-purchases.group', ['groupKey' => $groupKey]));
+        $group->assertOk()
+            ->assertSee('INV-A')
+            ->assertSee('INV-B')
+            ->assertSee('100.00');
     }
 }

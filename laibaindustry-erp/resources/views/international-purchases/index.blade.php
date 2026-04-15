@@ -41,7 +41,7 @@ New entry
 <div class="flex flex-col gap-1 min-w-0">
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">International purchases</h1>
 </div>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">One row per invoice · @if(auth()->user()->role !== 'viewer') click row to open @else read-only @endif</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">One row per vendor name · click row to open invoices</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
@@ -62,10 +62,14 @@ New entry
 </div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<p class="st-label mb-2">Vendor groups</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($orderGroups->count()) }}</p>
+</div>
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Total invoices</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($orders->count()) }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($totalInvoiceCount) }}</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">All-time total</p>
@@ -75,71 +79,39 @@ New entry
 
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
-<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">International purchase invoices</h3>
-<p class="text-[11px] text-[#586064] mt-1">Date · vendor · invoice · products · total · actions</p>
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">International purchase groups</h3>
+<p class="text-[11px] text-[#586064] mt-1">Grouped by vendor name · click to view invoices</p>
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[960px]">
+<table class="w-full text-left border-collapse min-w-[900px]">
 <thead>
 <tr class="st-thead">
-<th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
 <th class="st-th px-4 py-3">Vendor</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
-<th class="st-th px-4 py-3 min-w-[200px]">Products</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Invoices</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Latest invoice</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Total</th>
+<th class="st-th px-4 py-3 text-right w-28 whitespace-nowrap">Status</th>
 @if(auth()->user()->role !== 'viewer')
 <th class="st-th px-4 py-3 text-right w-36"></th>
 @endif
 </tr>
 </thead>
 <tbody>
-@forelse($orders as $order)
-@php
-$lineCount = $order->lines->count();
-$firstLine = $order->lines->first();
-$firstName = $firstLine ? $firstLine->product_name : '—';
-if ($lineCount === 0) {
-    $linesSummary = 'No line items';
-} elseif ($lineCount === 1) {
-    $linesSummary = $firstName;
-} else {
-    $linesSummary = $firstName.', +'.($lineCount - 1).' more';
-}
-$invLabel = $order->invoice_number ?: '#'.$order->id;
-$showLabel = 'View invoice '.$invLabel;
-@endphp
-<tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
-    @if(auth()->user()->role !== 'viewer') data-ip-show-url="{{ route('international-purchases.show', $order) }}" role="link" tabindex="0" aria-label="{{ e($showLabel) }}" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($order->date) }}</td>
-<td class="st-td px-4 py-3 text-sm text-[#586064]">{{ $order->supplier?->name ?? '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
-<a href="{{ route('international-purchases.show', $order) }}" class="text-[#5E5E5E] hover:underline" onclick="event.stopPropagation()">{{ $invLabel }}</a>
-</td>
-<td class="st-td px-4 py-3 text-sm text-[#586064] max-w-[280px]" title="{{ e($linesSummary) }}">
-<span class="line-clamp-2">{{ $linesSummary }}</span>
-@if($lineCount > 1)
-<span class="block text-[10px] uppercase tracking-wide text-[#586064] mt-0.5">{{ $lineCount }} lines</span>
-@endif
-</td>
-<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($order->total_amount, 2) }}</td>
+@forelse($orderGroups as $group)
+@php $groupUrl = route('international-purchases.group', ['groupKey' => $group['group_key_encoded']]); @endphp
+<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
+    data-ip-group-url="{{ $groupUrl }}" role="link" tabindex="0" aria-label="Open invoices for {{ e($group['display_name']) }}">
+<td class="st-td px-4 py-3 text-sm text-[#2B3437]"><p class="font-semibold">{{ $group['display_name'] }}</p></td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ number_format($group['invoice_count']) }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $group['latest_invoice_date'] ? format_display_date($group['latest_invoice_date']) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format((float) $group['total_amount'], 2) }}</td>
+<td class="st-td px-4 py-3 text-right"><span class="text-[10px] font-bold uppercase tracking-wider text-[#5E5E5E]">Open</span></td>
 @if(auth()->user()->role !== 'viewer')
 <td class="st-td px-4 py-3 text-right" data-stop-row-nav>
-<div class="flex items-center justify-end gap-1 flex-wrap">
-<a href="{{ route('international-purchases.show', $order) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View">
+<a href="{{ $groupUrl }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View invoices">
 <span class="material-symbols-outlined text-[18px]">visibility</span>
 </a>
-<a href="{{ route('international-purchases.edit', $order) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="Edit">
-<span class="material-symbols-outlined text-[18px]">edit</span>
-</a>
-<form method="POST" action="{{ route('international-purchases.destroy', $order) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this invoice and all lines?') }}">
-@csrf
-@method('DELETE')
-<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
-<span class="material-symbols-outlined text-[18px]">delete</span>
-</button>
-</form>
-</div>
 </td>
 @endif
 </tr>
@@ -161,8 +133,8 @@ $showLabel = 'View invoice '.$invLabel;
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($orders->count() > 0)
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $orders->count() }}</span> invoices
+@if($orderGroups->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $orderGroups->count() }}</span> vendor groups · <span class="font-bold text-[#2B3437] tabular-nums">{{ $totalInvoiceCount }}</span> invoices total
 @else
 No results
 @endif
@@ -174,11 +146,10 @@ No results
 </div>
 </div>
 </main>
-@if(auth()->user()->role !== 'viewer')
 <script>
 (function () {
-    document.querySelectorAll('tr[data-ip-show-url]').forEach(function (row) {
-        var url = row.getAttribute('data-ip-show-url');
+    document.querySelectorAll('tr[data-ip-group-url]').forEach(function (row) {
+        var url = row.getAttribute('data-ip-group-url');
         if (!url) return;
         row.addEventListener('click', function (e) {
             if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
@@ -193,6 +164,5 @@ No results
     });
 })();
 </script>
-@endif
 </body>
 </html>

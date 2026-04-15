@@ -38,6 +38,8 @@ class InternationalPayableTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'manager']);
         $order = $this->makeOrderWithLine('Import batch A', 500);
+        $supplier = Supplier::create(['name' => 'Import Vendor']);
+        $order->update(['supplier_id' => $supplier->id]);
 
         $this->actingAs($user)->post(
             route('international-payables.pay.store', $order),
@@ -56,8 +58,13 @@ class InternationalPayableTest extends TestCase
 
         $this->actingAs($user)->get(route('international-payables.index'))
             ->assertOk()
-            ->assertSee('Import batch A')
+            ->assertSee('Import Vendor')
             ->assertSee('349.50');
+
+        $groupKey = rtrim(strtr(base64_encode('name:import vendor'), '+/', '-_'), '=');
+        $this->actingAs($user)->get(route('international-payables.group', ['groupKey' => $groupKey]))
+            ->assertOk()
+            ->assertSee('Import batch A');
     }
 
     public function test_payment_cannot_exceed_balance(): void
@@ -175,8 +182,59 @@ class InternationalPayableTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('international-payables.index'));
         $response->assertOk()
-            ->assertSee('PO-777')
             ->assertSee('30.00');
+        $groupKey = rtrim(strtr(base64_encode('order:'.$order->id), '+/', '-_'), '=');
+        $this->actingAs($user)->get(route('international-payables.group', ['groupKey' => $groupKey]))
+            ->assertOk()
+            ->assertSee('PO-777');
         $this->assertSame(1, InternationalPurchaseOrder::query()->where('invoice_number', 'PO-777')->count());
+    }
+
+    public function test_payables_index_groups_same_vendor_name_into_single_entry(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplierA = Supplier::create(['name' => 'Global Source']);
+        $supplierB = Supplier::create(['name' => 'Global Source']);
+
+        $orderA = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplierA->id,
+            'date' => '2026-06-01',
+            'invoice_number' => 'G-1',
+            'total_amount' => 30,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $orderA->id,
+            'product_name' => 'A',
+            'quantity' => 1,
+            'unit_price' => 30,
+            'total_amount' => 30,
+        ]);
+
+        $orderB = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplierB->id,
+            'date' => '2026-06-02',
+            'invoice_number' => 'G-2',
+            'total_amount' => 70,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $orderB->id,
+            'product_name' => 'B',
+            'quantity' => 1,
+            'unit_price' => 70,
+            'total_amount' => 70,
+        ]);
+
+        $index = $this->actingAs($user)->get(route('international-payables.index'));
+        $index->assertOk()
+            ->assertSee('Global Source')
+            ->assertSee('2')
+            ->assertSee('100.00');
+
+        $groupKey = rtrim(strtr(base64_encode('name:global source'), '+/', '-_'), '=');
+        $group = $this->actingAs($user)->get(route('international-payables.group', ['groupKey' => $groupKey]));
+        $group->assertOk()
+            ->assertSee('G-1')
+            ->assertSee('G-2')
+            ->assertSee('100.00');
     }
 }

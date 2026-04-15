@@ -73,7 +73,9 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('suppliers/{supplier}/ledger', [SupplierController::class, 'ledger'])->name('suppliers.ledger');
     Route::resource('suppliers', SupplierController::class);
     Route::resource('international-purchases', InternationalPurchaseController::class);
+    Route::get('international-purchases/group/{groupKey}', [InternationalPurchaseController::class, 'showGroup'])->name('international-purchases.group');
     Route::get('/international-payables', [InternationalPayableController::class, 'index'])->name('international-payables.index');
+    Route::get('/international-payables/group/{groupKey}', [InternationalPayableController::class, 'showGroup'])->name('international-payables.group');
     Route::get('/international-payables/{international_purchase}/pay', [InternationalPayableController::class, 'pay'])->name('international-payables.pay');
     Route::post('/international-payables/{international_purchase}/pay', [InternationalPayableController::class, 'storePayment'])->name('international-payables.pay.store');
     Route::patch('/international-payables/{international_purchase}/payments/{internationalPayablePayment}', [InternationalPayableController::class, 'updatePayment'])->name('international-payables.payments.update');

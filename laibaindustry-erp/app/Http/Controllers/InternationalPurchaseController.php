@@ -9,9 +9,11 @@ use App\Models\Supplier;
 use App\Services\SupplierLedgerSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class InternationalPurchaseController extends Controller
 {
@@ -22,14 +24,73 @@ class InternationalPurchaseController extends Controller
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();
+        $orderGroups = $orders->groupBy(fn (InternationalPurchaseOrder $order) => $this->orderGroupKey($order))
+            ->map(function (Collection $slice, string $key): array {
+                /** @var InternationalPurchaseOrder $first */
+                $first = $slice->first();
+                $latest = $slice->sortByDesc(fn (InternationalPurchaseOrder $o) => $o->date?->timestamp ?? 0)->first();
+                $latestDate = $latest?->date;
+
+                return [
+                    'group_key' => $key,
+                    'group_key_encoded' => $this->encodeGroupKeyForRoute($key),
+                    'display_name' => $first->supplier?->name ?: 'Unknown vendor',
+                    'invoice_count' => $slice->count(),
+                    'latest_invoice_date' => $latestDate,
+                    'total_amount' => (float) $slice->sum(fn (InternationalPurchaseOrder $o) => (float) $o->total_amount),
+                ];
+            })
+            ->sortByDesc(fn (array $g) => $g['latest_invoice_date']?->timestamp ?? 0)
+            ->values();
 
         $totalAmount = (float) InternationalPurchaseOrder::query()->sum('total_amount');
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         return view('international-purchases.index', [
-            'orders' => $orders,
+            'orderGroups' => $orderGroups,
             'totalAmount' => $totalAmount,
             'currencySymbol' => $currencySymbol,
+            'totalInvoiceCount' => $orders->count(),
+        ]);
+    }
+
+    public function showGroup(string $groupKey): View
+    {
+        $decoded = $this->decodeGroupKeyFromRoute($groupKey);
+        if ($decoded === null || ! $this->isValidGroupKey($decoded)) {
+            throw new NotFoundHttpException;
+        }
+
+        $query = InternationalPurchaseOrder::query()
+            ->with(['supplier', 'lines'])
+            ->orderByDesc('date')
+            ->orderByDesc('id');
+
+        if (str_starts_with($decoded, 'id:')) {
+            $supplierId = (int) substr($decoded, strlen('id:'));
+            $query->where('supplier_id', $supplierId);
+        } elseif (str_starts_with($decoded, 'name:')) {
+            $name = substr($decoded, strlen('name:'));
+            $query->whereHas('supplier', fn ($q) => $q->whereRaw('LOWER(TRIM(name)) = ?', [$name]));
+        } elseif (str_starts_with($decoded, 'order:')) {
+            $orderId = (int) substr($decoded, strlen('order:'));
+            $query->where('id', $orderId);
+        }
+
+        $orders = $query->get();
+        if ($orders->isEmpty()) {
+            throw new NotFoundHttpException;
+        }
+
+        $displayName = $orders->first()->supplier?->name ?: 'Unknown vendor';
+        $totalAmount = (float) $orders->sum(fn (InternationalPurchaseOrder $o) => (float) $o->total_amount);
+        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+
+        return view('international-purchases.group', [
+            'orders' => $orders,
+            'displayName' => $displayName,
+            'currencySymbol' => $currencySymbol,
+            'totalAmount' => $totalAmount,
         ]);
     }
 
@@ -246,5 +307,51 @@ class InternationalPurchaseController extends Controller
 
         return redirect()->route('international-purchases.index')
             ->with('success', 'International purchase deleted successfully.');
+    }
+
+    private function orderGroupKey(InternationalPurchaseOrder $order): string
+    {
+        $supplierName = trim((string) ($order->supplier?->name ?? ''));
+        if ($supplierName !== '') {
+            return 'name:'.mb_strtolower($supplierName);
+        }
+
+        if ($order->supplier_id) {
+            return 'id:'.$order->supplier_id;
+        }
+
+        return 'order:'.$order->id;
+    }
+
+    private function isValidGroupKey(string $key): bool
+    {
+        if (str_starts_with($key, 'id:')) {
+            return (bool) preg_match('/^id:\d+$/', $key);
+        }
+        if (str_starts_with($key, 'order:')) {
+            return (bool) preg_match('/^order:\d+$/', $key);
+        }
+        if (str_starts_with($key, 'name:')) {
+            return strlen($key) > strlen('name:');
+        }
+
+        return false;
+    }
+
+    private function encodeGroupKeyForRoute(string $key): string
+    {
+        return rtrim(strtr(base64_encode($key), '+/', '-_'), '=');
+    }
+
+    private function decodeGroupKeyFromRoute(string $value): ?string
+    {
+        $normalized = strtr($value, '-_', '+/');
+        $pad = strlen($normalized) % 4;
+        if ($pad !== 0) {
+            $normalized .= str_repeat('=', 4 - $pad);
+        }
+        $decoded = base64_decode($normalized, true);
+
+        return $decoded === false ? null : $decoded;
     }
 }
