@@ -79,6 +79,60 @@ class SupplierAccountLedgerTest extends TestCase
         ]);
     }
 
+    public function test_combined_international_payment_note_is_visible_in_reference_column(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create(['name' => 'Group Note Vendor']);
+
+        $firstOrder = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplier->id,
+            'date' => '2026-06-01',
+            'invoice_number' => 'INV-1',
+            'total_amount' => 100,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $firstOrder->id,
+            'product_name' => 'Item A',
+            'quantity' => 1,
+            'unit_price' => 100,
+            'total_amount' => 100,
+        ]);
+
+        $secondOrder = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplier->id,
+            'date' => '2026-06-02',
+            'invoice_number' => 'INV-2',
+            'total_amount' => 80,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $secondOrder->id,
+            'product_name' => 'Item B',
+            'quantity' => 1,
+            'unit_price' => 80,
+            'total_amount' => 80,
+        ]);
+
+        SupplierLedgerSync::syncInternationalPurchaseOrder($firstOrder->fresh(['lines']));
+        SupplierLedgerSync::syncInternationalPurchaseOrder($secondOrder->fresh(['lines']));
+
+        $groupKey = rtrim(strtr(base64_encode('name:group note vendor'), '+/', '-_'), '=');
+        $this->actingAs($user)->post(route('international-payables.group.payments.store', ['groupKey' => $groupKey]), [
+            'payment_date' => '2026-06-10',
+            'amount' => '70',
+            'notes' => 'TT-8891',
+        ])->assertRedirect(route('international-payables.group', ['groupKey' => $groupKey]));
+
+        $this->assertDatabaseHas('supplier_ledger_entries', [
+            'supplier_id' => $supplier->id,
+            'source_type' => 'international_payable_payment',
+            'notes' => 'TT-8891',
+        ]);
+
+        $this->actingAs($user)->get(route('suppliers.ledger', $supplier))
+            ->assertOk()
+            ->assertSee('TT-8891');
+    }
+
     public function test_purchase_without_supplier_does_not_create_ledger_row(): void
     {
         $user = User::factory()->create(['role' => 'manager']);

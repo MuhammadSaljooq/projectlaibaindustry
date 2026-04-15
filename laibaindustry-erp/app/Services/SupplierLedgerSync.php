@@ -44,11 +44,18 @@ final class SupplierLedgerSync
             return;
         }
 
+        $baseReference = filled($order->invoice_number)
+            ? ($order->invoice_number.' / IPP-'.$payment->id)
+            : 'IPP-'.$payment->id;
+        $reference = filled($payment->notes)
+            ? Str::limit($baseReference.' | '.$payment->notes, 100, '')
+            : $baseReference;
+
         SupplierLedgerEntry::create([
             'supplier_id' => $order->supplier_id,
             'date' => $payment->payment_date->copy()->startOfDay(),
             'description' => 'International payment',
-            'reference' => filled($order->invoice_number) ? ($order->invoice_number.' / IPP-'.$payment->id) : 'IPP-'.$payment->id,
+            'reference' => $reference,
             'debit' => $payment->amount,
             'credit' => 0,
             'source_type' => 'international_payable_payment',
