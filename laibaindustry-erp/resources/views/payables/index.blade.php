@@ -29,25 +29,16 @@
 <div class="flex flex-col gap-1 min-w-0">
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Payables</h1>
 </div>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">Vendor AP · @if(auth()->user()->role !== 'viewer') click open balance to pay @else read-only @endif</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">One row per customer group · click row to manage payments</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-<div class="sm:hidden">
-<p class="st-label">Module</p>
-<p class="text-xl font-black uppercase tracking-tight text-[#2B3437]">Payables</p>
-</div>
-
 @if (session('success'))
-<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
-{{ session('success') }}
-</div>
+<div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">{{ session('success') }}</div>
 @endif
 @if (session('error'))
-<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">
-{{ session('error') }}
-</div>
+<div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">{{ session('error') }}</div>
 @endif
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
@@ -67,18 +58,18 @@
 
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
-<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Accounts payable ledger</h3>
-<p class="text-[11px] text-[#586064] mt-1">From purchases · record payment or delete (admin/manager)</p>
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Accounts payable groups</h3>
+<p class="text-[11px] text-[#586064] mt-1">Grouped by customer code/name · one row per customer group</p>
 </div>
 
 <div class="overflow-x-auto w-full">
 <table class="w-full text-left border-collapse min-w-[960px]">
 <thead>
 <tr class="st-thead">
-<th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
-<th class="st-th px-4 py-3">Customer name</th>
+<th class="st-th px-4 py-3">Customer</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Code</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Invoices</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">Latest invoice</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Paid</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Balance</th>
@@ -86,44 +77,24 @@
 </tr>
 </thead>
 <tbody>
-@forelse($payables as $p)
-@php $balance = (float) $p->amount - (float) $p->received; @endphp
-<tr class="st-tr @if(auth()->user()->role !== 'viewer' && $balance > 0) cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
-    @if(auth()->user()->role !== 'viewer' && $balance > 0) data-payable-edit-url="{{ route('payables.edit', $p) }}" role="link" tabindex="0" aria-label="Record payment {{ e($p->invoice_number ?: '#' . $p->id) }}" @endif>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($p->date) }}</td>
-<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $p->invoice_number ?: '—' }}</td>
-<td class="st-td px-4 py-3 text-sm text-[#586064] truncate max-w-[200px]">{{ $p->customer_name ?: '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $p->customer_code ?: '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($p->amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums {{ (float) $p->received > 0 ? 'text-[#2B3437] font-semibold' : 'text-[#586064]' }}">{{ $currencySymbol }} {{ number_format($p->received, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums {{ $balance > 0 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($balance, 2) }}</td>
+@forelse($payableGroups as $g)
+@php $groupUrl = route('payables.group', ['groupKey' => $g['group_key_encoded']]); @endphp
+<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]" data-payable-group-url="{{ $groupUrl }}" role="link" tabindex="0" aria-label="Open payables for {{ e($g['display_name']) }}">
+<td class="st-td px-4 py-3 text-sm text-[#2B3437]"><p class="font-semibold">{{ $g['display_name'] }}</p></td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $g['display_code'] !== '' ? $g['display_code'] : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ number_format($g['invoice_count']) }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $g['latest_invoice_date'] ? format_display_date($g['latest_invoice_date']) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format((float) $g['total_bill'], 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format((float) $g['total_paid'], 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums {{ (float) $g['total_balance'] > 0.009 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format((float) $g['total_balance'], 2) }}</td>
 <td class="st-td px-4 py-3 text-right" data-stop-row-nav>
-<div class="inline-flex items-center justify-end gap-1 flex-wrap">
-@if($balance > 0)
-@if(auth()->user()->role !== 'viewer')
-<a href="{{ route('payables.edit', $p) }}" class="st-btn-primary h-9 px-3 text-[10px] inline-flex items-center gap-1.5 whitespace-nowrap">
-<span class="material-symbols-outlined text-[16px]">payments</span>
-Pay
-</a>
+@if((float) $g['total_balance'] > 0.009 && auth()->user()->role !== 'viewer')
+<a href="{{ $groupUrl }}" class="st-btn-primary h-9 px-3 text-[10px] inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[16px]">payments</span>Pay</a>
+@elseif((float) $g['total_balance'] <= 0.009)
+<span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#5E5E5E] border border-[#ABB3B7] px-2 py-1"><span class="material-symbols-outlined text-[14px]">check</span>Paid</span>
 @else
 <span class="text-xs text-[#586064]">—</span>
 @endif
-@else
-<span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#5E5E5E] border border-[#ABB3B7] px-2 py-1">
-<span class="material-symbols-outlined text-[14px]">check</span>
-Paid
-</span>
-@endif
-@if(in_array(auth()->user()->role, ['admin', 'manager']))
-<form method="POST" action="{{ route('payables.destroy', $p) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this payable? This cannot be undone.') }}">
-@csrf
-@method('DELETE')
-<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
-<span class="material-symbols-outlined text-[18px]">delete</span>
-</button>
-</form>
-@endif
-</div>
 </td>
 </tr>
 @empty
@@ -141,8 +112,8 @@ Paid
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
 <p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($payables->count() > 0)
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $payables->count() }}</span> payables
+@if($payableGroups->count() > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $payableGroups->count() }}</span> customer groups · <span class="font-bold text-[#2B3437] tabular-nums">{{ $totalInvoiceCount }}</span> invoices total
 @else
 No results
 @endif
@@ -154,11 +125,10 @@ No results
 </div>
 </div>
 </main>
-@if(auth()->user()->role !== 'viewer')
 <script>
 (function () {
-    document.querySelectorAll('tr[data-payable-edit-url]').forEach(function (row) {
-        var url = row.getAttribute('data-payable-edit-url');
+    document.querySelectorAll('tr[data-payable-group-url]').forEach(function (row) {
+        var url = row.getAttribute('data-payable-group-url');
         if (!url) return;
         row.addEventListener('click', function (e) {
             if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
@@ -173,6 +143,5 @@ No results
     });
 })();
 </script>
-@endif
 </body>
 </html>

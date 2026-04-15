@@ -70,6 +70,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::put('receivables/{receivable}/adjust-received', [ReceivableController::class, 'adjustReceivedWithoutLedger'])->name('receivables.adjust-received');
     Route::resource('receivables', ReceivableController::class);
     Route::resource('purchases', PurchaseController::class);
+    Route::get('purchases/group/{groupKey}', [PurchaseController::class, 'showGroup'])->name('purchases.group');
     Route::get('suppliers/{supplier}/ledger', [SupplierController::class, 'ledger'])->name('suppliers.ledger');
     Route::resource('suppliers', SupplierController::class);
     Route::resource('international-purchases', InternationalPurchaseController::class);
@@ -83,6 +84,8 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::patch('payables/{payable}/payments/{customerLedgerEntry}', [PayableController::class, 'updatePayment'])->name('payables.payments.update');
     Route::delete('payables/{payable}/payments/{customerLedgerEntry}', [PayableController::class, 'destroyPayment'])->name('payables.payments.destroy');
     Route::put('payables/{payable}/adjust-received', [PayableController::class, 'adjustReceivedWithoutLedger'])->name('payables.adjust-received');
+    Route::get('payables/group/{groupKey}', [PayableController::class, 'showGroup'])->name('payables.group');
+    Route::post('payables/group/{groupKey}/payments', [PayableController::class, 'storeGroupPayment'])->name('payables.group.payments.store');
     Route::delete('customers/{customer}/ledger-entries/{customerLedgerEntry}', [CustomerController::class, 'destroyLedgerEntry'])->name('customers.ledger-entries.destroy');
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');

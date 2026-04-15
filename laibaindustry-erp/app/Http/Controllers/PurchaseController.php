@@ -13,9 +13,11 @@ use App\Models\VatEntry;
 use App\Services\PurchaseDeletionService;
 use App\Services\PurchaseReceivableOffsetService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PurchaseController extends Controller
 {
@@ -48,6 +50,26 @@ class PurchaseController extends Controller
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();
+        $purchaseGroups = $purchases->groupBy(fn (Purchase $purchase) => $this->purchaseGroupKey($purchase))
+            ->map(function (Collection $slice, string $key): array {
+                /** @var Purchase $first */
+                $first = $slice->first();
+                $latest = $slice->sortByDesc(fn (Purchase $p) => $p->date?->timestamp ?? 0)->first();
+                $latestDate = $latest?->date;
+
+                return [
+                    'group_key_encoded' => $this->encodeGroupKeyForRoute($key),
+                    'display_name' => $first->customer_name ?: ($first->customer_code ?: 'Unknown customer'),
+                    'display_code' => trim((string) ($first->customer_code ?? '')),
+                    'invoice_count' => $slice->count(),
+                    'latest_invoice_date' => $latestDate,
+                    'total_subtotal' => (float) $slice->sum(fn (Purchase $p) => (float) ($p->subtotal ?? 0)),
+                    'total_vat' => (float) $slice->sum(fn (Purchase $p) => (float) ($p->vat_amount ?? 0)),
+                    'total_amount' => (float) $slice->sum(fn (Purchase $p) => (float) ($p->total_amount ?? 0)),
+                ];
+            })
+            ->sortByDesc(fn (array $g) => $g['latest_invoice_date']?->timestamp ?? 0)
+            ->values();
 
         $totals = Purchase::query()
             ->selectRaw('
@@ -57,7 +79,46 @@ class PurchaseController extends Controller
             ')
             ->first();
 
-        return view('purchases.index', compact('purchases', 'totals'));
+        return view('purchases.index', [
+            'purchaseGroups' => $purchaseGroups,
+            'totals' => $totals,
+            'totalInvoiceCount' => $purchases->count(),
+        ]);
+    }
+
+    public function showGroup(string $groupKey): View
+    {
+        $decoded = $this->decodeGroupKeyFromRoute($groupKey);
+        if ($decoded === null || ! $this->isValidGroupKey($decoded)) {
+            throw new NotFoundHttpException;
+        }
+
+        $query = Purchase::query()->with(['items', 'currency'])->orderByDesc('date')->orderByDesc('id');
+        if (str_starts_with($decoded, 'code:')) {
+            $code = substr($decoded, strlen('code:'));
+            $query->whereRaw('LOWER(TRIM(COALESCE(customer_code, ?))) = ?', ['', $code]);
+        } elseif (str_starts_with($decoded, 'name:')) {
+            $name = substr($decoded, strlen('name:'));
+            $query->whereRaw('LOWER(TRIM(COALESCE(customer_name, ?))) = ?', ['', $name]);
+        } elseif (str_starts_with($decoded, 'id:')) {
+            $query->where('id', (int) substr($decoded, strlen('id:')));
+        }
+
+        $purchases = $query->get();
+        if ($purchases->isEmpty()) {
+            throw new NotFoundHttpException;
+        }
+
+        return view('purchases.group', [
+            'purchases' => $purchases,
+            'displayName' => $purchases->first()->customer_name ?: ($purchases->first()->customer_code ?: 'Unknown customer'),
+            'totals' => (object) [
+                'total_subtotal' => (float) $purchases->sum(fn (Purchase $p) => (float) ($p->subtotal ?? 0)),
+                'total_vat' => (float) $purchases->sum(fn (Purchase $p) => (float) ($p->vat_amount ?? 0)),
+                'total_purchases' => (float) $purchases->sum(fn (Purchase $p) => (float) ($p->total_amount ?? 0)),
+            ],
+            'groupKeyEncoded' => $this->encodeGroupKeyForRoute($decoded),
+        ]);
     }
 
     public function export(): StreamedResponse
@@ -394,5 +455,52 @@ class PurchaseController extends Controller
             return redirect()->route('purchases.index')
                 ->with('error', 'Failed to delete purchase: '.$e->getMessage());
         }
+    }
+
+    private function purchaseGroupKey(Purchase $purchase): string
+    {
+        $code = trim((string) ($purchase->customer_code ?? ''));
+        if ($code !== '') {
+            return 'code:'.mb_strtolower($code);
+        }
+
+        $name = trim((string) ($purchase->customer_name ?? ''));
+        if ($name !== '') {
+            return 'name:'.mb_strtolower($name);
+        }
+
+        return 'id:'.$purchase->id;
+    }
+
+    private function isValidGroupKey(string $key): bool
+    {
+        if (str_starts_with($key, 'id:')) {
+            return (bool) preg_match('/^id:\d+$/', $key);
+        }
+        if (str_starts_with($key, 'code:')) {
+            return strlen($key) > strlen('code:');
+        }
+        if (str_starts_with($key, 'name:')) {
+            return strlen($key) > strlen('name:');
+        }
+
+        return false;
+    }
+
+    private function encodeGroupKeyForRoute(string $key): string
+    {
+        return rtrim(strtr(base64_encode($key), '+/', '-_'), '=');
+    }
+
+    private function decodeGroupKeyFromRoute(string $value): ?string
+    {
+        $normalized = strtr($value, '-_', '+/');
+        $pad = strlen($normalized) % 4;
+        if ($pad !== 0) {
+            $normalized .= str_repeat('=', 4 - $pad);
+        }
+        $decoded = base64_decode($normalized, true);
+
+        return $decoded === false ? null : $decoded;
     }
 }
