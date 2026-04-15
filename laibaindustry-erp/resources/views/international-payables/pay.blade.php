@@ -107,7 +107,7 @@
 </div>
 </div>
 
-@if(($payments ?? collect())->isNotEmpty() && auth()->user()->role !== 'viewer')
+@if(($payments ?? collect())->isNotEmpty())
 @php $latestPayment = ($payments ?? collect())->first(); @endphp
 @if($latestPayment)
 <div class="mb-8 p-4 border border-[#ABB3B7] bg-[#F8F9FA]">
@@ -126,7 +126,7 @@
 @endif
 @endif
 
-@if(($payments ?? collect())->isNotEmpty() && auth()->user()->role !== 'viewer')
+@if(($payments ?? collect())->isNotEmpty())
 <div class="mb-10 pb-10 border-b border-[#ABB3B7]">
 <p class="st-label mb-4">Recorded payments</p>
 <p class="text-xs text-[#586064] mb-4">Edit amount/date or remove a payment row. This matches receivable payment handling.</p>
