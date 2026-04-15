@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Payable;
+use App\Models\PayableGroupPayment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -84,6 +85,48 @@ class PayableGroupingTest extends TestCase
             'source_type' => 'payment_made',
             'source_id' => $newer->id,
             'debit' => 20,
+        ]);
+        $this->assertDatabaseHas('payable_group_payments', [
+            'group_key' => 'code:c-1',
+            'amount' => 120,
+        ]);
+    }
+
+    public function test_group_combined_payment_can_be_updated_and_removed(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        Customer::create(['customer_code' => 'C-1', 'customer_name' => 'Acme']);
+        Payable::create([
+            'date' => '2026-07-01 00:00:00',
+            'invoice_number' => 'P-1',
+            'customer_name' => 'Acme',
+            'customer_code' => 'C-1',
+            'amount' => 100,
+            'received' => 0,
+        ]);
+
+        $groupKey = rtrim(strtr(base64_encode('code:c-1'), '+/', '-_'), '=');
+        $this->actingAs($user)->post(route('payables.group.payments.store', ['groupKey' => $groupKey]), [
+            'payment_date' => '2026-07-10',
+            'amount' => '60.00',
+        ])->assertRedirect(route('payables.group', ['groupKey' => $groupKey]));
+
+        $payment = PayableGroupPayment::query()->firstOrFail();
+        $this->actingAs($user)->patch(route('payables.group.payments.update', ['groupKey' => $groupKey, 'payableGroupPayment' => $payment]), [
+            'payment_date' => '2026-07-11',
+            'amount' => '80.00',
+        ])->assertRedirect(route('payables.group', ['groupKey' => $groupKey]));
+
+        $this->assertDatabaseHas('payable_group_payments', [
+            'id' => $payment->id,
+            'amount' => 80,
+        ]);
+
+        $this->actingAs($user)->delete(route('payables.group.payments.destroy', ['groupKey' => $groupKey, 'payableGroupPayment' => $payment]))
+            ->assertRedirect(route('payables.group', ['groupKey' => $groupKey]));
+
+        $this->assertDatabaseMissing('payable_group_payments', [
+            'id' => $payment->id,
         ]);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\InternationalPayableGroupPayment;
+use App\Models\InternationalPayableGroupPaymentLine;
 use App\Models\InternationalPayablePayment;
 use App\Models\InternationalPurchaseOrder;
 use App\Services\SupplierLedgerSync;
@@ -10,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -69,7 +72,7 @@ class InternationalPayableController extends Controller
         }
 
         $query = InternationalPurchaseOrder::query()
-            ->with(['supplier', 'lines'])
+            ->with(['supplier', 'lines', 'payablePayments'])
             ->withSum('payablePayments', 'amount')
             ->orderByDesc('date')
             ->orderByDesc('id');
@@ -91,9 +94,33 @@ class InternationalPayableController extends Controller
         $billTotal = (float) $orders->sum(fn (InternationalPurchaseOrder $o) => (float) $o->total_amount);
         $paidTotal = (float) $orders->sum(fn (InternationalPurchaseOrder $o) => (float) ($o->payable_payments_sum_amount ?? 0));
         $outstanding = max(0, $billTotal - $paidTotal);
+        foreach ($orders as $order) {
+            $paid = round((float) ($order->payable_payments_sum_amount ?? 0), 2);
+            $order->setAttribute('direct_payment_total', $paid);
+            $order->setAttribute('remaining_balance', round((float) $order->total_amount - $paid, 2));
+        }
+        $openOrders = $orders->filter(fn (InternationalPurchaseOrder $o) => (float) $o->remaining_balance > 0.00001)->values();
+        $settledOrders = $orders->filter(fn (InternationalPurchaseOrder $o) => (float) $o->remaining_balance <= 0.00001)->values();
+        $groupTotals = [
+            'total_bill' => round($billTotal, 2),
+            'total_received' => round($paidTotal, 2),
+            'total_direct_payments' => round($paidTotal, 2),
+            'total_remaining' => round($outstanding, 2),
+        ];
+        $groupPayments = Schema::hasTable('international_payable_group_payments')
+            ? InternationalPayableGroupPayment::query()
+                ->where('group_key', $decoded)
+                ->orderByDesc('payment_date')
+                ->orderByDesc('id')
+                ->get()
+            : collect();
 
         return view('international-payables.group', [
             'orders' => $orders,
+            'openOrders' => $openOrders,
+            'settledOrders' => $settledOrders,
+            'groupPayments' => $groupPayments,
+            'groupTotals' => $groupTotals,
             'displayName' => $orders->first()->supplier?->name ?: 'Unknown vendor',
             'billTotal' => $billTotal,
             'paidTotal' => $paidTotal,
@@ -141,25 +168,15 @@ class InternationalPayableController extends Controller
         try {
             DB::beginTransaction();
 
-            foreach ($allocations as $orderId => $slice) {
-                $slice = round((float) $slice, 2);
-                if ($slice <= 0) {
-                    continue;
-                }
-                /** @var InternationalPurchaseOrder $order */
-                $order = $fifoList->firstWhere('id', $orderId);
-                if (! $order) {
-                    $order = InternationalPurchaseOrder::query()->findOrFail($orderId);
-                }
-
-                $payment = InternationalPayablePayment::create([
-                    'international_purchase_order_id' => $order->id,
+            $groupPayment = Schema::hasTable('international_payable_group_payments')
+                ? InternationalPayableGroupPayment::create([
+                    'group_key' => $decoded,
                     'payment_date' => $paymentDate,
-                    'amount' => $slice,
+                    'amount' => $amount,
                     'notes' => $notes,
-                ]);
-                SupplierLedgerSync::recordPayment($payment, $order);
-            }
+                ])
+                : null;
+            $this->applyGroupPaymentSlices($groupPayment, $paymentDate, $allocations, $notes);
 
             DB::commit();
 
@@ -170,6 +187,111 @@ class InternationalPayableController extends Controller
 
             return redirect()->back()->withInput()
                 ->with('error', 'Failed to record combined payment: '.$e->getMessage());
+        }
+    }
+
+    public function editGroupPayment(string $groupKey, InternationalPayableGroupPayment $internationalPayableGroupPayment): View
+    {
+        $this->assertGroupPaymentMatchesRouteKey($groupKey, $internationalPayableGroupPayment);
+
+        $decoded = $internationalPayableGroupPayment->group_key;
+        $fifoList = $this->ordersFifoForGroup($decoded);
+        if ($fifoList->isEmpty()) {
+            throw new NotFoundHttpException;
+        }
+
+        $remaining = $this->totalGroupRemaining($fifoList);
+        $maxAllowed = round($remaining + (float) $internationalPayableGroupPayment->amount, 2);
+        $groupKeyEncoded = $this->encodeGroupKeyForRoute($decoded);
+
+        return view('international-payables.group-payment-edit', [
+            'groupPayment' => $internationalPayableGroupPayment,
+            'groupKeyEncoded' => $groupKeyEncoded,
+            'displayName' => $fifoList->first()->supplier?->name ?: 'Unknown vendor',
+            'maxAllowed' => $maxAllowed,
+            'currencySymbol' => $this->internationalPayableCurrency(),
+        ]);
+    }
+
+    public function updateGroupPayment(Request $request, string $groupKey, InternationalPayableGroupPayment $internationalPayableGroupPayment): RedirectResponse
+    {
+        $this->assertGroupPaymentMatchesRouteKey($groupKey, $internationalPayableGroupPayment);
+        $internationalPayableGroupPayment->load('lines');
+
+        $validated = $request->validate([
+            'payment_date' => ['required', 'date'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $decoded = $internationalPayableGroupPayment->group_key;
+        $amount = round((float) $validated['amount'], 2);
+        $oldAmount = (float) $internationalPayableGroupPayment->amount;
+
+        $fifoList = $this->ordersFifoForGroup($decoded);
+        $remaining = $this->totalGroupRemaining($fifoList);
+        $maxAllowed = round($remaining + $oldAmount, 2);
+        if ($amount > $maxAllowed + 0.00001) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Amount cannot exceed combined remaining balance plus this payment ('.number_format($maxAllowed, 2).').');
+        }
+
+        $paymentDate = Carbon::parse($validated['payment_date'], config('app.timezone'))->startOfDay();
+        $notes = $validated['notes'] ?? null;
+
+        try {
+            DB::beginTransaction();
+
+            $this->reverseGroupPayment($internationalPayableGroupPayment);
+            $internationalPayableGroupPayment->update([
+                'amount' => $amount,
+                'payment_date' => $paymentDate,
+                'notes' => $notes,
+            ]);
+            $fifoList = $this->ordersFifoForGroup($decoded);
+            $allocations = $this->allocateFifo($fifoList, $amount);
+            $sumAlloc = round(array_sum($allocations), 2);
+            if (abs($sumAlloc - $amount) > 0.02 || $sumAlloc < 0.01) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()
+                    ->with('error', 'Unable to allocate payment across invoices.');
+            }
+            $this->applyGroupPaymentSlices($internationalPayableGroupPayment, $paymentDate, $allocations, $notes);
+
+            DB::commit();
+
+            return redirect()->route('international-payables.group', ['groupKey' => $this->encodeGroupKeyForRoute($decoded)])
+                ->with('success', 'Combined payment updated.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withInput()
+                ->with('error', 'Failed to update combined payment: '.$e->getMessage());
+        }
+    }
+
+    public function destroyGroupPayment(string $groupKey, InternationalPayableGroupPayment $internationalPayableGroupPayment): RedirectResponse
+    {
+        $this->assertGroupPaymentMatchesRouteKey($groupKey, $internationalPayableGroupPayment);
+        $internationalPayableGroupPayment->load('lines');
+        $decoded = $internationalPayableGroupPayment->group_key;
+
+        try {
+            DB::beginTransaction();
+
+            $this->reverseGroupPayment($internationalPayableGroupPayment);
+            $internationalPayableGroupPayment->delete();
+
+            DB::commit();
+
+            return redirect()->route('international-payables.group', ['groupKey' => $this->encodeGroupKeyForRoute($decoded)])
+                ->with('success', 'Combined payment removed.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()
+                ->with('error', 'Failed to remove combined payment: '.$e->getMessage());
         }
     }
 
@@ -427,5 +549,71 @@ class InternationalPayableController extends Controller
     private function internationalPayableCurrency(): string
     {
         return 'USD';
+    }
+
+    /**
+     * @param  array<int, float>  $allocations
+     */
+    private function applyGroupPaymentSlices(?InternationalPayableGroupPayment $groupPayment, Carbon $paymentDate, array $allocations, ?string $notes): void
+    {
+        foreach ($allocations as $orderId => $slice) {
+            $slice = round((float) $slice, 2);
+            if ($slice <= 0) {
+                continue;
+            }
+            $order = InternationalPurchaseOrder::query()->findOrFail($orderId);
+            $paymentAttrs = [
+                'international_purchase_order_id' => $order->id,
+                'payment_date' => $paymentDate,
+                'amount' => $slice,
+                'notes' => $notes,
+            ];
+            if ($groupPayment && Schema::hasColumn('international_payable_payments', 'international_payable_group_payment_id')) {
+                $paymentAttrs['international_payable_group_payment_id'] = $groupPayment->id;
+            }
+            $payment = InternationalPayablePayment::create($paymentAttrs);
+            SupplierLedgerSync::recordPayment($payment, $order);
+
+            if ($groupPayment && Schema::hasTable('international_payable_group_payment_lines')) {
+                InternationalPayableGroupPaymentLine::create([
+                    'international_payable_group_payment_id' => $groupPayment->id,
+                    'international_purchase_order_id' => $order->id,
+                    'amount' => $slice,
+                    'international_payable_payment_id' => $payment->id,
+                ]);
+            }
+        }
+    }
+
+    private function reverseGroupPayment(InternationalPayableGroupPayment $payment): void
+    {
+        $payment->loadMissing('lines');
+        foreach ($payment->lines as $line) {
+            $this->reverseGroupPaymentLine($line);
+            $line->delete();
+        }
+    }
+
+    private function reverseGroupPaymentLine(InternationalPayableGroupPaymentLine $line): void
+    {
+        $payment = $line->international_payable_payment_id
+            ? InternationalPayablePayment::query()->find($line->international_payable_payment_id)
+            : null;
+        if (! $payment) {
+            return;
+        }
+        DB::table('supplier_ledger_entries')
+            ->where('source_type', 'international_payable_payment')
+            ->where('source_id', $payment->id)
+            ->delete();
+        $payment->delete();
+    }
+
+    private function assertGroupPaymentMatchesRouteKey(string $groupKey, InternationalPayableGroupPayment $payment): void
+    {
+        $decoded = $this->decodeGroupKeyFromRoute($groupKey);
+        if ($decoded === null || $payment->group_key !== $decoded) {
+            abort(404);
+        }
     }
 }

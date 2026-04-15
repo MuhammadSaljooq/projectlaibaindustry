@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use App\Models\CustomerLedgerPayableGroupPayment;
 use App\Models\Payable;
+use App\Models\PayableGroupPayment;
+use App\Models\PayableGroupPaymentLine;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -88,12 +92,38 @@ class PayableController extends Controller
             throw new NotFoundHttpException;
         }
 
+        foreach ($payables as $payable) {
+            $received = round((float) $payable->received, 2);
+            $payable->setAttribute('direct_payment_total', $received);
+            $payable->setAttribute('remaining_balance', round((float) $payable->amount - $received, 2));
+        }
+
+        $openPayables = $payables->filter(fn (Payable $p) => (float) $p->remaining_balance > 0.00001)->values();
+        $settledPayables = $payables->filter(fn (Payable $p) => (float) $p->remaining_balance <= 0.00001)->values();
+
         $billTotal = (float) $payables->sum(fn (Payable $p) => (float) $p->amount);
         $paidTotal = (float) $payables->sum(fn (Payable $p) => (float) $p->received);
         $outstanding = max(0, $billTotal - $paidTotal);
+        $groupTotals = [
+            'total_bill' => round($billTotal, 2),
+            'total_received' => round($paidTotal, 2),
+            'total_direct_payments' => round($paidTotal, 2),
+            'total_remaining' => round($outstanding, 2),
+        ];
+        $groupPayments = Schema::hasTable('payable_group_payments')
+            ? PayableGroupPayment::query()
+                ->where('group_key', $decoded)
+                ->orderByDesc('payment_date')
+                ->orderByDesc('id')
+                ->get()
+            : collect();
 
         return view('payables.group', [
             'payables' => $payables,
+            'openPayables' => $openPayables,
+            'settledPayables' => $settledPayables,
+            'groupPayments' => $groupPayments,
+            'groupTotals' => $groupTotals,
             'displayName' => $payables->first()->customer_name ?: ($payables->first()->customer_code ?: 'Unknown customer'),
             'currencySymbol' => Currency::query()->where('is_default', true)->value('symbol') ?? '$',
             'billTotal' => $billTotal,
@@ -139,41 +169,14 @@ class PayableController extends Controller
         try {
             DB::beginTransaction();
 
-            foreach ($allocations as $payableId => $slice) {
-                $slice = round((float) $slice, 2);
-                if ($slice <= 0) {
-                    continue;
-                }
-                $payable = Payable::query()->findOrFail($payableId);
-                $customer = $payable->customer_code
-                    ? Customer::where('customer_code', $payable->customer_code)->first()
-                    : null;
-
-                if ($customer) {
-                    CustomerLedgerEntry::create([
-                        'customer_id' => $customer->id,
-                        'date' => $paymentDate,
-                        'description' => 'Payment Made',
-                        'reference' => $payable->invoice_number,
-                        'debit' => $slice,
-                        'credit' => 0,
-                        'source_type' => 'payment_made',
-                        'source_id' => $payable->id,
-                    ]);
-                    $this->syncReceivedFromLedger($payable);
-                } else {
-                    $payable->increment('received', $slice);
-                    $payable->refresh();
-                    $currentAt = $payable->received_date
-                        ? Carbon::parse($payable->received_date, config('app.timezone'))->startOfDay()
-                        : null;
-                    $nextAt = $paymentDate;
-                    if ($currentAt && $currentAt->gt($paymentDate)) {
-                        $nextAt = $currentAt;
-                    }
-                    $payable->update(['received_date' => $nextAt]);
-                }
-            }
+            $groupPayment = Schema::hasTable('payable_group_payments')
+                ? PayableGroupPayment::create([
+                    'group_key' => $decoded,
+                    'payment_date' => $paymentDate,
+                    'amount' => $amount,
+                ])
+                : null;
+            $this->applyGroupPaymentSlices($groupPayment, $paymentDate, $allocations);
 
             DB::commit();
 
@@ -184,6 +187,110 @@ class PayableController extends Controller
 
             return redirect()->back()->withInput()
                 ->with('error', 'Failed to record combined payment: '.$e->getMessage());
+        }
+    }
+
+    public function editGroupPayment(string $groupKey, PayableGroupPayment $payableGroupPayment): View
+    {
+        $this->assertGroupPaymentMatchesRouteKey($groupKey, $payableGroupPayment);
+
+        $decoded = $payableGroupPayment->group_key;
+        $fifoList = $this->payablesFifoForGroup($decoded);
+        if ($fifoList->isEmpty()) {
+            throw new NotFoundHttpException;
+        }
+
+        $remaining = $this->totalGroupRemaining($fifoList);
+        $maxAllowed = round($remaining + (float) $payableGroupPayment->amount, 2);
+        $groupKeyEncoded = $this->encodeGroupKeyForRoute($decoded);
+
+        return view('payables.group-payment-edit', [
+            'groupPayment' => $payableGroupPayment,
+            'groupKeyEncoded' => $groupKeyEncoded,
+            'displayName' => $fifoList->first()->customer_name
+                ?: $fifoList->first()->customer_code
+                ?: ('#'.$fifoList->first()->id),
+            'maxAllowed' => $maxAllowed,
+            'currencySymbol' => Currency::query()->where('is_default', true)->value('symbol') ?? '$',
+        ]);
+    }
+
+    public function updateGroupPayment(Request $request, string $groupKey, PayableGroupPayment $payableGroupPayment): RedirectResponse
+    {
+        $this->assertGroupPaymentMatchesRouteKey($groupKey, $payableGroupPayment);
+        $payableGroupPayment->load('lines');
+
+        $validated = $request->validate([
+            'payment_date' => ['required', 'date'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+        ]);
+
+        $decoded = $payableGroupPayment->group_key;
+        $amount = round((float) $validated['amount'], 2);
+        $oldAmount = (float) $payableGroupPayment->amount;
+
+        $fifoList = $this->payablesFifoForGroup($decoded);
+        $remaining = $this->totalGroupRemaining($fifoList);
+        $maxAllowed = round($remaining + $oldAmount, 2);
+        if ($amount > $maxAllowed + 0.00001) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Amount cannot exceed combined remaining balance plus this payment ('.number_format($maxAllowed, 2).').');
+        }
+
+        $paymentDate = Carbon::parse($validated['payment_date'], config('app.timezone'))->startOfDay();
+
+        try {
+            DB::beginTransaction();
+
+            $this->reverseGroupPayment($payableGroupPayment);
+            $payableGroupPayment->update([
+                'amount' => $amount,
+                'payment_date' => $paymentDate,
+            ]);
+            $fifoList = $this->payablesFifoForGroup($decoded);
+            $allocations = $this->allocateFifo($fifoList, $amount);
+            $sumAlloc = round(array_sum($allocations), 2);
+            if (abs($sumAlloc - $amount) > 0.02 || $sumAlloc < 0.01) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()
+                    ->with('error', 'Unable to allocate payment across invoices.');
+            }
+            $this->applyGroupPaymentSlices($payableGroupPayment, $paymentDate, $allocations);
+
+            DB::commit();
+
+            return redirect()->route('payables.group', ['groupKey' => $this->encodeGroupKeyForRoute($decoded)])
+                ->with('success', 'Combined payment updated.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withInput()
+                ->with('error', 'Failed to update combined payment: '.$e->getMessage());
+        }
+    }
+
+    public function destroyGroupPayment(string $groupKey, PayableGroupPayment $payableGroupPayment): RedirectResponse
+    {
+        $this->assertGroupPaymentMatchesRouteKey($groupKey, $payableGroupPayment);
+        $payableGroupPayment->load('lines');
+        $decoded = $payableGroupPayment->group_key;
+
+        try {
+            DB::beginTransaction();
+
+            $this->reverseGroupPayment($payableGroupPayment);
+            $payableGroupPayment->delete();
+
+            DB::commit();
+
+            return redirect()->route('payables.group', ['groupKey' => $this->encodeGroupKeyForRoute($decoded)])
+                ->with('success', 'Combined payment removed.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()
+                ->with('error', 'Failed to remove combined payment: '.$e->getMessage());
         }
     }
 
@@ -498,5 +605,145 @@ class PayableController extends Controller
         }
 
         return $out;
+    }
+
+    /**
+     * @param  array<int, float>  $allocations
+     */
+    private function applyGroupPaymentSlices(?PayableGroupPayment $groupPayment, Carbon $paymentDate, array $allocations): void
+    {
+        foreach ($allocations as $payableId => $slice) {
+            $slice = round((float) $slice, 2);
+            if ($slice <= 0) {
+                continue;
+            }
+            $payable = Payable::query()->findOrFail($payableId);
+            $customer = $payable->customer_code
+                ? Customer::where('customer_code', $payable->customer_code)->first()
+                : null;
+
+            if ($customer) {
+                $ledgerAttrs = [
+                    'customer_id' => $customer->id,
+                    'date' => $paymentDate,
+                    'description' => 'Payment Made',
+                    'reference' => $payable->invoice_number,
+                    'debit' => $slice,
+                    'credit' => 0,
+                    'source_type' => 'payment_made',
+                    'source_id' => $payable->id,
+                ];
+                if ($groupPayment && Schema::hasColumn('customer_ledger_entries', 'payable_group_payment_id')) {
+                    $ledgerAttrs['payable_group_payment_id'] = $groupPayment->id;
+                }
+                $entry = CustomerLedgerEntry::create($ledgerAttrs);
+                if ($groupPayment && Schema::hasTable('customer_ledger_payable_group_payments')) {
+                    CustomerLedgerPayableGroupPayment::create([
+                        'customer_ledger_entry_id' => $entry->id,
+                        'payable_group_payment_id' => $groupPayment->id,
+                    ]);
+                }
+                if ($groupPayment && Schema::hasTable('payable_group_payment_lines')) {
+                    PayableGroupPaymentLine::create([
+                        'payable_group_payment_id' => $groupPayment->id,
+                        'payable_id' => $payable->id,
+                        'amount' => $slice,
+                        'customer_ledger_entry_id' => $entry->id,
+                    ]);
+                }
+                $this->syncReceivedFromLedger($payable);
+            } else {
+                $payable->increment('received', $slice);
+                $payable->refresh();
+                $currentAt = $payable->received_date
+                    ? Carbon::parse($payable->received_date, config('app.timezone'))->startOfDay()
+                    : null;
+                $nextAt = $paymentDate;
+                if ($currentAt && $currentAt->gt($paymentDate)) {
+                    $nextAt = $currentAt;
+                }
+                $payable->update(['received_date' => $nextAt]);
+                if ($groupPayment && Schema::hasTable('payable_group_payment_lines')) {
+                    PayableGroupPaymentLine::create([
+                        'payable_group_payment_id' => $groupPayment->id,
+                        'payable_id' => $payable->id,
+                        'amount' => $slice,
+                        'customer_ledger_entry_id' => null,
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function reverseGroupPayment(PayableGroupPayment $payment): void
+    {
+        $payment->loadMissing('lines');
+        $batchId = (int) $payment->id;
+        foreach ($payment->lines as $line) {
+            $this->reverseGroupPaymentLine($line, $batchId);
+            $line->delete();
+        }
+    }
+
+    private function reverseGroupPaymentLine(PayableGroupPaymentLine $line, int $excludeGroupPaymentId): void
+    {
+        $payable = $line->payable_id
+            ? Payable::query()->find($line->payable_id)
+            : null;
+
+        if ($line->customer_ledger_entry_id) {
+            $entry = CustomerLedgerEntry::query()->find($line->customer_ledger_entry_id);
+            if ($entry) {
+                $entry->delete();
+            }
+            if ($payable) {
+                $this->syncReceivedFromLedger($payable);
+            }
+
+            return;
+        }
+
+        if (! $payable) {
+            return;
+        }
+
+        $slice = (float) $line->amount;
+        $payable->decrement('received', $slice);
+        $payable->refresh();
+        $paid = round((float) $payable->received, 2);
+        if ($paid <= 0) {
+            $payable->update([
+                'received' => 0,
+                'received_date' => null,
+            ]);
+        } else {
+            $maxOrphan = $this->maxOrphanGroupPaymentDateForPayable($payable, $excludeGroupPaymentId);
+            if ($maxOrphan) {
+                $payable->update(['received_date' => $maxOrphan]);
+            }
+        }
+    }
+
+    private function maxOrphanGroupPaymentDateForPayable(Payable $payable, int $excludeGroupPaymentId): ?Carbon
+    {
+        if (! Schema::hasTable('payable_group_payment_lines') || ! Schema::hasTable('payable_group_payments')) {
+            return null;
+        }
+        $max = DB::table('payable_group_payment_lines')
+            ->join('payable_group_payments as gp', 'gp.id', '=', 'payable_group_payment_lines.payable_group_payment_id')
+            ->where('payable_group_payment_lines.payable_id', $payable->id)
+            ->whereNull('payable_group_payment_lines.customer_ledger_entry_id')
+            ->where('payable_group_payment_lines.payable_group_payment_id', '!=', $excludeGroupPaymentId)
+            ->max('gp.payment_date');
+
+        return $max ? Carbon::parse($max, config('app.timezone'))->startOfDay() : null;
+    }
+
+    private function assertGroupPaymentMatchesRouteKey(string $groupKey, PayableGroupPayment $payment): void
+    {
+        $decoded = $this->decodeGroupKeyFromRoute($groupKey);
+        if ($decoded === null || $payment->group_key !== $decoded) {
+            abort(404);
+        }
     }
 }

@@ -79,6 +79,9 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('/international-payables', [InternationalPayableController::class, 'index'])->name('international-payables.index');
     Route::get('/international-payables/group/{groupKey}', [InternationalPayableController::class, 'showGroup'])->name('international-payables.group');
     Route::post('/international-payables/group/{groupKey}/payments', [InternationalPayableController::class, 'storeGroupPayment'])->name('international-payables.group.payments.store');
+    Route::get('/international-payables/group/{groupKey}/payments/{internationalPayableGroupPayment}/edit', [InternationalPayableController::class, 'editGroupPayment'])->name('international-payables.group.payments.edit');
+    Route::patch('/international-payables/group/{groupKey}/payments/{internationalPayableGroupPayment}', [InternationalPayableController::class, 'updateGroupPayment'])->name('international-payables.group.payments.update');
+    Route::delete('/international-payables/group/{groupKey}/payments/{internationalPayableGroupPayment}', [InternationalPayableController::class, 'destroyGroupPayment'])->name('international-payables.group.payments.destroy');
     Route::get('/international-payables/{international_purchase}/pay', [InternationalPayableController::class, 'pay'])->name('international-payables.pay');
     Route::post('/international-payables/{international_purchase}/pay', [InternationalPayableController::class, 'storePayment'])->name('international-payables.pay.store');
     Route::patch('/international-payables/{international_purchase}/payments/{internationalPayablePayment}', [InternationalPayableController::class, 'updatePayment'])->name('international-payables.payments.update');
@@ -88,6 +91,9 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::put('payables/{payable}/adjust-received', [PayableController::class, 'adjustReceivedWithoutLedger'])->name('payables.adjust-received');
     Route::get('payables/group/{groupKey}', [PayableController::class, 'showGroup'])->name('payables.group');
     Route::post('payables/group/{groupKey}/payments', [PayableController::class, 'storeGroupPayment'])->name('payables.group.payments.store');
+    Route::get('payables/group/{groupKey}/payments/{payableGroupPayment}/edit', [PayableController::class, 'editGroupPayment'])->name('payables.group.payments.edit');
+    Route::patch('payables/group/{groupKey}/payments/{payableGroupPayment}', [PayableController::class, 'updateGroupPayment'])->name('payables.group.payments.update');
+    Route::delete('payables/group/{groupKey}/payments/{payableGroupPayment}', [PayableController::class, 'destroyGroupPayment'])->name('payables.group.payments.destroy');
     Route::delete('customers/{customer}/ledger-entries/{customerLedgerEntry}', [CustomerController::class, 'destroyLedgerEntry'])->name('customers.ledger-entries.destroy');
     Route::resource('customers', CustomerController::class);
     Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');

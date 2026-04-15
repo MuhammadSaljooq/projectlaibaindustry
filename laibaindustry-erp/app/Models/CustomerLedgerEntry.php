@@ -20,6 +20,7 @@ class CustomerLedgerEntry extends Model
         'source_type',
         'source_id',
         'receivable_group_payment_id',
+        'payable_group_payment_id',
         'notes',
     ];
 
@@ -39,9 +40,20 @@ class CustomerLedgerEntry extends Model
         return $this->belongsTo(ReceivableGroupPayment::class);
     }
 
+    public function payableGroupPayment(): BelongsTo
+    {
+        return $this->belongsTo(PayableGroupPayment::class);
+    }
+
     /** @return HasOne<CustomerLedgerReceivableGroupPayment, $this> */
     public function receivableGroupPaymentLink(): HasOne
     {
         return $this->hasOne(CustomerLedgerReceivableGroupPayment::class);
+    }
+
+    /** @return HasOne<CustomerLedgerPayableGroupPayment, $this> */
+    public function payableGroupPaymentLink(): HasOne
+    {
+        return $this->hasOne(CustomerLedgerPayableGroupPayment::class);
     }
 }

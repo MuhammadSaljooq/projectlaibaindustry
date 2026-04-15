@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\InternationalPayableGroupPayment;
 use App\Models\InternationalPayablePayment;
 use App\Models\InternationalPurchase;
 use App\Models\InternationalPurchaseOrder;
@@ -288,6 +289,56 @@ class InternationalPayableTest extends TestCase
             'international_purchase_order_id' => $orderB->id,
             'amount' => 20,
             'notes' => 'Combined',
+        ]);
+        $this->assertDatabaseHas('international_payable_group_payments', [
+            'group_key' => 'name:merge vendor',
+            'amount' => 120,
+        ]);
+    }
+
+    public function test_group_combined_payment_can_be_updated_and_removed(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create(['name' => 'Merge Vendor']);
+        $order = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplier->id,
+            'date' => '2026-06-01',
+            'invoice_number' => 'M-1',
+            'total_amount' => 100,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $order->id,
+            'product_name' => 'A',
+            'quantity' => 1,
+            'unit_price' => 100,
+            'total_amount' => 100,
+        ]);
+
+        $groupKey = rtrim(strtr(base64_encode('name:merge vendor'), '+/', '-_'), '=');
+        $this->actingAs($user)->post(route('international-payables.group.payments.store', ['groupKey' => $groupKey]), [
+            'payment_date' => '2026-06-10',
+            'amount' => '60.00',
+            'notes' => 'Combined',
+        ])->assertRedirect(route('international-payables.group', ['groupKey' => $groupKey]));
+
+        $groupPayment = InternationalPayableGroupPayment::query()->firstOrFail();
+        $this->actingAs($user)->patch(route('international-payables.group.payments.update', ['groupKey' => $groupKey, 'internationalPayableGroupPayment' => $groupPayment]), [
+            'payment_date' => '2026-06-11',
+            'amount' => '80.00',
+            'notes' => 'Updated',
+        ])->assertRedirect(route('international-payables.group', ['groupKey' => $groupKey]));
+
+        $this->assertDatabaseHas('international_payable_group_payments', [
+            'id' => $groupPayment->id,
+            'amount' => 80,
+            'notes' => 'Updated',
+        ]);
+
+        $this->actingAs($user)->delete(route('international-payables.group.payments.destroy', ['groupKey' => $groupKey, 'internationalPayableGroupPayment' => $groupPayment]))
+            ->assertRedirect(route('international-payables.group', ['groupKey' => $groupKey]));
+
+        $this->assertDatabaseMissing('international_payable_group_payments', [
+            'id' => $groupPayment->id,
         ]);
     }
 }

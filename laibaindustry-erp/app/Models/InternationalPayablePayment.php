@@ -11,6 +11,7 @@ class InternationalPayablePayment extends Model
 
     protected $fillable = [
         'international_purchase_order_id',
+        'international_payable_group_payment_id',
         'payment_date',
         'amount',
         'notes',
@@ -24,5 +25,10 @@ class InternationalPayablePayment extends Model
     public function internationalPurchaseOrder(): BelongsTo
     {
         return $this->belongsTo(InternationalPurchaseOrder::class, 'international_purchase_order_id');
+    }
+
+    public function groupPayment(): BelongsTo
+    {
+        return $this->belongsTo(InternationalPayableGroupPayment::class, 'international_payable_group_payment_id');
     }
 }
