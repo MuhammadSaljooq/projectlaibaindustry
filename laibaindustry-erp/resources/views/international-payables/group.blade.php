@@ -58,6 +58,29 @@
 </div>
 </div>
 
+@if(auth()->user()->role !== 'viewer' && $outstanding > 0.00001)
+<div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white">
+<p class="st-label mb-4">Record payment on total balance</p>
+<form method="post" action="{{ route('international-payables.group.payments.store', ['groupKey' => $groupKeyEncoded]) }}" class="flex flex-col sm:flex-row sm:flex-wrap gap-4 sm:items-end">
+@csrf
+<div class="flex flex-col gap-1 min-w-[140px]">
+<label class="st-label" for="gp_payment_date">Payment date</label>
+<input class="st-input font-mono text-sm" type="date" id="gp_payment_date" name="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}" required>
+</div>
+<div class="flex flex-col gap-1 min-w-[140px]">
+<label class="st-label" for="gp_amount">Amount</label>
+<input class="st-input font-mono text-sm" type="number" id="gp_amount" name="amount" step="0.01" min="0.01" max="{{ $outstanding }}" placeholder="0.00" value="{{ old('amount') }}" required>
+</div>
+<div class="flex flex-col gap-1 min-w-[220px]">
+<label class="st-label" for="gp_notes">Notes (optional)</label>
+<input class="st-input text-sm" type="text" id="gp_notes" name="notes" maxlength="500" value="{{ old('notes') }}" placeholder="Reference / remarks">
+</div>
+<button type="submit" class="st-btn-primary h-10 px-4 text-[10px] font-bold uppercase tracking-wider shrink-0">Record combined payment</button>
+</form>
+<p class="text-[10px] text-[#586064] mt-3">Maximum for this batch: {{ $currencySymbol }} {{ number_format($outstanding, 2) }}. Allocation is oldest invoice first.</p>
+</div>
+@endif
+
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">International purchase obligations</h3>

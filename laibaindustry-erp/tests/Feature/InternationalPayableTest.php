@@ -237,4 +237,57 @@ class InternationalPayableTest extends TestCase
             ->assertSee('G-2')
             ->assertSee('100.00');
     }
+
+    public function test_group_combined_payment_allocates_fifo_across_vendor_invoices(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create(['name' => 'Merge Vendor']);
+
+        $orderA = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplier->id,
+            'date' => '2026-06-01',
+            'invoice_number' => 'M-1',
+            'total_amount' => 100,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $orderA->id,
+            'product_name' => 'A',
+            'quantity' => 1,
+            'unit_price' => 100,
+            'total_amount' => 100,
+        ]);
+
+        $orderB = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplier->id,
+            'date' => '2026-06-02',
+            'invoice_number' => 'M-2',
+            'total_amount' => 100,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $orderB->id,
+            'product_name' => 'B',
+            'quantity' => 1,
+            'unit_price' => 100,
+            'total_amount' => 100,
+        ]);
+
+        $groupKey = rtrim(strtr(base64_encode('name:merge vendor'), '+/', '-_'), '=');
+        $this->actingAs($user)->post(route('international-payables.group.payments.store', ['groupKey' => $groupKey]), [
+            'payment_date' => '2026-06-10',
+            'amount' => '120.00',
+            'notes' => 'Combined',
+        ])->assertRedirect(route('international-payables.group', ['groupKey' => $groupKey]))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('international_payable_payments', [
+            'international_purchase_order_id' => $orderA->id,
+            'amount' => 100,
+            'notes' => 'Combined',
+        ]);
+        $this->assertDatabaseHas('international_payable_payments', [
+            'international_purchase_order_id' => $orderB->id,
+            'amount' => 20,
+            'notes' => 'Combined',
+        ]);
+    }
 }

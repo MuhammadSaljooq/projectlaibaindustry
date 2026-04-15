@@ -100,7 +100,78 @@ class InternationalPayableController extends Controller
             'paidTotal' => $paidTotal,
             'outstanding' => $outstanding,
             'currencySymbol' => Currency::query()->where('is_default', true)->value('symbol') ?? '$',
+            'groupKeyEncoded' => $this->encodeGroupKeyForRoute($decoded),
         ]);
+    }
+
+    public function storeGroupPayment(Request $request, string $groupKey): RedirectResponse
+    {
+        $decoded = $this->decodeGroupKeyFromRoute($groupKey);
+        if ($decoded === null || ! $this->isValidGroupKey($decoded)) {
+            throw new NotFoundHttpException;
+        }
+
+        $validated = $request->validate([
+            'payment_date' => ['required', 'date'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $fifoList = $this->ordersFifoForGroup($decoded);
+        if ($fifoList->isEmpty()) {
+            throw new NotFoundHttpException;
+        }
+
+        $remaining = $this->totalGroupRemaining($fifoList);
+        $amount = round((float) $validated['amount'], 2);
+        if ($amount > $remaining + 0.00001) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Amount cannot exceed combined remaining balance ('.number_format($remaining, 2).').');
+        }
+
+        $allocations = $this->allocateFifo($fifoList, $amount);
+        $sumAlloc = round(array_sum($allocations), 2);
+        if (abs($sumAlloc - $amount) > 0.02 || $sumAlloc < 0.01) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Unable to allocate payment across invoices.');
+        }
+
+        $paymentDate = Carbon::parse($validated['payment_date'], config('app.timezone'))->startOfDay();
+        $notes = $validated['notes'] ?? null;
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($allocations as $orderId => $slice) {
+                $slice = round((float) $slice, 2);
+                if ($slice <= 0) {
+                    continue;
+                }
+                /** @var InternationalPurchaseOrder $order */
+                $order = $fifoList->firstWhere('id', $orderId);
+                if (! $order) {
+                    $order = InternationalPurchaseOrder::query()->findOrFail($orderId);
+                }
+
+                $payment = InternationalPayablePayment::create([
+                    'international_purchase_order_id' => $order->id,
+                    'payment_date' => $paymentDate,
+                    'amount' => $slice,
+                    'notes' => $notes,
+                ]);
+                SupplierLedgerSync::recordPayment($payment, $order);
+            }
+
+            DB::commit();
+
+            return redirect()->route('international-payables.group', ['groupKey' => $this->encodeGroupKeyForRoute($decoded)])
+                ->with('success', 'Combined payment recorded.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withInput()
+                ->with('error', 'Failed to record combined payment: '.$e->getMessage());
+        }
     }
 
     public function pay(InternationalPurchaseOrder $international_purchase): View
@@ -296,5 +367,61 @@ class InternationalPayableController extends Controller
         $decoded = base64_decode($normalized, true);
 
         return $decoded === false ? null : $decoded;
+    }
+
+    private function ordersFifoForGroup(string $decoded): Collection
+    {
+        $query = InternationalPurchaseOrder::query()
+            ->withSum('payablePayments', 'amount')
+            ->orderBy('date')
+            ->orderBy('id');
+
+        if (str_starts_with($decoded, 'id:')) {
+            $query->where('supplier_id', (int) substr($decoded, strlen('id:')));
+        } elseif (str_starts_with($decoded, 'name:')) {
+            $name = substr($decoded, strlen('name:'));
+            $query->whereHas('supplier', fn ($q) => $q->whereRaw('LOWER(TRIM(name)) = ?', [$name]));
+        } elseif (str_starts_with($decoded, 'order:')) {
+            $query->where('id', (int) substr($decoded, strlen('order:')));
+        }
+
+        return $query->get();
+    }
+
+    private function totalGroupRemaining(Collection $ordersOldestFirst): float
+    {
+        $sum = 0.0;
+        foreach ($ordersOldestFirst as $order) {
+            $paid = (float) ($order->payable_payments_sum_amount ?? 0);
+            $sum += (float) $order->total_amount - $paid;
+        }
+
+        return round($sum, 2);
+    }
+
+    /**
+     * @return array<int, float> order_id => slice amount
+     */
+    private function allocateFifo(Collection $ordersOldestFirst, float $paymentAmount): array
+    {
+        $left = round($paymentAmount, 2);
+        $out = [];
+        foreach ($ordersOldestFirst as $order) {
+            if ($left <= 0) {
+                break;
+            }
+            $paid = round((float) ($order->payable_payments_sum_amount ?? 0), 2);
+            $remaining = round((float) $order->total_amount - $paid, 2);
+            if ($remaining <= 0) {
+                continue;
+            }
+            $slice = min($left, $remaining);
+            if ($slice > 0) {
+                $out[(int) $order->id] = $slice;
+                $left = round($left - $slice, 2);
+            }
+        }
+
+        return $out;
     }
 }
