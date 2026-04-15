@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Currency;
 use App\Models\InternationalPayablePayment;
 use App\Models\InternationalPurchaseOrder;
 use App\Services\SupplierLedgerSync;
@@ -50,7 +49,7 @@ class InternationalPayableController extends Controller
         $paidTotal = (float) InternationalPayablePayment::query()->sum('amount');
         $outstanding = max(0, $billTotal - $paidTotal);
 
-        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $currencySymbol = $this->internationalPayableCurrency();
 
         return view('international-payables.index', [
             'orderGroups' => $orderGroups,
@@ -99,7 +98,7 @@ class InternationalPayableController extends Controller
             'billTotal' => $billTotal,
             'paidTotal' => $paidTotal,
             'outstanding' => $outstanding,
-            'currencySymbol' => Currency::query()->where('is_default', true)->value('symbol') ?? '$',
+            'currencySymbol' => $this->internationalPayableCurrency(),
             'groupKeyEncoded' => $this->encodeGroupKeyForRoute($decoded),
         ]);
     }
@@ -182,7 +181,7 @@ class InternationalPayableController extends Controller
         $bill = (float) $international_purchase->total_amount;
         $balance = max(0, $bill - $paid);
 
-        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $currencySymbol = $this->internationalPayableCurrency();
 
         return view('international-payables.pay', [
             'order' => $international_purchase,
@@ -423,5 +422,10 @@ class InternationalPayableController extends Controller
         }
 
         return $out;
+    }
+
+    private function internationalPayableCurrency(): string
+    {
+        return 'USD';
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Currency;
 use App\Models\InternationalPurchase;
 use App\Models\InternationalPurchaseOrder;
 use App\Models\Supplier;
@@ -44,7 +43,7 @@ class InternationalPurchaseController extends Controller
             ->values();
 
         $totalAmount = (float) InternationalPurchaseOrder::query()->sum('total_amount');
-        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $currencySymbol = $this->internationalPurchaseCurrency();
 
         return view('international-purchases.index', [
             'orderGroups' => $orderGroups,
@@ -84,7 +83,7 @@ class InternationalPurchaseController extends Controller
 
         $displayName = $orders->first()->supplier?->name ?: 'Unknown vendor';
         $totalAmount = (float) $orders->sum(fn (InternationalPurchaseOrder $o) => (float) $o->total_amount);
-        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $currencySymbol = $this->internationalPurchaseCurrency();
 
         return view('international-purchases.group', [
             'orders' => $orders,
@@ -124,7 +123,7 @@ class InternationalPurchaseController extends Controller
     {
         return view('international-purchases.create', [
             'suppliers' => Supplier::query()->orderBy('name')->get(),
-            'currencySymbol' => Currency::query()->where('is_default', true)->value('symbol') ?? '$',
+            'currencySymbol' => $this->internationalPurchaseCurrency(),
         ]);
     }
 
@@ -208,7 +207,7 @@ class InternationalPurchaseController extends Controller
     {
         $international_purchase->load(['supplier', 'lines']);
 
-        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $currencySymbol = $this->internationalPurchaseCurrency();
 
         return view('international-purchases.show', [
             'order' => $international_purchase,
@@ -223,7 +222,7 @@ class InternationalPurchaseController extends Controller
         return view('international-purchases.edit', [
             'order' => $international_purchase,
             'suppliers' => Supplier::query()->orderBy('name')->get(),
-            'currencySymbol' => Currency::query()->where('is_default', true)->value('symbol') ?? '$',
+            'currencySymbol' => $this->internationalPurchaseCurrency(),
         ]);
     }
 
@@ -353,5 +352,10 @@ class InternationalPurchaseController extends Controller
         $decoded = base64_decode($normalized, true);
 
         return $decoded === false ? null : $decoded;
+    }
+
+    private function internationalPurchaseCurrency(): string
+    {
+        return 'USD';
     }
 }
