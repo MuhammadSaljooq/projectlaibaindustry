@@ -72,6 +72,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::resource('purchases', PurchaseController::class);
     Route::get('purchases/group/{groupKey}', [PurchaseController::class, 'showGroup'])->name('purchases.group');
     Route::get('suppliers/{supplier}/ledger', [SupplierController::class, 'ledger'])->name('suppliers.ledger');
+    Route::get('suppliers/{supplier}/ledger/pdf', [SupplierController::class, 'ledgerPdf'])->name('suppliers.ledger.pdf');
     Route::resource('suppliers', SupplierController::class);
     Route::resource('international-purchases', InternationalPurchaseController::class);
     Route::get('international-purchases/group/{groupKey}', [InternationalPurchaseController::class, 'showGroup'])->name('international-purchases.group');

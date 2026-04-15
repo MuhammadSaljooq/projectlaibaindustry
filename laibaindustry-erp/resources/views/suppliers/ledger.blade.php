@@ -18,12 +18,18 @@
 <span class="hidden sm:inline">Vendors</span>
 </a>
 </div>
+<div class="flex items-center gap-2 flex-wrap justify-end">
+<a href="{{ route('suppliers.ledger.pdf', $supplier) }}" class="st-btn-primary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+<span class="hidden sm:inline">Download PDF</span>
+</a>
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('suppliers.edit', $supplier) }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
 <span class="material-symbols-outlined text-[18px]">edit</span>
 <span class="hidden sm:inline">Edit vendor</span>
 </a>
 @endif
+</div>
 </header>
 
 <div class="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 scroll-smooth">

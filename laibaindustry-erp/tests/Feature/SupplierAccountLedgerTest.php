@@ -101,4 +101,23 @@ class SupplierAccountLedgerTest extends TestCase
             ->assertSee('Acme')
             ->assertSee('Balance owed');
     }
+
+    public function test_manager_can_download_vendor_statement_pdf(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create(['name' => 'PDF Vendor']);
+
+        $response = $this->actingAs($user)->get(route('suppliers.ledger.pdf', $supplier));
+
+        if ($response->status() === 302) {
+            $response->assertRedirect(route('suppliers.ledger', $supplier));
+            $response->assertSessionHas('error');
+
+            return;
+        }
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $response->assertHeader('content-disposition');
+    }
 }

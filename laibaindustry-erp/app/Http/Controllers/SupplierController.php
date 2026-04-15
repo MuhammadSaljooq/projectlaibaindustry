@@ -5,8 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\Supplier;
 use App\Models\SupplierLedgerEntry;
+use App\Support\StatementCompany;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SupplierController extends Controller
@@ -63,6 +68,48 @@ class SupplierController extends Controller
             ['supplier' => $supplier],
             $this->supplierLedgerPayload($supplier)
         ));
+    }
+
+    public function ledgerPdf(Supplier $supplier): Response|RedirectResponse
+    {
+        $fontsDir = storage_path('fonts');
+        if (! is_dir($fontsDir)) {
+            @mkdir($fontsDir, 0755, true);
+        }
+
+        try {
+            $payload = $this->supplierLedgerPayload($supplier);
+            $pdf = Pdf::loadView('suppliers.ledger-pdf', array_merge(
+                ['supplier' => $supplier, 'company' => StatementCompany::normalize(config('company'))],
+                $payload
+            ))
+                ->setPaper('a4', 'portrait')
+                ->setOption('isHtml5ParserEnabled', true)
+                ->setOption('isRemoteEnabled', false)
+                ->setOption('fontDir', $fontsDir)
+                ->setOption('fontCache', $fontsDir);
+
+            $filename = sprintf(
+                'vendor-statement-%s-%s.pdf',
+                Str::slug($supplier->name),
+                now()->format('d-m-Y')
+            );
+
+            return response($pdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Vendor statement PDF generation failed', [
+                'supplier' => $supplier->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->route('suppliers.ledger', $supplier)
+                ->with('error', 'PDF generation failed: '.$e->getMessage());
+        }
     }
 
     public function edit(Supplier $supplier): View
