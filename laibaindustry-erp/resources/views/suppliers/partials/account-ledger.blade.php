@@ -29,9 +29,9 @@
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
 <th class="st-th px-4 py-3">Description</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice / Ref</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Debit</th>
+<th class="st-th px-4 py-3 whitespace-nowrap">REFRENCE</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Credit</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Debit</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Balance</th>
 </tr>
 </thead>
@@ -51,8 +51,8 @@
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($e->date) }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $e->description }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064] whitespace-nowrap">{{ $displayReference ?: '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">@if((float)$e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else—@endif</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">@if((float)$e->credit > 0){{ $currencySymbol }} {{ number_format($e->credit, 2) }}@else—@endif</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">@if((float)$e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else—@endif</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums {{ ($e->running_balance ?? 0) > 0.009 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($e->running_balance ?? 0, 2) }}</td>
 </tr>
 @empty

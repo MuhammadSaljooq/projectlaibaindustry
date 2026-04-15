@@ -79,9 +79,9 @@
         <tr>
             <th>Date</th>
             <th>Description</th>
-            <th>Invoice / Ref</th>
-            <th class="amt">Debit</th>
+            <th>REFRENCE</th>
             <th class="amt">Credit</th>
+            <th class="amt">Debit</th>
             <th class="amt">Balance</th>
         </tr>
     </thead>
@@ -101,8 +101,8 @@
             <td>{{ format_display_date($e->date) }}</td>
             <td>{{ $e->description }}</td>
             <td>{{ $displayReference ?: '—' }}</td>
-            <td class="amt">@if((float) $e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else — @endif</td>
             <td class="amt">@if((float) $e->credit > 0){{ $currencySymbol }} {{ number_format($e->credit, 2) }}@else — @endif</td>
+            <td class="amt">@if((float) $e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else — @endif</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($e->running_balance ?? 0, 2) }}</td>
         </tr>
     @empty
@@ -111,8 +111,8 @@
     @if($ledgerEntries->count() > 0)
         <tr class="totals">
             <td colspan="3">Totals</td>
-            <td class="amt">{{ $currencySymbol }} {{ number_format($ledgerTotalPaid, 2) }}</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($ledgerTotalCredit, 2) }}</td>
+            <td class="amt">{{ $currencySymbol }} {{ number_format($ledgerTotalPaid, 2) }}</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($ledgerBalance, 2) }}</td>
         </tr>
     @endif
