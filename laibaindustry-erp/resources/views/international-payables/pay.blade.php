@@ -108,6 +108,25 @@
 </div>
 
 @if(($payments ?? collect())->isNotEmpty() && auth()->user()->role !== 'viewer')
+@php $latestPayment = ($payments ?? collect())->first(); @endphp
+@if($latestPayment)
+<div class="mb-8 p-4 border border-[#ABB3B7] bg-[#F8F9FA]">
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div>
+<p class="st-label mb-1">Quick action</p>
+<p class="text-xs text-[#586064]">Delete latest recorded payment for this invoice.</p>
+</div>
+<form method="POST" action="{{ route('international-payables.payments.destroy', [$order, $latestPayment]) }}" class="inline" data-confirm-delete="{{ (bool) ($latestPayment->international_payable_group_payment_id ?? false) ? e('This payment belongs to a combined batch. Deleting here removes the full batch. Continue?') : e('Remove latest international payment entry?') }}">
+@csrf
+@method('DELETE')
+<button type="submit" class="h-10 px-4 text-[10px] font-bold uppercase border border-[#9F403D] text-[#9F403D] hover:bg-[#FDF5F5]">{{ (bool) ($latestPayment->international_payable_group_payment_id ?? false) ? 'Delete Latest Batch' : 'Delete Latest Payment' }}</button>
+</form>
+</div>
+</div>
+@endif
+@endif
+
+@if(($payments ?? collect())->isNotEmpty() && auth()->user()->role !== 'viewer')
 <div class="mb-10 pb-10 border-b border-[#ABB3B7]">
 <p class="st-label mb-4">Recorded payments</p>
 <p class="text-xs text-[#586064] mb-4">Edit amount/date or remove a payment row. This matches receivable payment handling.</p>
