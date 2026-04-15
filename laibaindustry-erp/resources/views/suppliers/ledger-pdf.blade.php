@@ -87,10 +87,20 @@
     </thead>
     <tbody>
     @forelse($ledgerEntries as $e)
+        @php
+            $displayReference = $e->reference;
+            if (($e->source_type ?? null) === 'international_payable_payment') {
+                if (filled($e->notes)) {
+                    $displayReference = $e->notes;
+                } elseif (is_string($displayReference) && preg_match('/\bIPP-\d+\b/i', $displayReference)) {
+                    $displayReference = null;
+                }
+            }
+        @endphp
         <tr>
             <td>{{ format_display_date($e->date) }}</td>
             <td>{{ $e->description }}</td>
-            <td>{{ $e->reference ?: '—' }}</td>
+            <td>{{ $displayReference ?: '—' }}</td>
             <td class="amt">@if((float) $e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else — @endif</td>
             <td class="amt">@if((float) $e->credit > 0){{ $currencySymbol }} {{ number_format($e->credit, 2) }}@else — @endif</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($e->running_balance ?? 0, 2) }}</td>

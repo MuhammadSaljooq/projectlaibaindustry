@@ -37,10 +37,20 @@
 </thead>
 <tbody>
 @forelse($ledgerEntries as $e)
+@php
+    $displayReference = $e->reference;
+    if (($e->source_type ?? null) === 'international_payable_payment') {
+        if (filled($e->notes)) {
+            $displayReference = $e->notes;
+        } elseif (is_string($displayReference) && preg_match('/\bIPP-\d+\b/i', $displayReference)) {
+            $displayReference = null;
+        }
+    }
+@endphp
 <tr class="st-tr">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($e->date) }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]">{{ $e->description }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-[#586064] whitespace-nowrap">{{ $e->reference ?: '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064] whitespace-nowrap">{{ $displayReference ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">@if((float)$e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else—@endif</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">@if((float)$e->credit > 0){{ $currencySymbol }} {{ number_format($e->credit, 2) }}@else—@endif</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums {{ ($e->running_balance ?? 0) > 0.009 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($e->running_balance ?? 0, 2) }}</td>

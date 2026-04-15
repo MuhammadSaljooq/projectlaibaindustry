@@ -42,7 +42,7 @@ class SupplierAccountLedgerTest extends TestCase
 
         $this->actingAs($user)->get(route('suppliers.ledger', $supplier))
             ->assertOk()
-            ->assertSee('Bolts')
+            ->assertSee('International purchase')
             ->assertSee('INV-7788')
             ->assertSee('50.00');
     }

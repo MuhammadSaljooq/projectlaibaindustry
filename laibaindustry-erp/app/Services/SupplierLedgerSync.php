@@ -21,10 +21,7 @@ final class SupplierLedgerSync
         }
 
         $order->loadMissing('lines');
-        $firstLine = $order->lines->first();
-        $desc = $firstLine
-            ? 'International purchase — '.Str::limit($firstLine->product_name, 120)
-            : 'International purchase';
+        $desc = 'International purchase';
 
         SupplierLedgerEntry::create([
             'supplier_id' => $order->supplier_id,
@@ -44,17 +41,14 @@ final class SupplierLedgerSync
             return;
         }
 
-        $baseReference = filled($order->invoice_number)
-            ? ($order->invoice_number.' / IPP-'.$payment->id)
-            : 'IPP-'.$payment->id;
         $reference = filled($payment->notes)
-            ? Str::limit($baseReference.' | '.$payment->notes, 100, '')
-            : $baseReference;
+            ? Str::limit((string) $payment->notes, 100, '')
+            : null;
 
         SupplierLedgerEntry::create([
             'supplier_id' => $order->supplier_id,
             'date' => $payment->payment_date->copy()->startOfDay(),
-            'description' => 'International payment',
+            'description' => 'Payment',
             'reference' => $reference,
             'debit' => $payment->amount,
             'credit' => 0,
