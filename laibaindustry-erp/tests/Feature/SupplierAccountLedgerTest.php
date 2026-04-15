@@ -23,6 +23,7 @@ class SupplierAccountLedgerTest extends TestCase
         $this->actingAs($user)->post(route('international-purchases.store'), [
             'supplier_id' => $supplier->id,
             'date' => '2026-06-01',
+            'invoice_number' => 'INV-7788',
             'items' => [
                 ['product_name' => 'Bolts', 'quantity' => 10, 'unit_price' => '5'],
             ],
@@ -42,6 +43,7 @@ class SupplierAccountLedgerTest extends TestCase
         $this->actingAs($user)->get(route('suppliers.ledger', $supplier))
             ->assertOk()
             ->assertSee('Bolts')
+            ->assertSee('INV-7788')
             ->assertSee('50.00');
     }
 
