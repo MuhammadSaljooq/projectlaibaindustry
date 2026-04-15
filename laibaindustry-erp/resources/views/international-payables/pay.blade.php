@@ -123,6 +123,7 @@
 </thead>
 <tbody>
 @foreach(($payments ?? collect()) as $payment)
+@php $isGroupedPayment = (bool) ($payment->international_payable_group_payment_id ?? false); @endphp
 <tr class="border-t border-[#ABB3B7] align-top">
 <td class="st-td px-3 py-3" colspan="4">
 <div class="flex flex-col gap-3">
@@ -131,31 +132,35 @@
 @method('PATCH')
 <div>
 <label class="st-label block mb-1 text-[10px]" for="payment-date-{{ $payment->id }}">Payment date</label>
-<input class="st-input w-full h-10 px-3 text-sm font-mono" id="payment-date-{{ $payment->id }}" name="payment_date_{{ $payment->id }}" type="date" value="{{ old('payment_date_'.$payment->id, $payment->payment_date?->format('Y-m-d')) }}" required>
+<input class="st-input w-full h-10 px-3 text-sm font-mono" id="payment-date-{{ $payment->id }}" name="payment_date_{{ $payment->id }}" type="date" value="{{ old('payment_date_'.$payment->id, $payment->payment_date?->format('Y-m-d')) }}" required @disabled($isGroupedPayment)>
 @error('payment_date_'.$payment->id)
 <p class="text-xs text-[#9F403D] mt-1">{{ $message }}</p>
 @enderror
 </div>
 <div>
 <label class="st-label block mb-1 text-[10px]" for="payment-amount-{{ $payment->id }}">Amount</label>
-<input class="st-input w-full h-10 px-3 text-sm font-mono text-right tabular-nums" id="payment-amount-{{ $payment->id }}" name="amount_{{ $payment->id }}" type="number" step="0.01" min="0.01" value="{{ old('amount_'.$payment->id, number_format((float) $payment->amount, 2, '.', '')) }}" required>
+<input class="st-input w-full h-10 px-3 text-sm font-mono text-right tabular-nums" id="payment-amount-{{ $payment->id }}" name="amount_{{ $payment->id }}" type="number" step="0.01" min="0.01" value="{{ old('amount_'.$payment->id, number_format((float) $payment->amount, 2, '.', '')) }}" required @disabled($isGroupedPayment)>
 @error('amount_'.$payment->id)
 <p class="text-xs text-[#9F403D] mt-1">{{ $message }}</p>
 @enderror
 </div>
 <div>
 <label class="st-label block mb-1 text-[10px]" for="payment-notes-{{ $payment->id }}">Notes</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="payment-notes-{{ $payment->id }}" name="notes_{{ $payment->id }}" type="text" maxlength="500" value="{{ old('notes_'.$payment->id, $payment->notes) }}" placeholder="Optional reference">
+<input class="st-input w-full h-10 px-3 text-sm" id="payment-notes-{{ $payment->id }}" name="notes_{{ $payment->id }}" type="text" maxlength="500" value="{{ old('notes_'.$payment->id, $payment->notes) }}" placeholder="Optional reference" @disabled($isGroupedPayment)>
 @error('notes_'.$payment->id)
 <p class="text-xs text-[#9F403D] mt-1">{{ $message }}</p>
 @enderror
 </div>
+@if(!$isGroupedPayment)
 <button type="submit" class="st-btn-primary h-10 px-4 text-[10px] uppercase">Save</button>
+@else
+<span class="text-xs text-[#586064]">Batch payment (edit from group page)</span>
+@endif
 </form>
-<form method="POST" action="{{ route('international-payables.payments.destroy', [$order, $payment]) }}" class="inline" data-confirm-delete="{{ e('Remove this international payment entry?') }}">
+<form method="POST" action="{{ route('international-payables.payments.destroy', [$order, $payment]) }}" class="inline" data-confirm-delete="{{ $isGroupedPayment ? e('This payment belongs to a combined batch. Deleting here removes the full batch. Continue?') : e('Remove this international payment entry?') }}">
 @csrf
 @method('DELETE')
-<button type="submit" class="h-10 px-4 text-[10px] font-bold uppercase border border-[#9F403D] text-[#9F403D] hover:bg-[#FDF5F5]">Delete</button>
+<button type="submit" class="h-10 px-4 text-[10px] font-bold uppercase border border-[#9F403D] text-[#9F403D] hover:bg-[#FDF5F5]">{{ $isGroupedPayment ? 'Delete Batch' : 'Delete' }}</button>
 </form>
 </div>
 </td>

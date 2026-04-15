@@ -341,4 +341,72 @@ class InternationalPayableTest extends TestCase
             'id' => $groupPayment->id,
         ]);
     }
+
+    public function test_delete_grouped_payment_from_pay_page_removes_full_batch(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create(['name' => 'Merge Vendor']);
+        $order = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplier->id,
+            'date' => '2026-06-01',
+            'invoice_number' => 'M-1',
+            'total_amount' => 100,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $order->id,
+            'product_name' => 'A',
+            'quantity' => 1,
+            'unit_price' => 100,
+            'total_amount' => 100,
+        ]);
+
+        $groupKey = rtrim(strtr(base64_encode('name:merge vendor'), '+/', '-_'), '=');
+        $this->actingAs($user)->post(route('international-payables.group.payments.store', ['groupKey' => $groupKey]), [
+            'payment_date' => '2026-06-10',
+            'amount' => '60.00',
+            'notes' => 'Combined',
+        ])->assertRedirect(route('international-payables.group', ['groupKey' => $groupKey]));
+
+        $payment = InternationalPayablePayment::query()->firstOrFail();
+        $this->actingAs($user)->delete(route('international-payables.payments.destroy', [$order, $payment]))
+            ->assertRedirect(route('international-payables.pay', $order))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseCount('international_payable_group_payments', 0);
+        $this->assertDatabaseCount('international_payable_payments', 0);
+    }
+
+    public function test_delete_payment_with_group_key_query_redirects_back_to_group_page(): void
+    {
+        $user = User::factory()->create(['role' => 'manager']);
+        $supplier = Supplier::create(['name' => 'Merge Vendor']);
+        $order = InternationalPurchaseOrder::create([
+            'supplier_id' => $supplier->id,
+            'date' => '2026-06-01',
+            'invoice_number' => 'M-1',
+            'total_amount' => 100,
+        ]);
+        InternationalPurchase::create([
+            'international_purchase_order_id' => $order->id,
+            'product_name' => 'A',
+            'quantity' => 1,
+            'unit_price' => 100,
+            'total_amount' => 100,
+        ]);
+
+        $this->actingAs($user)->post(route('international-payables.pay.store', $order), [
+            'payment_date' => '2026-06-10',
+            'amount' => '20.00',
+        ])->assertRedirect(route('international-payables.index'));
+
+        $payment = InternationalPayablePayment::query()->firstOrFail();
+        $groupKey = rtrim(strtr(base64_encode('name:merge vendor'), '+/', '-_'), '=');
+        $this->actingAs($user)->delete(route('international-payables.payments.destroy', [
+            'international_purchase' => $order,
+            'internationalPayablePayment' => $payment,
+            'groupKey' => $groupKey,
+        ]))
+            ->assertRedirect(route('international-payables.group', ['groupKey' => $groupKey]))
+            ->assertSessionHas('success');
+    }
 }

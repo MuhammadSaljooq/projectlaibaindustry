@@ -72,7 +72,7 @@ class InternationalPayableController extends Controller
         }
 
         $query = InternationalPurchaseOrder::query()
-            ->with(['supplier', 'lines', 'payablePayments'])
+            ->with(['supplier', 'lines', 'payablePayments' => fn ($q) => $q->orderByDesc('payment_date')->orderByDesc('id')])
             ->withSum('payablePayments', 'amount')
             ->orderByDesc('date')
             ->orderByDesc('id');
@@ -360,6 +360,11 @@ class InternationalPayableController extends Controller
     public function updatePayment(Request $request, InternationalPurchaseOrder $international_purchase, InternationalPayablePayment $internationalPayablePayment): RedirectResponse
     {
         $this->assertPaymentBelongsToOrder($international_purchase, $internationalPayablePayment);
+        if (Schema::hasColumn('international_payable_payments', 'international_payable_group_payment_id')
+            && $internationalPayablePayment->international_payable_group_payment_id) {
+            return redirect()->back()
+                ->with('error', 'This payment belongs to a combined batch. Edit it from International Payables group page.');
+        }
 
         $id = $internationalPayablePayment->id;
         $validated = $request->validate([
@@ -415,9 +420,27 @@ class InternationalPayableController extends Controller
     public function destroyPayment(InternationalPurchaseOrder $international_purchase, InternationalPayablePayment $internationalPayablePayment): RedirectResponse
     {
         $this->assertPaymentBelongsToOrder($international_purchase, $internationalPayablePayment);
+        $returnGroupKey = (string) request()->query('groupKey', '');
+        $groupPaymentId = (int) ($internationalPayablePayment->international_payable_group_payment_id ?? 0);
 
         try {
             DB::beginTransaction();
+            if ($groupPaymentId > 0 && Schema::hasTable('international_payable_group_payments')) {
+                $groupPayment = InternationalPayableGroupPayment::query()->find($groupPaymentId);
+                if ($groupPayment) {
+                    $this->reverseGroupPayment($groupPayment);
+                    $groupPayment->delete();
+                    DB::commit();
+
+                    if ($returnGroupKey !== '' && $this->decodeGroupKeyFromRoute($returnGroupKey) !== null) {
+                        return redirect()->route('international-payables.group', ['groupKey' => $returnGroupKey])
+                            ->with('success', 'Combined payment batch removed.');
+                    }
+
+                    return redirect()->route('international-payables.pay', $international_purchase)
+                        ->with('success', 'Combined payment batch removed.');
+                }
+            }
 
             DB::table('supplier_ledger_entries')
                 ->where('source_type', 'international_payable_payment')
@@ -427,6 +450,11 @@ class InternationalPayableController extends Controller
             $internationalPayablePayment->delete();
 
             DB::commit();
+
+            if ($returnGroupKey !== '' && $this->decodeGroupKeyFromRoute($returnGroupKey) !== null) {
+                return redirect()->route('international-payables.group', ['groupKey' => $returnGroupKey])
+                    ->with('success', 'Payment removed.');
+            }
 
             return redirect()->route('international-payables.pay', $international_purchase)
                 ->with('success', 'Payment removed.');

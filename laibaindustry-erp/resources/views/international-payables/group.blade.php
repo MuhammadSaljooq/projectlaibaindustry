@@ -163,10 +163,21 @@
 </td>
 <td class="st-td px-4 py-3 text-right">
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('international-payables.pay', $o) }}" class="st-btn-primary h-9 px-4 inline-flex items-center gap-2 text-[11px] whitespace-nowrap">
+@php $latestPayment = $o->payablePayments->first(); @endphp
+<a href="{{ route('international-payables.pay', $o) }}" class="st-btn-primary h-9 px-4 inline-flex items-center gap-2 text-[11px] whitespace-nowrap mr-2">
 <span class="material-symbols-outlined text-[16px]">payments</span>
 Manage
 </a>
+@if($latestPayment)
+<form method="POST" action="{{ route('international-payables.payments.destroy', ['international_purchase' => $o, 'internationalPayablePayment' => $latestPayment, 'groupKey' => $groupKeyEncoded]) }}" class="inline-flex" data-confirm-delete="{{ e('Delete latest recorded payment for this invoice?') }}">
+@csrf
+@method('DELETE')
+<button type="submit" class="h-9 px-3 inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+Delete payment
+</button>
+</form>
+@endif
 @else
 <span class="text-xs text-[#586064]">—</span>
 @endif
