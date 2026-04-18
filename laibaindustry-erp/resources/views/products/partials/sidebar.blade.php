@@ -3,9 +3,14 @@
 <div class="flex flex-col h-full font-[Inter,system-ui,sans-serif]">
 
 {{-- Brand --}}
-<div class="px-4 pt-6 pb-4 border-b border-[#ABB3B7]">
-<h1 class="text-[#2B3437] font-black uppercase tracking-tighter text-xl leading-tight">Laiba Safety</h1>
-<p class="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">Admin Console</p>
+<div class="px-4 pt-5 pb-4 border-b border-[#ABB3B7]">
+<div class="flex items-center justify-between gap-2">
+<div>
+<h1 class="text-[#2B3437] font-black uppercase tracking-tighter text-xl leading-tight whitespace-nowrap">Laiba Safety</h1>
+<p class="mt-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">Admin Console</p>
+</div>
+<img src="/images/laiba-logo-icon.png" alt="Laiba Industry logo" class="h-16 w-auto object-contain shrink-0">
+</div>
 </div>
 
 {{-- Nav Links --}}

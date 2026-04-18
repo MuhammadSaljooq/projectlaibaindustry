@@ -65,6 +65,16 @@
 </div>
 </div>
 
+<div class="flex flex-wrap items-center gap-3 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<div class="relative flex-1 min-w-[200px]">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="intlpay-search" type="text" placeholder="Vendor name…" autocomplete="off">
+</div>
+<button type="button" id="intlpay-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 hidden">
+<span class="material-symbols-outlined text-[16px]">close</span>Clear
+</button>
+</div>
+
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">International payable groups</h3>
@@ -84,10 +94,14 @@
 <th class="st-th px-4 py-3 text-right w-28 whitespace-nowrap">Status</th>
 </tr>
 </thead>
-<tbody>
+<tbody id="intlpay-tbody">
 @forelse($orderGroups as $g)
 @php $groupUrl = route('international-payables.group', ['groupKey' => $g['group_key_encoded']]); @endphp
-<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]" data-intl-pay-group-url="{{ $groupUrl }}" role="link" tabindex="0" aria-label="Open international payables for {{ e($g['display_name']) }}">
+<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
+    data-intl-pay-group-url="{{ $groupUrl }}"
+    data-search-text="{{ mb_strtolower($g['display_name'] ?? '', 'UTF-8') }}"
+    data-invoice-count="{{ $g['invoice_count'] }}"
+    role="link" tabindex="0" aria-label="Open international payables for {{ e($g['display_name']) }}">
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]"><p class="font-semibold">{{ $g['display_name'] }}</p></td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ number_format($g['invoice_count']) }}</td>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $g['latest_invoice_date'] ? format_display_date($g['latest_invoice_date']) : '—' }}</td>
@@ -103,19 +117,23 @@
 </td>
 </tr>
 @empty
-<tr>
+<tr id="intlpay-empty-db">
 <td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No international purchases yet</p>
 <a href="{{ route('international-purchases.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add a purchase first</a>
 </td>
 </tr>
 @endforelse
+<tr id="intlpay-no-results" style="display:none"><td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No vendor groups match your search</p>
+<p class="text-xs"><button type="button" id="intlpay-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">Clear search</button> to see all groups.</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
+<p class="text-xs text-[#586064] uppercase tracking-wide" id="intlpay-footer-text" data-total="{{ $orderGroups->count() }}" data-invoices="{{ $totalInvoiceCount }}">
 @if($orderGroups->count() > 0)
 Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $orderGroups->count() }}</span> vendor groups · <span class="font-bold text-[#2B3437] tabular-nums">{{ $totalInvoiceCount }}</span> invoices total
 @else
@@ -131,19 +149,45 @@ No results
 </main>
 <script>
 (function () {
-    document.querySelectorAll('tr[data-intl-pay-group-url]').forEach(function (row) {
+    var searchInput  = document.getElementById('intlpay-search');
+    var tbody        = document.getElementById('intlpay-tbody');
+    var rows         = tbody ? Array.from(tbody.querySelectorAll('tr[data-search-text]')) : [];
+    var noResults    = document.getElementById('intlpay-no-results');
+    var noResultsClr = document.getElementById('intlpay-no-results-clear');
+    var clearBtn     = document.getElementById('intlpay-clear-btn');
+    var footer       = document.getElementById('intlpay-footer-text');
+    var total        = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function filterRows(query) {
+        var needle = query.trim().toLowerCase(), visible = 0, invoices = 0;
+        rows.forEach(function (row) {
+            var show = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
+            row.style.display = show ? '' : 'none';
+            if (show) { visible++; invoices += parseInt(row.getAttribute('data-invoice-count') || '0', 10); }
+        });
+        if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '');
+        if (footer) {
+            if (visible > 0 && needle !== '') footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> groups matching &ldquo;' + esc(query.trim()) + '&rdquo; · <span class="font-bold text-[#2B3437] tabular-nums">' + invoices + '</span> invoices';
+            else if (visible > 0) footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> vendor group' + (visible === 1 ? '' : 's') + ' · <span class="font-bold text-[#2B3437] tabular-nums">' + invoices + '</span> invoices total';
+            else if (needle !== '') footer.textContent = 'No matches';
+            else footer.textContent = 'No results';
+        }
+    }
+
+    function clearSearch() { if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); } }
+
+    if (searchInput) searchInput.addEventListener('input', function () { filterRows(this.value); });
+    if (clearBtn) clearBtn.addEventListener('click', clearSearch);
+    if (noResultsClr) noResultsClr.addEventListener('click', clearSearch);
+
+    rows.forEach(function (row) {
         var url = row.getAttribute('data-intl-pay-group-url');
         if (!url) return;
-        row.addEventListener('click', function (e) {
-            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
-            window.location.href = url;
-        });
-        row.addEventListener('keydown', function (e) {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
-            e.preventDefault();
-            window.location.href = url;
-        });
+        row.addEventListener('click', function (e) { if (e.target.closest('[data-stop-row-nav], a, button, form')) return; window.location.href = url; });
+        row.addEventListener('keydown', function (e) { if (e.key !== 'Enter' && e.key !== ' ') return; if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return; e.preventDefault(); window.location.href = url; });
     });
 })();
 </script>

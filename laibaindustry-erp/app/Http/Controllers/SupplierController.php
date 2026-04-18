@@ -16,9 +16,25 @@ use Illuminate\View\View;
 
 class SupplierController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $suppliers = Supplier::query()->orderBy('name')->get();
+        $search  = trim((string) $request->query('search', ''));
+        $country = trim((string) $request->query('country', ''));
+
+        $query = Supplier::query()->orderBy('name');
+
+        if ($country !== '') {
+            $query->where('country', $country);
+        }
+
+        $suppliers = $query->get();
+
+        $countries = Supplier::query()
+            ->whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country');
 
         $balances = SupplierLedgerEntry::query()
             ->selectRaw('supplier_id, COALESCE(SUM(credit), 0) - COALESCE(SUM(debit), 0) as balance')
@@ -28,10 +44,13 @@ class SupplierController extends Controller
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         return view('suppliers.index', [
-            'suppliers' => $suppliers,
+            'suppliers'          => $suppliers,
             'totalSuppliersCount' => Supplier::query()->count(),
-            'balances' => $balances,
-            'currencySymbol' => $currencySymbol,
+            'balances'           => $balances,
+            'currencySymbol'     => $currencySymbol,
+            'search'             => $search,
+            'country'            => $country,
+            'countries'          => $countries,
         ]);
     }
 

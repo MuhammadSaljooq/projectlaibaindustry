@@ -21,13 +21,6 @@ class VatController extends Controller
 
         $query = VatEntry::query();
 
-        if ($search = request('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('invoice_number', 'like', "%{$search}%")
-                    ->orWhere('customer_name', 'like', "%{$search}%")
-                    ->orWhere('customer_code', 'like', "%{$search}%");
-            });
-        }
         if ($from) {
             $query->whereDate('date', '>=', $from);
         }

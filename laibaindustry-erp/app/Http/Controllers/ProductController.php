@@ -17,9 +17,6 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $query = Product::query()->with('category');
-        if ($search = $request->query('search')) {
-            $query->search($search);
-        }
         if (($catId = $request->query('category_id')) && $catId !== 'all') {
             $query->where('category_id', $catId);
         }

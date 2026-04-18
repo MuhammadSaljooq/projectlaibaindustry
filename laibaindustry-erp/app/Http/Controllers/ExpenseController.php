@@ -20,9 +20,6 @@ class ExpenseController extends Controller
 
         $query = Expense::query();
 
-        if ($search = request('search')) {
-            $query->where('type', 'like', "%{$search}%");
-        }
         if ($from) {
             $query->whereDate('date', '>=', $from);
         }

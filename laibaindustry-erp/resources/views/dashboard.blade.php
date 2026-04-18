@@ -29,7 +29,26 @@
 <div class="flex flex-col gap-1 min-w-0">
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Overview</h1>
 </div>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">All-time totals · last updated {{ format_display_datetime(now()) }}</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] lg:text-right shrink-0">All-time totals · last updated <span id="dashboard-clock"></span></p>
+<script>
+(function () {
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+        var d = new Date();
+        var formatted =
+            pad(d.getDate()) + '/' +
+            pad(d.getMonth() + 1) + '/' +
+            d.getFullYear() + ' ' +
+            pad(d.getHours()) + ':' +
+            pad(d.getMinutes()) + ':' +
+            pad(d.getSeconds());
+        var el = document.getElementById('dashboard-clock');
+        if (el) el.textContent = formatted;
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
@@ -67,11 +86,6 @@
 </div>
 </main>
 
-@if(auth()->user()->role !== 'viewer')
-<a href="{{ route('sales.create') }}" class="fixed z-50 bottom-8 right-8 h-14 w-14 st-btn-primary inline-flex items-center justify-center" title="New sale">
-<span class="material-symbols-outlined text-[28px]">add</span>
-</a>
-@endif
 
 </body>
 </html>

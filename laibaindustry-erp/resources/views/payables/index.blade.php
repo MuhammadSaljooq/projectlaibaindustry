@@ -56,6 +56,16 @@
 </div>
 </div>
 
+<div class="flex flex-wrap items-center gap-3 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<div class="relative flex-1 min-w-[200px]">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="pay-search" type="text" placeholder="Customer name or code…" autocomplete="off">
+</div>
+<button type="button" id="pay-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 hidden">
+<span class="material-symbols-outlined text-[16px]">close</span>Clear
+</button>
+</div>
+
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Accounts payable groups</h3>
@@ -76,10 +86,14 @@
 <th class="st-th px-4 py-3 text-right w-44"></th>
 </tr>
 </thead>
-<tbody>
+<tbody id="pay-tbody">
 @forelse($payableGroups as $g)
 @php $groupUrl = route('payables.group', ['groupKey' => $g['group_key_encoded']]); @endphp
-<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]" data-payable-group-url="{{ $groupUrl }}" role="link" tabindex="0" aria-label="Open payables for {{ e($g['display_name']) }}">
+<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
+    data-payable-group-url="{{ $groupUrl }}"
+    data-search-text="{{ mb_strtolower(($g['display_name'] ?? '').' '.($g['display_code'] ?? ''), 'UTF-8') }}"
+    data-invoice-count="{{ $g['invoice_count'] }}"
+    role="link" tabindex="0" aria-label="Open payables for {{ e($g['display_name']) }}">
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]"><p class="font-semibold">{{ $g['display_name'] }}</p></td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $g['display_code'] !== '' ? $g['display_code'] : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ number_format($g['invoice_count']) }}</td>
@@ -98,7 +112,7 @@
 </td>
 </tr>
 @empty
-<tr>
+<tr id="pay-empty-db">
 <td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No payables yet</p>
 <p class="mb-3">Created when you save a purchase.</p>
@@ -106,12 +120,16 @@
 </td>
 </tr>
 @endforelse
+<tr id="pay-no-results" style="display:none"><td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No customer groups match your search</p>
+<p class="text-xs"><button type="button" id="pay-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">Clear search</button> to see all groups.</p>
+</td></tr>
 </tbody>
 </table>
 </div>
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
+<p class="text-xs text-[#586064] uppercase tracking-wide" id="pay-footer-text" data-total="{{ $payableGroups->count() }}" data-invoices="{{ $totalInvoiceCount }}">
 @if($payableGroups->count() > 0)
 Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $payableGroups->count() }}</span> customer groups · <span class="font-bold text-[#2B3437] tabular-nums">{{ $totalInvoiceCount }}</span> invoices total
 @else
@@ -127,19 +145,45 @@ No results
 </main>
 <script>
 (function () {
-    document.querySelectorAll('tr[data-payable-group-url]').forEach(function (row) {
+    var searchInput  = document.getElementById('pay-search');
+    var tbody        = document.getElementById('pay-tbody');
+    var rows         = tbody ? Array.from(tbody.querySelectorAll('tr[data-search-text]')) : [];
+    var noResults    = document.getElementById('pay-no-results');
+    var noResultsClr = document.getElementById('pay-no-results-clear');
+    var clearBtn     = document.getElementById('pay-clear-btn');
+    var footer       = document.getElementById('pay-footer-text');
+    var total        = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function filterRows(query) {
+        var needle = query.trim().toLowerCase(), visible = 0, invoices = 0;
+        rows.forEach(function (row) {
+            var show = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
+            row.style.display = show ? '' : 'none';
+            if (show) { visible++; invoices += parseInt(row.getAttribute('data-invoice-count') || '0', 10); }
+        });
+        if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '');
+        if (footer) {
+            if (visible > 0 && needle !== '') footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> groups matching &ldquo;' + esc(query.trim()) + '&rdquo; · <span class="font-bold text-[#2B3437] tabular-nums">' + invoices + '</span> invoices';
+            else if (visible > 0) footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> customer group' + (visible === 1 ? '' : 's') + ' · <span class="font-bold text-[#2B3437] tabular-nums">' + invoices + '</span> invoices total';
+            else if (needle !== '') footer.textContent = 'No matches';
+            else footer.textContent = 'No results';
+        }
+    }
+
+    function clearSearch() { if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); } }
+
+    if (searchInput) searchInput.addEventListener('input', function () { filterRows(this.value); });
+    if (clearBtn) clearBtn.addEventListener('click', clearSearch);
+    if (noResultsClr) noResultsClr.addEventListener('click', clearSearch);
+
+    rows.forEach(function (row) {
         var url = row.getAttribute('data-payable-group-url');
         if (!url) return;
-        row.addEventListener('click', function (e) {
-            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
-            window.location.href = url;
-        });
-        row.addEventListener('keydown', function (e) {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
-            e.preventDefault();
-            window.location.href = url;
-        });
+        row.addEventListener('click', function (e) { if (e.target.closest('[data-stop-row-nav], a, button, form')) return; window.location.href = url; });
+        row.addEventListener('keydown', function (e) { if (e.key !== 'Enter' && e.key !== ' ') return; if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return; e.preventDefault(); window.location.href = url; });
     });
 })();
 </script>

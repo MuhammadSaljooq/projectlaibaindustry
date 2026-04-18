@@ -65,7 +65,24 @@
 </div>
 </div>
 
-<div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
+<form id="ar-form" method="GET" action="{{ route('receivables.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7] border-t-0">
+<div class="flex-1 min-w-[200px]">
+<label class="st-label block mb-2" for="ar-search">Search customers</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="ar-search" type="text" name="search" value="{{ $search ?? '' }}" placeholder="Customer name or code…" autocomplete="off">
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">search</span>
+Search
+</button>
+<a href="{{ route('receivables.index') }}" id="ar-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center{{ ($search ?? '') !== '' ? '' : ' hidden' }}">Clear</a>
+</div>
+</form>
+
+<div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px] -mt-px">
 <div class="px-5 py-4 border-b border-[#ABB3B7] flex flex-wrap items-center justify-between gap-3 bg-[#EAEFF1]">
 <div>
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Customers (aggregated)</h3>
@@ -87,7 +104,7 @@
 <th class="st-th px-4 py-3 text-right w-28 whitespace-nowrap">Status</th>
 </tr>
 </thead>
-<tbody>
+<tbody id="ar-tbody">
 @forelse($receivableGroups as $g)
 @php
     $remaining = (float) $g->total_amount - (float) $g->total_received;
@@ -99,6 +116,7 @@
 @endphp
 <tr class="st-tr cursor-pointer hover:bg-[#F1F4F6]"
 data-receivable-group-url="{{ $groupUrl }}"
+data-search-text="{{ mb_strtolower($aggName !== '—' ? $aggName : '', 'UTF-8') }} {{ mb_strtolower($aggCode, 'UTF-8') }}"
 tabindex="0"
 aria-label="Open receivables for {{ $aggName }}"
 >
@@ -123,21 +141,27 @@ aria-label="Open receivables for {{ $aggName }}"
 </td>
 </tr>
 @empty
-<tr>
+<tr id="ar-empty-db">
 <td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No receivables yet</p>
 <p class="text-xs">Receivables are created automatically when you record a sale.</p>
 </td>
 </tr>
 @endforelse
+<tr id="ar-no-results" style="display:none">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No customers match your search</p>
+<p class="text-xs">Try a different name or code, or <button type="button" id="ar-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">clear search</button> to see all.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
-@if($receivableGroups->count() > 0)
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $receivableGroups->count() }}</span> customers
+<p class="text-xs text-[#586064] uppercase tracking-wide" id="ar-footer-text" data-total="{{ $totalGroupsCount }}">
+@if($totalGroupsCount > 0)
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $totalGroupsCount }}</span> customer{{ $totalGroupsCount === 1 ? '' : 's' }}
 @else
 No results
 @endif
@@ -151,8 +175,91 @@ No results
 </main>
 <script>
 (function () {
-  document.querySelectorAll('tr[data-receivable-group-url]').forEach(function (tr) {
+  var searchInput  = document.getElementById('ar-search');
+  var arForm       = document.getElementById('ar-form');
+  var tbody        = document.getElementById('ar-tbody');
+  var rows         = tbody ? Array.from(tbody.querySelectorAll('tr[data-search-text]')) : [];
+  var noResults    = document.getElementById('ar-no-results');
+  var noResultsClr = document.getElementById('ar-no-results-clear');
+  var listedLabel  = document.getElementById('ar-listed-label');
+  var listedCount  = document.getElementById('ar-listed-count');
+  var searchDisp   = document.getElementById('ar-search-display');
+  var clearBtn     = document.getElementById('ar-clear-btn');
+  var footer       = document.getElementById('ar-footer-text');
+  var total        = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
+
+  function esc(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function filterRows(query) {
+    var needle  = query.trim().toLowerCase();
+    var visible = 0;
+
+    rows.forEach(function (row) {
+      var match = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
+
+    if (listedLabel) listedLabel.textContent = needle !== '' ? 'Matching search' : 'Listed';
+    if (listedCount) listedCount.textContent = visible;
+    if (searchDisp)  searchDisp.textContent  = needle !== '' ? query.trim() : '—';
+    if (clearBtn)    clearBtn.classList.toggle('hidden', needle === '');
+
+    if (footer) {
+      if (visible > 0 && needle !== '') {
+        footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> customer' + (total === 1 ? '' : 's') + ' matching &ldquo;' + esc(query.trim()) + '&rdquo;';
+      } else if (visible > 0) {
+        footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> customer' + (visible === 1 ? '' : 's');
+      } else if (needle !== '') {
+        footer.textContent = 'No matches';
+      } else {
+        footer.textContent = 'No results';
+      }
+    }
+
+    try {
+      var url = new URL(window.location.href);
+      needle !== '' ? url.searchParams.set('search', query.trim()) : url.searchParams.delete('search');
+      history.replaceState(null, '', url.toString());
+    } catch (e) {}
+  }
+
+  function clearSearch() {
+    if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); }
+  }
+
+  if (arForm) {
+    arForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (searchInput) filterRows(searchInput.value);
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function () { filterRows(this.value); });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function (e) { e.preventDefault(); clearSearch(); });
+  }
+
+  if (noResultsClr) {
+    noResultsClr.addEventListener('click', clearSearch);
+  }
+
+  // Apply initial filter (pre-filled from URL ?search param)
+  if (searchInput && searchInput.value.trim() !== '') {
+    filterRows(searchInput.value);
+  }
+
+  // Row click / keyboard navigation
+  rows.forEach(function (tr) {
     var url = tr.getAttribute('data-receivable-group-url');
+    if (!url) return;
     tr.addEventListener('click', function (e) {
       if (e.target.closest('a, button, input, select, textarea, label')) return;
       window.location.href = url;

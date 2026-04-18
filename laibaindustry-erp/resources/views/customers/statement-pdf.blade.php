@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Account Statement - {{ Str::title(Str::lower($customer->customer_name)) }}</title>
     <style>
-        @page { margin: 25mm; }
+        @page { margin: 18mm 16mm; }
         * { box-sizing: border-box; }
         body {
             font-family: 'DejaVu Sans', 'Helvetica', Arial, sans-serif;
@@ -15,20 +15,20 @@
             padding: 0;
         }
         .header {
-            border-bottom: 2px solid #1a1a1a;
             padding-bottom: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #e5e7eb;
         }
         .header-banner {
-            margin-bottom: 14px;
+            margin-bottom: 0;
         }
         .doc-title-main {
             font-family: 'DejaVu Sans', 'Helvetica', sans-serif;
-            font-size: 20pt;
+            font-size: 18pt;
             font-weight: bold;
-            margin: 0 0 10px 0;
-            letter-spacing: 0.08em;
-            color: #111;
+            margin: 0 0 8px 0;
+            letter-spacing: 0.2em;
+            color: #0f172a;
             text-align: center;
         }
         .header-name-line {
@@ -45,92 +45,124 @@
             margin: 10px 0 0 0;
             text-align: left;
         }
+        .statement-summary {
+            border: 1px solid #d1d5db;
+            border-top: 3px solid #1e3a5f;
+            margin-bottom: 28px;
+            background: #ffffff;
+        }
         .issuer-card {
-            background: #f6f6f6;
-            border: 1px solid #ddd;
-            padding: 12px 14px;
+            background: #f8fafc;
+            border: none;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 18px 22px 20px 22px;
             text-align: left;
         }
         .issuer-block-name {
-            font-size: 11pt;
+            font-size: 11.5pt;
             font-weight: bold;
-            margin: 0 0 4px 0;
+            margin: 0 0 5px 0;
             line-height: 1.35;
-            color: #111;
+            color: #0f172a;
+            letter-spacing: -0.01em;
         }
         .issuer-block-name:last-of-type {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .issuer-address {
             font-size: 9pt;
-            color: #333;
-            margin: 0 0 5px 0;
-            line-height: 1.45;
+            color: #475569;
+            margin: 0 0 6px 0;
+            line-height: 1.55;
         }
         .issuer-address:last-of-type {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .issuer-block-name + .issuer-address {
             margin-top: 0;
         }
         .issuer-detail-line {
-            margin: 5px 0 0 0;
-            font-size: 9.5pt;
-            font-weight: 600;
-            color: #1a1a1a;
-            line-height: 1.45;
+            margin: 0 0 5px 0;
+            font-size: 8.75pt;
+            font-weight: normal;
+            color: #334155;
+            line-height: 1.5;
             text-align: left;
         }
+        .issuer-detail-line strong {
+            font-weight: 700;
+            color: #0f172a;
+        }
         .issuer-address + .issuer-detail-line {
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .info-table {
             width: 100%;
             table-layout: fixed;
-            margin-bottom: 28px;
+            margin-bottom: 0;
             border-collapse: collapse;
+            border-top: none;
         }
         .info-table td {
             width: 50%;
             vertical-align: top;
-            padding: 0 12px 0 0;
+            padding: 20px 22px 22px 22px;
+            background: #ffffff;
+        }
+        .info-table td.info-col-left {
+            padding-right: 18px;
         }
         .info-table td.right {
             text-align: right;
-            padding: 0 0 0 16px;
-            border-left: 1px solid #e5e5e5;
+            padding-left: 18px;
+            padding-right: 22px;
+            border-left: 1px solid #e2e8f0;
         }
         .info-block {
-            margin-bottom: 12px;
+            margin-bottom: 22px;
+        }
+        .info-block:last-child {
+            margin-bottom: 0;
         }
         .info-label {
-            font-size: 8pt;
-            font-weight: bold;
+            font-size: 7.5pt;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #555;
-            margin-bottom: 2px;
+            letter-spacing: 0.14em;
+            color: #64748b;
+            margin-bottom: 7px;
+            line-height: 1.3;
         }
         .info-value {
             font-size: 11pt;
             font-weight: 600;
+            color: #1e293b;
+            line-height: 1.35;
         }
         .info-value-account-holder {
-            font-size: 14pt;
+            font-size: 13pt;
             font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.02em;
         }
         .info-value-balance {
-            font-size: 14pt;
+            font-size: 13pt;
             font-weight: 700;
+            letter-spacing: -0.02em;
         }
         .info-value-balance--dr {
-            color: #b45300;
+            color: #1d4ed8;
         }
         .info-value-balance--cr {
-            color: #0d6b0d;
+            color: #0f766e;
         }
         .info-value-balance--neutral {
-            color: #1a1a1a;
+            color: #0f172a;
+        }
+        .info-value-statement-date {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1e293b;
         }
         .statement-title {
             font-size: 12pt;
@@ -144,71 +176,109 @@
             table-layout: fixed;
             border-collapse: collapse;
             margin-bottom: 24px;
-            font-size: 9pt;
+            font-size: 8.5pt;
+        }
+        table.ledger td {
+            border-bottom: 1px solid #e5e5e5;
+            border-right: 1px solid #ececec;
+            vertical-align: top;
+            padding: 7px 6px;
         }
         table.ledger th {
             text-align: left;
-            padding: 10px 8px;
+            padding: 7px 8px;
             font-weight: bold;
-            font-size: 8pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 7.5pt;
+            text-transform: none;
+            letter-spacing: 0;
             color: #333;
             border-bottom: 2px solid #1a1a1a;
+            border-right: 1px solid #ececec;
             background: #f8f8f8;
+            vertical-align: bottom;
+            line-height: 1.25;
+            word-wrap: normal;
+            overflow-wrap: normal;
         }
         table.ledger th.ledger-col-date,
         table.ledger td.ledger-col-date {
             width: 12%;
+            padding-left: 6px;
+            padding-right: 10px;
         }
         table.ledger th.ledger-col-desc,
         table.ledger td.ledger-col-desc {
-            width: 33%;
+            width: 24%;
+            padding-left: 4px;
+            padding-right: 8px;
             word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         table.ledger th.ledger-col-invoice,
         table.ledger td.ledger-col-invoice {
-            width: 16%;
+            width: 12%;
+            padding-left: 4px;
+            padding-right: 8px;
             word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        table.ledger th.ledger-col-days,
+        table.ledger td.ledger-col-days {
+            width: 11%;
+            padding-left: 4px;
+            padding-right: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         table.ledger th.ledger-col-debit,
         table.ledger td.ledger-col-debit {
-            width: 12%;
+            width: 11%;
+            padding-left: 8px;
+            padding-right: 8px;
         }
         table.ledger th.ledger-col-credit,
         table.ledger td.ledger-col-credit {
-            width: 12%;
+            width: 11%;
+            padding-left: 8px;
+            padding-right: 8px;
         }
         table.ledger th.ledger-col-balance,
         table.ledger td.ledger-col-balance {
-            width: 15%;
+            width: 19%;
+            padding-left: 8px;
+            padding-right: 6px;
         }
         table.ledger td.ledger-code {
             font-family: 'DejaVu Sans Mono', monospace;
-            font-size: 8.5pt;
-        }
-        table.ledger .ledger-cell-time {
             font-size: 8pt;
-            color: #666;
         }
-        table.ledger th.amt, table.ledger td.amt {
+        table.ledger thead th {
+            text-align: left;
+        }
+        table.ledger td.amt {
             text-align: right;
             font-variant-numeric: tabular-nums;
         }
-        table.ledger td {
-            padding: 9px 8px;
-            border-bottom: 1px solid #e5e5e5;
-            vertical-align: top;
+        table.ledger td.ledger-col-date {
+            white-space: nowrap;
+        }
+        table.ledger td.ledger-col-debit,
+        table.ledger td.ledger-col-credit,
+        table.ledger td.ledger-col-balance {
+            white-space: nowrap;
+        }
+        table.ledger th:last-child,
+        table.ledger td:last-child {
+            border-right: none;
         }
         table.ledger tr.total-row td.ledger-totals-label {
             text-align: left;
             font-weight: bold;
+            padding-left: 6px;
+            padding-right: 10px;
         }
         table.ledger thead {
             display: table-header-group;
-        }
-        table.ledger tbody tr {
-            page-break-inside: avoid;
         }
         table.ledger tr.opening {
             background: #f5f5f5;
@@ -217,11 +287,12 @@
             background: #e8e8e8;
             font-weight: bold;
             border-top: 2px solid #1a1a1a;
+            page-break-inside: avoid;
         }
-        .debit { color: #1a1a1a; font-weight: 600; }
+        .debit { color: #0f172a; font-weight: 600; }
         .credit { color: #0d6b0d; font-weight: 600; }
-        .balance-dr { color: #b45300; font-weight: 600; }
-        .balance-cr { color: #0d6b0d; font-weight: 600; }
+        .balance-dr { color: #1d4ed8; font-weight: 600; }
+        .balance-cr { color: #0f766e; font-weight: 600; }
         .dash { color: #999; }
         .footer {
             margin-top: 32px;
@@ -277,6 +348,9 @@
         @endif
         <p class="header-generated">Generated {{ now()->format('F j, Y \a\t g:i A') }}@if($statementFiltered && isset($periodFrom, $periodTo)) · Period {{ $periodFrom->format('j M Y') }} – {{ $periodTo->format('j M Y') }}@endif</p>
     </div>
+</div>
+
+<div class="statement-summary">
     <div class="issuer-card">
         @foreach($company['pdf_block_name_lines'] ?? [] as $line)
         @if(filled($line))
@@ -289,24 +363,23 @@
         @endif
         @endforeach
         @if(filled($company['registration'] ?? null))
-        <p class="issuer-detail-line">CR: {{ $company['registration'] }}</p>
+        <p class="issuer-detail-line"><strong>CR</strong> {{ $company['registration'] }}</p>
         @endif
         @if(filled($company['vat_number'] ?? null))
-        <p class="issuer-detail-line">VAT: {{ $company['vat_number'] }}</p>
+        <p class="issuer-detail-line"><strong>VAT</strong> {{ $company['vat_number'] }}</p>
         @endif
         @if(filled($company['phone'] ?? null))
-        <p class="issuer-detail-line">Mobile: {{ $company['phone'] }}</p>
-        <p class="issuer-detail-line">Whatsapp: {{ $company['phone'] }}</p>
+        <p class="issuer-detail-line"><strong>Mobile</strong> {{ $company['phone'] }}</p>
+        <p class="issuer-detail-line"><strong>WhatsApp</strong> {{ $company['phone'] }}</p>
         @endif
         @if(filled($company['email'] ?? null))
-        <p class="issuer-detail-line">Email:  {{ $company['email'] }}</p>
+        <p class="issuer-detail-line"><strong>Email</strong> {{ $company['email'] }}</p>
         @endif
     </div>
-</div>
 
 <table class="info-table">
     <tr>
-        <td>
+        <td class="info-col-left">
             <div class="info-block">
                 <div class="info-label">Account Holder</div>
                 <div class="info-value info-value-account-holder">{{ Str::title(Str::lower($customer->customer_name)) }}</div>
@@ -325,7 +398,7 @@
         <td class="right">
             <div class="info-block">
                 <div class="info-label">Statement Date</div>
-                <div class="info-value">{{ now()->format('F j, Y') }}</div>
+                <div class="info-value info-value-statement-date">{{ now()->format('F j, Y') }}</div>
             </div>
             <div class="info-block">
                 <div class="info-label">Closing Balance</div>
@@ -343,18 +416,29 @@
         </td>
     </tr>
 </table>
+</div>
 
 <div class="statement-title">Transaction History</div>
 
 <table class="ledger">
+    <colgroup>
+        <col style="width:12%;">
+        <col style="width:24%;">
+        <col style="width:12%;">
+        <col style="width:11%;">
+        <col style="width:11%;">
+        <col style="width:11%;">
+        <col style="width:19%;">
+    </colgroup>
     <thead>
         <tr>
             <th class="ledger-col-date">Date</th>
             <th class="ledger-col-desc">Description</th>
             <th class="ledger-col-invoice">Invoice #</th>
-            <th class="amt ledger-col-debit">Debit</th>
-            <th class="amt ledger-col-credit">Credit</th>
-            <th class="amt ledger-col-balance">Balance</th>
+            <th class="ledger-col-days">Days out.</th>
+            <th class="ledger-col-debit">Debit</th>
+            <th class="ledger-col-credit">Credit</th>
+            <th class="ledger-col-balance">Balance</th>
         </tr>
     </thead>
     <tbody>
@@ -369,6 +453,7 @@
             </td>
             <td class="ledger-col-desc">{{ $statementFiltered ? 'Balance brought forward' : 'Opening balance' }}</td>
             <td class="ledger-col-invoice ledger-code">—</td>
+            <td class="amt dash ledger-col-days">—</td>
             <td class="amt dash ledger-col-debit">—</td>
             <td class="amt dash ledger-col-credit">—</td>
             <td class="amt ledger-col-balance {{ $openingBalance > 0 ? 'balance-dr' : ($openingBalance < 0 ? 'balance-cr' : '') }}">
@@ -378,9 +463,26 @@
 
         @foreach($ledgerRows as $row)
         <tr>
-            <td class="ledger-col-date">{{ $row['date']->format('d/m/Y') }}<br><span class="ledger-cell-time">{{ $row['date']->format('H:i') }}</span></td>
+            <td class="ledger-col-date">{{ $row['date']->format('d/m/Y') }}</td>
             <td class="ledger-col-desc">{{ $row['description'] }}</td>
             <td class="ledger-col-invoice ledger-code">{{ $row['invoice_number'] ?: '—' }}</td>
+            <td class="amt ledger-col-days">
+                @if(($row['source_type'] ?? '') === 'sale')
+                    @php
+                        $statementShowsReceivable = ($closingBalance ?? 0) > 0.009;
+                        $invKey = trim((string) ($row['invoice_number'] ?? ''));
+                        $fifoPaid = $invKey !== '' && ! empty(($fifoPaidInvoiceNumbers ?? [])[$invKey] ?? false);
+                        $showDaysOutstanding = $statementShowsReceivable && ! $fifoPaid;
+                    @endphp
+                    @if($showDaysOutstanding)
+                        <span class="debit">{{ (int) $row['date']->diffInDays(now(), true) }} days</span>
+                    @else
+                        <span class="credit" style="font-size: 7pt; font-weight: 700;">PAID</span>
+                    @endif
+                @else
+                    <span class="dash">—</span>
+                @endif
+            </td>
             <td class="amt ledger-col-debit {{ $row['debit'] > 0 ? 'debit' : 'dash' }}">
                 {{ $row['debit'] > 0 ? ($currencySymbol ?? '$') . ' ' . number_format($row['debit'], 2) : '—' }}
             </td>
@@ -388,20 +490,18 @@
                 {{ $row['credit'] > 0 ? ($currencySymbol ?? '$') . ' ' . number_format($row['credit'], 2) : '—' }}
             </td>
             <td class="amt ledger-col-balance {{ $row['running_balance'] > 0 ? 'balance-dr' : ($row['running_balance'] < 0 ? 'balance-cr' : '') }}">
-                {{ $currencySymbol ?? '$' }} {{ number_format($row['running_balance'], 2) }}
-                @if($row['running_balance'] > 0) DR @elseif($row['running_balance'] < 0) CR @endif
+                {{ $currencySymbol ?? '$' }} {{ number_format($row['running_balance'], 2) }}@if($row['running_balance'] > 0)&nbsp;DR @elseif($row['running_balance'] < 0)&nbsp;CR @endif
             </td>
         </tr>
         @endforeach
 
         @if(count($ledgerRows) > 0)
         <tr class="total-row">
-            <td colspan="3" class="ledger-totals-label">Totals</td>
+            <td colspan="4" class="ledger-totals-label">Totals</td>
             <td class="amt debit ledger-col-debit">{{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}</td>
             <td class="amt credit ledger-col-credit">{{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}</td>
             <td class="amt ledger-col-balance {{ $closingBalance > 0 ? 'balance-dr' : 'balance-cr' }}">
-                {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
-                {{ $closingBalance > 0 ? 'DR' : ($closingBalance < 0 ? 'CR' : '') }}
+                {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}@if($closingBalance > 0)&nbsp;DR @elseif($closingBalance < 0)&nbsp;CR @endif
             </td>
         </tr>
         @endif

@@ -21,7 +21,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ReceivableController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $table = (new Receivable)->getTable();
         $expr = trim(Receivable::groupKeySqlExpression());
@@ -42,6 +42,10 @@ class ReceivableController extends Controller
             ->orderByDesc(DB::raw($maxDateSql))
             ->get();
 
+        $totalGroupsCount = $receivableGroups->count();
+
+        $search = trim((string) $request->input('search', ''));
+
         $totals = Receivable::query()
             ->selectRaw('
                 COALESCE(SUM(amount), 0)                   AS total_amount,
@@ -53,7 +57,12 @@ class ReceivableController extends Controller
             ? (float) (CustomerReceivablePurchaseOffset::query()->sum('amount') ?? 0)
             : 0.0;
 
-        return view('receivables.index', compact('receivableGroups', 'totals'));
+        return view('receivables.index', compact(
+            'receivableGroups',
+            'totals',
+            'search',
+            'totalGroupsCount',
+        ));
     }
 
     public function showGroup(string $groupKey): View

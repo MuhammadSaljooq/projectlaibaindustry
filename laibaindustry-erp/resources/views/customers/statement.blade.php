@@ -120,6 +120,97 @@
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
+{{-- Invoice Aging Panel --}}
+@php
+    $outstandingReceivables = $outstandingReceivables ?? collect();
+@endphp
+@if($outstandingReceivables->isNotEmpty())
+@php
+    $agingNow = now();
+    $agingBucketAmounts = [0 => 0.0, 1 => 0.0, 2 => 0.0, 3 => 0.0];
+    $agingBucketCounts  = [0 => 0,   1 => 0,   2 => 0,   3 => 0];
+    $agingOldestDate = null;
+    foreach ($outstandingReceivables as $ar) {
+        $agingDays = (int) $ar['date']->diffInDays($agingNow, true);
+        $b = $agingDays <= 30 ? 0 : ($agingDays <= 60 ? 1 : ($agingDays <= 90 ? 2 : 3));
+        $agingBucketAmounts[$b] += $ar['outstanding'];
+        $agingBucketCounts[$b]++;
+        if ($agingOldestDate === null || $ar['date'] < $agingOldestDate) {
+            $agingOldestDate = $ar['date'];
+        }
+    }
+    $agingBucketLabels = ['Current (0–30 d)', '31–60 d', '61–90 d', '90+ d'];
+@endphp
+<div class="no-print border border-[#5E5E5E] bg-white" data-oldest-date="{{ $agingOldestDate?->toIso8601String() }}">
+
+    {{-- Header --}}
+    <div class="px-5 py-3 border-b border-[#ABB3B7] bg-[#EAEFF1] flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#5E5E5E] text-[18px]">schedule</span>
+            <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Invoice Aging</h3>
+        </div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064]">
+            {{ $outstandingReceivables->count() }} outstanding invoice{{ $outstandingReceivables->count() === 1 ? '' : 's' }}
+            · auto-updating
+        </p>
+    </div>
+
+    {{-- Oldest invoice live counter --}}
+    <div class="px-5 py-4 border-b border-[#ABB3B7] flex flex-col sm:flex-row sm:items-center gap-4">
+        <div>
+            <p class="st-label mb-1">Oldest outstanding invoice</p>
+            <p class="text-3xl font-black font-mono tabular-nums text-[#5E5E5E]">
+                <span id="aging-oldest-days">—</span>
+            </p>
+            <p class="text-[10px] text-[#586064] mt-0.5 uppercase tracking-wider">
+                since {{ $agingOldestDate ? \Carbon\Carbon::parse($agingOldestDate)->format('d/m/Y') : '—' }}
+            </p>
+        </div>
+        <div class="sm:ml-auto text-right">
+            <p class="st-label mb-1">Total outstanding</p>
+            <p class="text-2xl font-black font-mono tabular-nums text-[#9F403D]">
+                {{ $currencySymbol ?? '$' }} {{ number_format($outstandingReceivables->sum('outstanding'), 2) }}
+            </p>
+        </div>
+    </div>
+
+
+    {{-- Per-invoice rows --}}
+    @if($outstandingReceivables->count() > 0)
+    <div class="border-t border-[#ABB3B7] overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[520px]">
+            <thead>
+            <tr class="st-thead">
+                <th class="st-th px-4 py-2 whitespace-nowrap">Invoice #</th>
+                <th class="st-th px-4 py-2 whitespace-nowrap">Invoice date</th>
+                <th class="st-th px-4 py-2 whitespace-nowrap">Days outstanding</th>
+                <th class="st-th px-4 py-2 text-right whitespace-nowrap">Outstanding</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($outstandingReceivables as $ar)
+            <tr class="st-tr">
+                <td class="st-td px-4 py-2 text-sm font-mono text-[#586064]">{{ $ar['invoice_number'] ?: '—' }}</td>
+                <td class="st-td px-4 py-2 text-sm text-[#586064] whitespace-nowrap">{{ format_display_date($ar['date']) }}</td>
+                <td class="st-td px-4 py-2">
+                    <span class="text-sm font-bold font-mono tabular-nums text-[#5E5E5E]"
+                          data-invoice-date="{{ $ar['date']->toIso8601String() }}">
+                        {{ (int) $ar['date']->diffInDays(now(), true) }} days
+                    </span>
+                </td>
+                <td class="st-td px-4 py-2 text-sm font-bold font-mono text-right tabular-nums text-[#9F403D]">
+                    {{ $currencySymbol ?? '$' }} {{ number_format($ar['outstanding'], 2) }}
+                </td>
+            </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
+</div>
+@endif
+
 @if (session('success'))
 <div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
 {{ session('success') }}
@@ -271,13 +362,14 @@ Email statement
 <table class="w-full text-left border-collapse min-w-[800px]">
 <thead>
 <tr class="st-thead">
-<th class="st-th px-4 py-3 w-32 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3">Description</th>
-<th class="st-th px-4 py-3">Invoice #</th>
-<th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Debit</th>
-<th class="st-th px-4 py-3 text-right w-32 whitespace-nowrap">Credit</th>
-<th class="st-th px-4 py-3 text-right w-36 whitespace-nowrap">Balance</th>
-<th class="st-th px-4 py-3 text-right w-16 whitespace-nowrap no-print">Action</th>
+<th class="st-th px-4 py-3 w-32 whitespace-nowrap text-left">Date</th>
+<th class="st-th px-4 py-3 text-left">Description</th>
+<th class="st-th px-4 py-3 text-left">Invoice #</th>
+<th class="st-th px-4 py-3 text-left w-32 whitespace-nowrap">Days Outstanding</th>
+<th class="st-th px-4 py-3 text-left w-32 whitespace-nowrap">Debit</th>
+<th class="st-th px-4 py-3 text-left w-32 whitespace-nowrap">Credit</th>
+<th class="st-th px-4 py-3 text-left w-36 whitespace-nowrap">Balance</th>
+<th class="st-th px-4 py-3 text-left w-16 whitespace-nowrap no-print">Action</th>
 </tr>
 </thead>
 <tbody>
@@ -293,6 +385,7 @@ Email statement
 <span class="font-semibold text-[#586064]">{{ $statementFiltered ? 'Balance brought forward' : 'Opening balance' }}</span>
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">—</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right text-[#ABB3B7]">—</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#2B3437]">
@@ -323,7 +416,6 @@ $deleteConfirmMsg = match($row['source_type'] ?? '') {
 <tr class="st-tr">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">
 {{ format_display_date($row['date']) }}
-<span class="text-xs ml-1 text-[#ABB3B7]">{{ $row['date']->format('H:i') }}</span>
 </td>
 <td class="st-td px-4 py-3 text-sm">
 <div class="flex items-center gap-2 flex-wrap">
@@ -333,6 +425,28 @@ $deleteConfirmMsg = match($row['source_type'] ?? '') {
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064] break-words max-w-[12rem]">
 {{ $row['invoice_number'] ?: '—' }}
+</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums">
+@if($row['source_type'] === 'sale')
+    @php
+        // Close counters when the statement no longer shows an amount receivable (same basis as summary DR/CR).
+        $statementShowsReceivable = ($closingBalance ?? 0) > 0.009;
+        $invKey = trim((string) ($row['invoice_number'] ?? ''));
+        // FIFO: payments (ledger credits) applied oldest receivable first — paid before per-row `received` split.
+        $fifoPaid = $invKey !== '' && ! empty(($fifoPaidInvoiceNumbers ?? [])[$invKey] ?? false);
+        $isStillOutstanding = $statementShowsReceivable && ! $fifoPaid;
+    @endphp
+    @if($isStillOutstanding)
+        <span class="font-bold text-[#5E5E5E]"
+              data-invoice-date="{{ $row['date']->toIso8601String() }}">
+            {{ (int) $row['date']->diffInDays(now(), true) }} days
+        </span>
+    @else
+        <span class="text-[10px] font-bold uppercase tracking-wider border border-[#2B8A3E] bg-[#F4FBF6] text-[#2B8A3E] px-2 py-0.5">Paid</span>
+    @endif
+@else
+<span class="text-[#ABB3B7]">—</span>
+@endif
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums {{ $isDebit ? 'font-bold text-[#2B3437]' : 'text-[#ABB3B7]' }}">
 @if($isDebit)
@@ -372,7 +486,7 @@ $deleteConfirmMsg = match($row['source_type'] ?? '') {
 </tr>
 @empty
 <tr>
-<td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">{{ $statementFiltered ? 'No transactions in this period' : 'No transactions yet' }}</p>
 <p class="text-xs">{{ $statementFiltered ? 'Try a different date range or clear the filter to see full history.' : 'Activity appears when sales, purchases, or payments are posted.' }}</p>
 </td>
@@ -382,19 +496,19 @@ $deleteConfirmMsg = match($row['source_type'] ?? '') {
 
 @if(count($ledgerRows) > 0)
 <tfoot>
-<tr class="bg-[#EAEFF1] border-t-2 border-[#ABB3B7]">
-<td colspan="3" class="px-4 py-3 st-label">Totals</td>
-<td class="px-4 py-3 no-print"></td>
-<td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437]">
+<tr class="border-t-2 border-[#ABB3B7]">
+<td colspan="4" class="st-td px-4 py-3 st-label bg-[#EAEFF1]">Totals</td>
+<td class="st-td px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437] bg-[#EAEFF1]">
 {{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}
 </td>
-<td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437]">
+<td class="st-td px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#2B3437] bg-[#EAEFF1]">
 {{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}
 </td>
-<td class="px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#5E5E5E]">
+<td class="st-td px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#5E5E5E] bg-[#EAEFF1]">
 {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
 {{ $closingBalance > 0 ? 'DR' : ($closingBalance < 0 ? 'CR' : '') }}
 </td>
+<td class="st-td px-4 py-3 bg-[#EAEFF1] no-print"></td>
 </tr>
 </tfoot>
 @endif
@@ -412,5 +526,35 @@ $deleteConfirmMsg = match($row['source_type'] ?? '') {
 </div>
 
 </main>
+<script>
+(function () {
+    function updateAging() {
+        // Update oldest-invoice live counter
+        var root = document.querySelector('[data-oldest-date]');
+        if (root) {
+            var diffMs = Date.now() - new Date(root.dataset.oldestDate).getTime();
+            var days  = Math.floor(diffMs / 86400000);
+            var hours = Math.floor((diffMs % 86400000) / 3600000);
+            var mins  = Math.floor((diffMs % 3600000)  / 60000);
+            var el = document.getElementById('aging-oldest-days');
+            if (el) {
+                el.textContent = days > 0
+                    ? days + 'd ' + hours + 'h'
+                    : hours + 'h ' + mins + 'm';
+            }
+        }
+
+        // Update per-row "days outstanding" badges
+        document.querySelectorAll('[data-invoice-date]').forEach(function (el) {
+            var diffMs = Date.now() - new Date(el.dataset.invoiceDate).getTime();
+            var d = Math.floor(diffMs / 86400000);
+            el.textContent = d + ' day' + (d === 1 ? '' : 's');
+        });
+    }
+
+    updateAging();
+    setInterval(updateAging, 60000);
+})();
+</script>
 </body>
 </html>

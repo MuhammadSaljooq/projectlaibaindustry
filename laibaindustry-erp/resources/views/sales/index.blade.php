@@ -88,12 +88,12 @@ New sale
 </div>
 </div>
 
-<form method="GET" action="{{ route('sales.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<form id="s-form" method="GET" action="{{ route('sales.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
 <div class="flex-1 min-w-[200px]">
 <label class="st-label block mb-2" for="s-search">Search</label>
 <div class="relative">
 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
-<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="s-search" type="text" name="search" value="{{ request('search') }}" placeholder="Invoice, customer, product…">
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="s-search" type="text" name="search" value="{{ request('search') }}" placeholder="Invoice, customer, product…" autocomplete="off">
 </div>
 </div>
 <div class="min-w-[140px]">
@@ -109,12 +109,10 @@ New sale
 <span class="material-symbols-outlined text-[16px]">filter_list</span>
 Filter
 </button>
-@if(request('search') || request('from') || request('to'))
-<a href="{{ route('sales.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
+<a href="{{ route('sales.index') }}" id="s-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ request('search') || request('from') || request('to') ? '' : ' hidden' }}">
 <span class="material-symbols-outlined text-[16px]">close</span>
 Clear
 </a>
-@endif
 </div>
 </form>
 
@@ -138,7 +136,7 @@ Clear
 <th class="st-th px-4 py-3 text-right w-28"></th>
 </tr>
 </thead>
-<tbody>
+<tbody id="s-tbody">
 @forelse($sales as $sale)
 @php
 $rowSymbol = $sale->currency && $sale->currency->symbol ? $sale->currency->symbol : ($currencySymbol ?? '$');
@@ -153,9 +151,18 @@ if ($lineCount === 0) {
     $linesSummary = $firstName.', +'.($lineCount - 1).' more';
 }
 $showLabel = 'View sale '.($sale->invoice_number ?: '#'.$sale->id);
+$allProducts = $sale->items->map(fn($i) => $i->product?->name ?: '')->filter()->join(' ');
+$searchText = mb_strtolower(implode(' ', array_filter([
+    $sale->invoice_number,
+    $sale->customer_name,
+    $sale->customer_code,
+    $allProducts,
+])), 'UTF-8');
 @endphp
 <tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
-    data-sale-show-url="{{ route('sales.show', $sale) }}" role="link" tabindex="0" aria-label="{{ e($showLabel) }}">
+    data-sale-show-url="{{ route('sales.show', $sale) }}"
+    data-search-text="{{ $searchText }}"
+    role="link" tabindex="0" aria-label="{{ e($showLabel) }}">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_datetime($sale->date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437] truncate max-w-[160px]">{{ $sale->customer_name ?: ($sale->customer_code ?: '—') }}</td>
 <td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
@@ -188,7 +195,7 @@ $showLabel = 'View sale '.($sale->invoice_number ?: '#'.$sale->id);
 </td>
 </tr>
 @empty
-<tr>
+<tr id="s-empty-db">
 <td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No sales recorded yet</p>
 @if(auth()->user()->role !== 'viewer')
@@ -197,12 +204,18 @@ $showLabel = 'View sale '.($sale->invoice_number ?: '#'.$sale->id);
 </td>
 </tr>
 @endforelse
+<tr id="s-no-results" style="display:none">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No sales match your search</p>
+<p class="text-xs">Try a different term, or <button type="button" id="s-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">clear search</button> to see all.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
+<p class="text-xs text-[#586064] uppercase tracking-wide" id="s-footer-text" data-total="{{ $sales->count() }}">
 @if($sales->count() > 0)
 Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $sales->count() }}</span> sales
 @else
@@ -218,7 +231,97 @@ No results
 </main>
 <script>
 (function () {
-    document.querySelectorAll('tr[data-sale-show-url]').forEach(function (row) {
+    var searchInput  = document.getElementById('s-search');
+    var sForm        = document.getElementById('s-form');
+    var tbody        = document.getElementById('s-tbody');
+    var rows         = tbody ? Array.from(tbody.querySelectorAll('tr[data-search-text]')) : [];
+    var noResults    = document.getElementById('s-no-results');
+    var noResultsClr = document.getElementById('s-no-results-clear');
+    var clearBtn     = document.getElementById('s-clear-btn');
+    var footer       = document.getElementById('s-footer-text');
+    var total        = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
+    var hasDateFilter = !!(
+        new URLSearchParams(window.location.search).get('from') ||
+        new URLSearchParams(window.location.search).get('to')
+    );
+
+    function esc(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function filterRows(query) {
+        var needle  = query.trim().toLowerCase();
+        var visible = 0;
+
+        rows.forEach(function (row) {
+            var match = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
+
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !hasDateFilter);
+
+        if (footer) {
+            if (visible > 0 && needle !== '') {
+                footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> sales matching &ldquo;' + esc(query.trim()) + '&rdquo;';
+            } else if (visible > 0) {
+                footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> sale' + (visible === 1 ? '' : 's');
+            } else if (needle !== '') {
+                footer.textContent = 'No matches';
+            } else {
+                footer.textContent = 'No results';
+            }
+        }
+
+        try {
+            var url = new URL(window.location.href);
+            needle !== '' ? url.searchParams.set('search', query.trim()) : url.searchParams.delete('search');
+            history.replaceState(null, '', url.toString());
+        } catch (e) {}
+    }
+
+    function clearSearch() {
+        if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); }
+    }
+
+    // Intercept Enter in search input → filter client-side, don't submit form
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); filterRows(this.value); }
+        });
+        searchInput.addEventListener('input', function () { filterRows(this.value); });
+    }
+
+    // Filter button: allow form to submit (for date filters), but remove search from POST so
+    // the server doesn't use it (server-side search was removed); search stays client-side on reload
+    if (sForm) {
+        sForm.addEventListener('submit', function () {
+            // Leave search in the form so it round-trips in the URL for JS to re-apply on load
+        });
+    }
+
+    // Clear button: if date filter active → server reload (clears dates); otherwise clear search only
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function (e) {
+            if (!hasDateFilter) {
+                e.preventDefault();
+                clearSearch();
+            }
+            // else: follow the href to clear dates server-side
+        });
+    }
+
+    if (noResultsClr) noResultsClr.addEventListener('click', clearSearch);
+
+    // Apply initial filter from pre-filled search input (round-tripped from URL)
+    if (searchInput && searchInput.value.trim() !== '') {
+        filterRows(searchInput.value);
+    }
+
+    // Row click / keyboard navigation
+    rows.forEach(function (row) {
         var url = row.getAttribute('data-sale-show-url');
         if (!url) return;
         row.addEventListener('click', function (e) {

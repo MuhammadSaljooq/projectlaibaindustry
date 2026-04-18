@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BankStatementEntry;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\InternationalPayablePayment;
+use App\Models\InternationalPurchaseOrder;
 use App\Models\Payable;
 use App\Models\Product;
 use App\Models\Purchase;
@@ -44,6 +47,19 @@ class DashboardController extends Controller
             ')
             ->first();
 
+        // International Purchases
+        $intlPurchaseTotal  = (float) InternationalPurchaseOrder::query()->sum('total_amount');
+        $intlPurchaseCount  = InternationalPurchaseOrder::query()->count();
+
+        // International Payables
+        $intlPaidTotal      = (float) InternationalPayablePayment::query()->sum('amount');
+        $intlOutstanding    = max(0, $intlPurchaseTotal - $intlPaidTotal);
+
+        // Bank Statement
+        $bankInflow  = (float) BankStatementEntry::query()->where('flow_type', BankStatementEntry::FLOW_INFLOW)->sum('amount');
+        $bankOutflow = (float) BankStatementEntry::query()->where('flow_type', BankStatementEntry::FLOW_OUTFLOW)->sum('amount');
+        $bankNet     = $bankInflow - $bankOutflow;
+
         $vatTotals = VatEntry::query()
             ->selectRaw("
                 COALESCE(SUM(CASE WHEN type = 'sale'     THEN vat_amount ELSE 0 END), 0) AS sales_vat,
@@ -78,9 +94,7 @@ class DashboardController extends Controller
                     ['label' => 'Total sales', 'value' => $m($totalSales)],
                     ['label' => 'Sale records', 'value' => (string) $salesCount],
                 ],
-                'actions' => [
-                    ['label' => 'Export CSV', 'route' => route('sales.export', absolute: false), 'style' => 'secondary'],
-                ],
+                'actions' => [],
             ],
             [
                 'title' => 'Customers',
@@ -113,9 +127,7 @@ class DashboardController extends Controller
                     ['label' => 'Total purchases', 'value' => $m($totalPurchases)],
                     ['label' => 'Purchase records', 'value' => (string) $purchasesCount],
                 ],
-                'actions' => [
-                    ['label' => 'Export CSV', 'route' => route('purchases.export', absolute: false), 'style' => 'secondary'],
-                ],
+                'actions' => [],
             ],
             [
                 'title' => 'Payables',
@@ -137,9 +149,7 @@ class DashboardController extends Controller
                 'metrics' => [
                     ['label' => 'Total expenses', 'value' => $m($totalExpenses)],
                 ],
-                'actions' => [
-                    ['label' => 'Export CSV', 'route' => route('expenses.export', absolute: false), 'style' => 'secondary'],
-                ],
+                'actions' => [],
             ],
             [
                 'title' => 'VAT',
@@ -151,9 +161,42 @@ class DashboardController extends Controller
                     ['label' => 'Purchase VAT', 'value' => $m0($purchaseVat)],
                     ['label' => 'Net VAT', 'value' => $m0($netVat)],
                 ],
-                'actions' => [
-                    ['label' => 'Review export', 'route' => route('vat.export', absolute: false), 'style' => 'secondary'],
+                'actions' => [],
+            ],
+            [
+                'title' => 'International Purchases',
+                'icon' => 'flight_takeoff',
+                'route' => route('international-purchases.index', absolute: false),
+                'link_label' => 'View international purchases',
+                'metrics' => [
+                    ['label' => 'Total invoiced', 'value' => 'USD '.number_format($intlPurchaseTotal, 2)],
+                    ['label' => 'Invoice records', 'value' => (string) $intlPurchaseCount],
                 ],
+                'actions' => [],
+            ],
+            [
+                'title' => 'International Payables',
+                'icon' => 'public',
+                'route' => route('international-payables.index', absolute: false),
+                'link_label' => 'View international payables',
+                'metrics' => [
+                    ['label' => 'Total billed', 'value' => 'USD '.number_format($intlPurchaseTotal, 2)],
+                    ['label' => 'Amount paid', 'value' => 'USD '.number_format($intlPaidTotal, 2)],
+                    ['label' => 'Outstanding', 'value' => 'USD '.number_format($intlOutstanding, 2)],
+                ],
+                'actions' => [],
+            ],
+            [
+                'title' => 'Bank Statement',
+                'icon' => 'account_balance',
+                'route' => route('bank-statement.index', absolute: false),
+                'link_label' => 'View bank statement',
+                'metrics' => [
+                    ['label' => 'Total inflow', 'value' => $m($bankInflow)],
+                    ['label' => 'Total outflow', 'value' => $m($bankOutflow)],
+                    ['label' => 'Net balance', 'value' => $m($bankNet)],
+                ],
+                'actions' => [],
             ],
         ];
 

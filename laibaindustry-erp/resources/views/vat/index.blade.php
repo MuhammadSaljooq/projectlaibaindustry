@@ -69,18 +69,18 @@ CSV export
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Output VAT <span class="font-normal normal-case text-[#586064]">(filtered)</span></p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($filteredSalesVat ?? 0, 2) }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="vat-output-vat">{{ $currencySymbol }} {{ number_format($filteredSalesVat ?? 0, 2) }}</p>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mt-2">Sales</p>
 </div>
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Input VAT <span class="font-normal normal-case text-[#586064]">(filtered)</span></p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($filteredPurchaseVat ?? 0, 2) }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="vat-input-vat">{{ $currencySymbol }} {{ number_format($filteredPurchaseVat ?? 0, 2) }}</p>
 <p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mt-2">Purchases</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Net VAT <span class="font-normal normal-case text-[#586064]">(filtered)</span></p>
-<p class="text-2xl font-black font-mono tabular-nums {{ ($filteredNetVat ?? 0) < 0 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($filteredNetVat ?? 0, 2) }}</p>
-<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mt-2">{{ ($filteredNetVat ?? 0) >= 0 ? 'Payable' : 'Refundable' }}</p>
+<p class="text-2xl font-black font-mono tabular-nums {{ ($filteredNetVat ?? 0) < 0 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}" id="vat-net-vat">{{ $currencySymbol }} {{ number_format($filteredNetVat ?? 0, 2) }}</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-[#586064] mt-2" id="vat-net-label">{{ ($filteredNetVat ?? 0) >= 0 ? 'Payable' : 'Refundable' }}</p>
 </div>
 </div>
 
@@ -91,12 +91,12 @@ Output {{ $currencySymbol }} {{ number_format($totals->sales_vat ?? 0, 2) }}
 · Net <span class="font-mono font-bold {{ ($totals->net_vat ?? 0) < 0 ? 'text-[#9F403D]' : 'text-[#2B3437]' }}">{{ $currencySymbol }} {{ number_format($totals->net_vat ?? 0, 2) }}</span>
 </p>
 
-<form method="GET" action="{{ route('vat.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<form id="vat-form" method="GET" action="{{ route('vat.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
 <div class="flex-1 min-w-[200px]">
 <label class="st-label block mb-2" for="v-search">Search</label>
 <div class="relative">
 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
-<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="v-search" type="text" name="search" value="{{ request('search') }}" placeholder="Invoice, customer, code…">
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="v-search" type="text" name="search" value="{{ request('search') }}" placeholder="Invoice, customer, code…" autocomplete="off">
 </div>
 </div>
 <div class="min-w-[140px]">
@@ -112,12 +112,10 @@ Output {{ $currencySymbol }} {{ number_format($totals->sales_vat ?? 0, 2) }}
 <span class="material-symbols-outlined text-[16px]">filter_list</span>
 Filter
 </button>
-@if(request('search') || request('from') || request('to'))
-<a href="{{ route('vat.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
+<a href="{{ route('vat.index') }}" id="vat-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ request('search') || request('from') || request('to') ? '' : ' hidden' }}">
 <span class="material-symbols-outlined text-[16px]">close</span>
 Clear
 </a>
-@endif
 </div>
 </form>
 
@@ -141,9 +139,12 @@ Clear
 <th class="st-th px-4 py-3 text-right whitespace-nowrap w-28">Actions</th>
 </tr>
 </thead>
-<tbody>
+<tbody id="vat-tbody">
 @forelse($entries as $entry)
-<tr class="st-tr">
+<tr class="st-tr"
+    data-search-text="{{ mb_strtolower(($entry->invoice_number ?? '').' '.($entry->customer_name ?? '').' '.($entry->customer_code ?? '').' '.($entry->type ?? ''), 'UTF-8') }}"
+    data-vat-amount="{{ $entry->vat_amount }}"
+    data-entry-type="{{ $entry->type }}">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($entry->date) }}</td>
 <td class="st-td px-4 py-3">
 @if($entry->type === 'sale')
@@ -179,19 +180,25 @@ Purchase
 </td>
 </tr>
 @empty
-<tr>
+<tr id="vat-empty-db">
 <td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No VAT entries</p>
 <p class="max-w-md mx-auto">Entries are created when you record sales and purchases.</p>
 </td>
 </tr>
 @endforelse
+<tr id="vat-no-results" style="display:none">
+<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No entries match your search</p>
+<p class="text-xs">Try a different term, or <button type="button" id="vat-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">clear search</button> to see all.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
+<p class="text-xs text-[#586064] uppercase tracking-wide" id="vat-footer-text" data-total="{{ $entries->count() }}" data-currency="{{ $currencySymbol }}">
 @if($entries->count() > 0)
 Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $entries->count() }}</span> VAT entries
 @else
@@ -205,5 +212,67 @@ No results
 </div>
 </div>
 </main>
+<script>
+(function () {
+    var searchInput  = document.getElementById('v-search');
+    var tbody        = document.getElementById('vat-tbody');
+    var rows         = tbody ? Array.from(tbody.querySelectorAll('tr[data-search-text]')) : [];
+    var noResults    = document.getElementById('vat-no-results');
+    var noResultsClr = document.getElementById('vat-no-results-clear');
+    var clearBtn     = document.getElementById('vat-clear-btn');
+    var footer       = document.getElementById('vat-footer-text');
+    var total        = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
+    var sym          = (footer && footer.getAttribute('data-currency')) || '';
+    var outputVat    = document.getElementById('vat-output-vat');
+    var inputVat     = document.getElementById('vat-input-vat');
+    var netVat       = document.getElementById('vat-net-vat');
+    var netLabel     = document.getElementById('vat-net-label');
+    var hasDateFilter = !!(new URLSearchParams(window.location.search).get('from') || new URLSearchParams(window.location.search).get('to'));
+
+    function fmt(n) { return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function filterRows(query) {
+        var needle = query.trim().toLowerCase(), visible = 0, salesVat = 0, purchaseVat = 0;
+        rows.forEach(function (row) {
+            var show = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
+            row.style.display = show ? '' : 'none';
+            if (show) {
+                visible++;
+                var amt = parseFloat(row.getAttribute('data-vat-amount') || '0');
+                if (row.getAttribute('data-entry-type') === 'sale') salesVat += amt;
+                else purchaseVat += amt;
+            }
+        });
+        var net = salesVat - purchaseVat;
+        if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
+        if (outputVat) outputVat.textContent = sym + ' ' + fmt(salesVat);
+        if (inputVat)  inputVat.textContent  = sym + ' ' + fmt(purchaseVat);
+        if (netVat) {
+            netVat.textContent = sym + ' ' + fmt(net);
+            netVat.className = netVat.className.replace(/text-\[#[0-9A-Fa-f]+\]/g, '') + (net < 0 ? ' text-[#9F403D]' : ' text-[#5E5E5E]');
+        }
+        if (netLabel) netLabel.textContent = net >= 0 ? 'Payable' : 'Refundable';
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !hasDateFilter);
+        if (footer) {
+            if (visible > 0 && needle !== '') footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> VAT entries matching &ldquo;' + esc(query.trim()) + '&rdquo;';
+            else if (visible > 0) footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> VAT entr' + (visible === 1 ? 'y' : 'ies');
+            else if (needle !== '') footer.textContent = 'No matches';
+            else footer.textContent = 'No results';
+        }
+        try { var url = new URL(window.location.href); needle !== '' ? url.searchParams.set('search', query.trim()) : url.searchParams.delete('search'); history.replaceState(null, '', url.toString()); } catch (e) {}
+    }
+
+    function clearSearch() { if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); } }
+
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); filterRows(this.value); } });
+        searchInput.addEventListener('input', function () { filterRows(this.value); });
+    }
+    if (clearBtn) clearBtn.addEventListener('click', function (e) { if (!hasDateFilter) { e.preventDefault(); clearSearch(); } });
+    if (noResultsClr) noResultsClr.addEventListener('click', clearSearch);
+    if (searchInput && searchInput.value.trim() !== '') filterRows(searchInput.value);
+})();
+</script>
 </body>
 </html>

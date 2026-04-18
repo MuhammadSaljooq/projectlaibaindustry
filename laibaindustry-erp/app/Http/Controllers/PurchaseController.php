@@ -21,32 +21,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PurchaseController extends Controller
 {
-    public function index(): View|RedirectResponse
+    public function index(): View
     {
-        [$redirect, $from, $to] = parse_list_date_filters();
-        if ($redirect) {
-            return $redirect;
-        }
-
-        $query = Purchase::query()->with(['items', 'currency']);
-
-        if ($search = request('search')) {
-            $like = '%'.$search.'%';
-            $query->where(function ($q) use ($like) {
-                $q->where('invoice_number', 'like', $like)
-                    ->orWhere('customer_name', 'like', $like)
-                    ->orWhere('customer_code', 'like', $like)
-                    ->orWhereHas('items', fn ($iq) => $iq->where('product_name', 'like', $like));
-            });
-        }
-        if ($from) {
-            $query->whereDate('date', '>=', $from);
-        }
-        if ($to) {
-            $query->whereDate('date', '<=', $to);
-        }
-
-        $purchases = $query
+        $purchases = Purchase::query()->with(['items', 'currency'])
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();

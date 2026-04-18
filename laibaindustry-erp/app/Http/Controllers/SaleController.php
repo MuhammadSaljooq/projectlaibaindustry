@@ -29,15 +29,6 @@ class SaleController extends Controller
         $query = Sale::query()
             ->with(['items.product', 'currency']);
 
-        if ($search = request('search')) {
-            $like = '%'.$search.'%';
-            $query->where(function ($q) use ($like) {
-                $q->where('invoice_number', 'like', $like)
-                    ->orWhere('customer_name', 'like', $like)
-                    ->orWhere('customer_code', 'like', $like)
-                    ->orWhereHas('items.product', fn ($pq) => $pq->where('name', 'like', $like));
-            });
-        }
         if ($from) {
             $query->whereDate('date', '>=', $from);
         }

@@ -66,15 +66,7 @@ class CustomerController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('search', ''));
-        $query = Customer::query()->orderBy('customer_name');
-        if ($search !== '') {
-            $term = '%'.addcslashes($search, '%_\\').'%';
-            $query->where(function (Builder $q) use ($term) {
-                $q->where('customer_name', 'like', $term)
-                    ->orWhere('customer_code', 'like', $term);
-            });
-        }
-        $customers = $query->get();
+        $customers = Customer::query()->orderBy('customer_name')->get();
         $totalCustomers = Customer::query()->count();
 
         return view('customers.index', [
@@ -351,6 +343,76 @@ class CustomerController extends Controller
     }
 
     /**
+     * Receivable rows for this customer in chronological order (oldest first) for FIFO payment display.
+     *
+     * @return Collection<int, Receivable>
+     */
+    private function receivableLinesForFifo(Customer $customer, ?CustomerStatementPeriod $period = null): Collection
+    {
+        $code = trim((string) $customer->customer_code);
+        $query = Receivable::query()
+            ->orderBy('date')
+            ->orderBy('id');
+
+        if ($code !== '') {
+            $query->where('customer_code', $code);
+        } else {
+            $name = trim((string) $customer->customer_name);
+            if ($name === '') {
+                return collect();
+            }
+            $query->whereRaw('LOWER(TRIM(COALESCE(customer_name, ?))) = LOWER(?)', ['', $name]);
+        }
+
+        if ($period !== null) {
+            $query->where('date', '<=', $period->toEnd);
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * Invoice numbers that are fully settled when customer payments are applied oldest-invoice first
+     * (FIFO) against each receivable's billed amount, ignoring how {@see Receivable::$received} is split per row.
+     *
+     * @return array<string, true>  invoice_number => true
+     */
+    private function fifoFullyPaidInvoiceNumbersForCustomer(Customer $customer, ?CustomerStatementPeriod $period = null): array
+    {
+        $eps = 0.009;
+
+        $poolQuery = CustomerLedgerEntry::query()
+            ->where('customer_id', $customer->id)
+            ->where('source_type', 'payment_received');
+
+        if ($period !== null) {
+            $poolQuery->where('date', '<=', $period->toEnd);
+        }
+
+        $remaining = round((float) ($poolQuery->sum('credit') ?? 0), 2);
+        $paid = [];
+
+        foreach ($this->receivableLinesForFifo($customer, $period) as $r) {
+            $amt = round((float) $r->amount, 2);
+            if ($amt <= $eps) {
+                continue;
+            }
+
+            if ($remaining + $eps >= $amt) {
+                $key = trim((string) ($r->invoice_number ?? ''));
+                if ($key !== '') {
+                    $paid[$key] = true;
+                }
+                $remaining = round($remaining - $amt, 2);
+            } else {
+                break;
+            }
+        }
+
+        return $paid;
+    }
+
+    /**
      * Get statement data for a customer (ledger rows, balances, totals).
      *
      * @param  CustomerStatementPeriod|null  $period  When set, statement is limited to [fromStart, toEnd] inclusive; opening row is balance brought forward.
@@ -448,6 +510,18 @@ class CustomerController extends Controller
 
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
+        $outstandingReceivables = Receivable::query()
+            ->where('customer_code', $customer->customer_code)
+            ->whereRaw('COALESCE(amount, 0) - COALESCE(received, 0) > 0.009')
+            ->where('is_opening_balance', false)
+            ->orderBy('date')
+            ->get()
+            ->map(fn ($r) => [
+                'invoice_number' => $r->invoice_number,
+                'date'           => $r->date,
+                'outstanding'    => round((float) $r->amount - (float) $r->received, 2),
+            ]);
+
         return [
             'customer' => $customer,
             'company' => StatementCompany::normalize(config('company')),
@@ -460,6 +534,8 @@ class CustomerController extends Controller
             'statementFiltered' => $statementFiltered,
             'periodFrom' => $period?->fromStart,
             'periodTo' => $period?->toEnd,
+            'outstandingReceivables' => $outstandingReceivables,
+            'fifoPaidInvoiceNumbers' => $this->fifoFullyPaidInvoiceNumbersForCustomer($customer, $period),
         ];
     }
 

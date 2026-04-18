@@ -73,12 +73,12 @@ Add item
 </div>
 </div>
 
-<form method="GET" action="{{ route('inventory.dashboard') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<form id="inv-form" method="GET" action="{{ route('inventory.dashboard') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
 <div class="flex-1 min-w-[200px]">
 <label class="st-label block mb-2" for="inv-search">Search</label>
 <div class="relative">
 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
-<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="inv-search" type="text" name="search" value="{{ request('search') }}" placeholder="Name, article no.…">
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="inv-search" type="text" name="search" value="{{ request('search') }}" placeholder="Name, article no.…" autocomplete="off">
 </div>
 </div>
 <div class="min-w-[200px]">
@@ -98,12 +98,10 @@ Add item
 <span class="material-symbols-outlined text-[16px]">filter_list</span>
 Filter
 </button>
-@if(request('search') || request('category_id'))
-<a href="{{ route('inventory.dashboard') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
+<a href="{{ route('inventory.dashboard') }}" id="inv-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ request('search') || request('category_id') ? '' : ' hidden' }}">
 <span class="material-symbols-outlined text-[16px]">close</span>
 Clear
 </a>
-@endif
 </div>
 </form>
 
@@ -126,9 +124,11 @@ Clear
 <th class="st-th px-4 py-3 text-right w-36"></th>
 </tr>
 </thead>
-<tbody>
+<tbody id="inv-tbody">
 @forelse($products ?? [] as $product)
+@php $invSearchText = mb_strtolower(($product->name ?? '').' '.($product->sku ?? ''), 'UTF-8'); @endphp
 <tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
+    data-search-text="{{ $invSearchText }}"
     @if(auth()->user()->role !== 'viewer') data-product-edit-url="{{ route('products.edit', $product) }}" role="link" tabindex="0" aria-label="Edit {{ e($product->name) }}" @endif>
 <td class="st-td px-4 py-3">
 <div class="flex items-center gap-3 min-w-0">
@@ -172,7 +172,7 @@ Clear
 </td>
 </tr>
 @empty
-<tr>
+<tr id="inv-empty-db">
 <td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No products found</p>
 @if(auth()->user()->role !== 'viewer')
@@ -181,13 +181,19 @@ Clear
 </td>
 </tr>
 @endforelse
+<tr id="inv-no-results" style="display:none">
+<td colspan="7" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No products match your search</p>
+<p class="text-xs">Try a different term, or <button type="button" id="inv-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">clear search</button> to see all.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
 
 @if(isset($products))
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
+<p class="text-xs text-[#586064] uppercase tracking-wide" id="inv-footer-text" data-total="{{ $products->count() }}">
 @if($products->count() > 0)
 Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $products->count() }}</span> products
 @else
@@ -202,25 +208,55 @@ No results
 </div>
 </div>
 </main>
-@if(auth()->user()->role !== 'viewer')
 <script>
 (function () {
-    document.querySelectorAll('tr[data-product-edit-url]').forEach(function (row) {
+    var searchInput  = document.getElementById('inv-search');
+    var tbody        = document.getElementById('inv-tbody');
+    var rows         = tbody ? Array.from(tbody.querySelectorAll('tr[data-search-text]')) : [];
+    var noResults    = document.getElementById('inv-no-results');
+    var noResultsClr = document.getElementById('inv-no-results-clear');
+    var clearBtn     = document.getElementById('inv-clear-btn');
+    var footer       = document.getElementById('inv-footer-text');
+    var total        = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
+    var hasCatFilter = !!(new URLSearchParams(window.location.search).get('category_id'));
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function filterRows(query) {
+        var needle = query.trim().toLowerCase(), visible = 0;
+        rows.forEach(function (row) {
+            var show = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !hasCatFilter);
+        if (footer) {
+            if (visible > 0 && needle !== '') footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> products matching &ldquo;' + esc(query.trim()) + '&rdquo;';
+            else if (visible > 0) footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> product' + (visible === 1 ? '' : 's');
+            else if (needle !== '') footer.textContent = 'No matches';
+            else footer.textContent = 'No results';
+        }
+        try { var url = new URL(window.location.href); needle !== '' ? url.searchParams.set('search', query.trim()) : url.searchParams.delete('search'); history.replaceState(null, '', url.toString()); } catch (e) {}
+    }
+
+    function clearSearch() { if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); } }
+
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); filterRows(this.value); } });
+        searchInput.addEventListener('input', function () { filterRows(this.value); });
+    }
+    if (clearBtn) clearBtn.addEventListener('click', function (e) { if (!hasCatFilter) { e.preventDefault(); clearSearch(); } });
+    if (noResultsClr) noResultsClr.addEventListener('click', clearSearch);
+    if (searchInput && searchInput.value.trim() !== '') filterRows(searchInput.value);
+
+    rows.forEach(function (row) {
         var url = row.getAttribute('data-product-edit-url');
         if (!url) return;
-        row.addEventListener('click', function (e) {
-            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
-            window.location.href = url;
-        });
-        row.addEventListener('keydown', function (e) {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
-            e.preventDefault();
-            window.location.href = url;
-        });
+        row.addEventListener('click', function (e) { if (e.target.closest('[data-stop-row-nav], a, button, form')) return; window.location.href = url; });
+        row.addEventListener('keydown', function (e) { if (e.key !== 'Enter' && e.key !== ' ') return; if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return; e.preventDefault(); window.location.href = url; });
     });
 })();
 </script>
-@endif
 </body>
 </html>

@@ -60,16 +60,16 @@ Add customer
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $totalCustomers ?? $customers->count() }}</p>
 </div>
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
-<p class="st-label mb-2">{{ !empty($search) ? 'Matching search' : 'Listed' }}</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $customers->count() }}</p>
+<p class="st-label mb-2" id="c-listed-label">{{ !empty($search) ? 'Matching search' : 'Listed' }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="c-listed-count">{{ $customers->count() }}</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Search</p>
-<p class="text-sm font-mono text-[#5E5E5E] break-all">{{ !empty($search) ? $search : '—' }}</p>
+<p class="text-sm font-mono text-[#5E5E5E] break-all" id="c-search-display">{{ !empty($search) ? $search : '—' }}</p>
 </div>
 </div>
 
-<form method="GET" action="{{ route('customers.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<form id="c-form" method="GET" action="{{ route('customers.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
 <div class="flex-1 min-w-[200px]">
 <label class="st-label block mb-2" for="c-search">Search</label>
 <div class="relative">
@@ -82,12 +82,10 @@ Add customer
 <span class="material-symbols-outlined text-[16px]">filter_list</span>
 Filter
 </button>
-@if(($search ?? '') !== '')
-<a href="{{ route('customers.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2">
+<a href="{{ route('customers.index') }}" id="c-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ ($search ?? '') !== '' ? '' : ' hidden' }}">
 <span class="material-symbols-outlined text-[16px]">close</span>
 Clear
 </a>
-@endif
 </div>
 </form>
 
@@ -108,9 +106,11 @@ Clear
 <th class="st-th px-4 py-3 text-right w-44">Actions</th>
 </tr>
 </thead>
-<tbody>
+<tbody id="c-tbody">
 @forelse($customers as $customer)
-<tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif" @if(auth()->user()->role !== 'viewer') data-customer-edit-url="{{ route('customers.edit', $customer) }}" role="link" tabindex="0" aria-label="Edit {{ e($customer->customer_name) }}" @endif>
+<tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
+    data-search-text="{{ mb_strtolower(($customer->customer_name ?? '').' '.($customer->customer_code ?? ''), 'UTF-8') }}"
+    @if(auth()->user()->role !== 'viewer') data-customer-edit-url="{{ route('customers.edit', $customer) }}" role="link" tabindex="0" aria-label="Edit {{ e($customer->customer_name) }}" @endif>
 <td class="st-td px-4 py-3">
 <div class="flex items-center gap-3">
 <div class="h-9 w-9 shrink-0 border border-[#ABB3B7] bg-[#EAEFF1] flex items-center justify-center">
@@ -145,7 +145,7 @@ Clear
 </td>
 </tr>
 @empty
-<tr>
+<tr id="c-empty-db">
 <td colspan="5" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No customers yet</p>
 @if(auth()->user()->role !== 'viewer')
@@ -154,20 +154,22 @@ Clear
 </td>
 </tr>
 @endforelse
+<tr id="c-no-results" style="display:none">
+<td colspan="5" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<p class="font-semibold text-[#2B3437] mb-1">No customers match your search</p>
+<p class="text-xs">Try a different name or code, or <button type="button" id="c-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">clear search</button> to see all.</p>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
 
 <div class="p-4 border-t border-[#ABB3B7] bg-[#F8F9FA]">
-<p class="text-xs text-[#586064] uppercase tracking-wide">
+<p class="text-xs text-[#586064] uppercase tracking-wide" id="c-footer-text" data-total="{{ $customers->count() }}">
 @if($customers->count() > 0)
-Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->count() }}</span> @if(!empty($search))matching "{{ $search }}" @endif customer{{ $customers->count() === 1 ? '' : 's' }}
-@else
-@if(!empty($search))
-No customers match "{{ $search }}". <a href="{{ route('customers.index') }}" class="font-bold text-[#5E5E5E] underline underline-offset-2">Clear search</a>
+Showing <span class="font-bold text-[#2B3437] tabular-nums">{{ $customers->count() }}</span> customer{{ $customers->count() === 1 ? '' : 's' }}
 @else
 No results
-@endif
 @endif
 </p>
 </div>
@@ -179,19 +181,55 @@ No results
 </main>
 <script>
 (function () {
-    document.querySelectorAll('tr[data-customer-edit-url]').forEach(function (row) {
-        row.addEventListener('click', function (e) {
-            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
-            var url = row.getAttribute('data-customer-edit-url');
-            if (url) window.location.href = url;
+    var searchInput  = document.getElementById('c-search');
+    var theForm      = document.getElementById('c-form');
+    var tbody        = document.getElementById('c-tbody');
+    var rows         = tbody ? Array.from(tbody.querySelectorAll('tr[data-search-text]')) : [];
+    var noResults    = document.getElementById('c-no-results');
+    var noResultsClr = document.getElementById('c-no-results-clear');
+    var listedLabel  = document.getElementById('c-listed-label');
+    var listedCount  = document.getElementById('c-listed-count');
+    var searchDisp   = document.getElementById('c-search-display');
+    var clearBtn     = document.getElementById('c-clear-btn');
+    var footer       = document.getElementById('c-footer-text');
+    var total        = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function filterRows(query) {
+        var needle = query.trim().toLowerCase(), visible = 0;
+        rows.forEach(function (row) {
+            var show = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
         });
-        row.addEventListener('keydown', function (e) {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
-            e.preventDefault();
-            var url = row.getAttribute('data-customer-edit-url');
-            if (url) window.location.href = url;
-        });
+        if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
+        if (listedLabel) listedLabel.textContent = needle !== '' ? 'Matching search' : 'Listed';
+        if (listedCount) listedCount.textContent = visible;
+        if (searchDisp)  searchDisp.textContent  = needle !== '' ? query.trim() : '—';
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '');
+        if (footer) {
+            if (visible > 0 && needle !== '') footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> customer' + (total === 1 ? '' : 's') + ' matching &ldquo;' + esc(query.trim()) + '&rdquo;';
+            else if (visible > 0) footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> customer' + (visible === 1 ? '' : 's');
+            else if (needle !== '') footer.textContent = 'No matches';
+            else footer.textContent = 'No results';
+        }
+        try { var url = new URL(window.location.href); needle !== '' ? url.searchParams.set('search', query.trim()) : url.searchParams.delete('search'); history.replaceState(null, '', url.toString()); } catch (e) {}
+    }
+
+    function clearSearch() { if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); } }
+
+    if (theForm) theForm.addEventListener('submit', function (e) { e.preventDefault(); if (searchInput) filterRows(searchInput.value); });
+    if (searchInput) searchInput.addEventListener('input', function () { filterRows(this.value); });
+    if (clearBtn) clearBtn.addEventListener('click', function (e) { e.preventDefault(); clearSearch(); });
+    if (noResultsClr) noResultsClr.addEventListener('click', clearSearch);
+    if (searchInput && searchInput.value.trim() !== '') filterRows(searchInput.value);
+
+    rows.forEach(function (row) {
+        var url = row.getAttribute('data-customer-edit-url');
+        if (!url) return;
+        row.addEventListener('click', function (e) { if (e.target.closest('[data-stop-row-nav], a, button, form')) return; window.location.href = url; });
+        row.addEventListener('keydown', function (e) { if (e.key !== 'Enter' && e.key !== ' ') return; if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return; e.preventDefault(); window.location.href = url; });
     });
 })();
 </script>
