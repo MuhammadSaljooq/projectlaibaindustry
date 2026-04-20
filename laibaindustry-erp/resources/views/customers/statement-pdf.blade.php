@@ -185,7 +185,7 @@
             padding: 7px 6px;
         }
         table.ledger th {
-            text-align: left;
+            text-align: center;
             padding: 7px 8px;
             font-weight: bold;
             font-size: 7.5pt;
@@ -232,19 +232,19 @@
         }
         table.ledger th.ledger-col-debit,
         table.ledger td.ledger-col-debit {
-            width: 11%;
+            width: 12%;
             padding-left: 8px;
             padding-right: 8px;
         }
         table.ledger th.ledger-col-credit,
         table.ledger td.ledger-col-credit {
-            width: 11%;
+            width: 12%;
             padding-left: 8px;
             padding-right: 8px;
         }
         table.ledger th.ledger-col-balance,
         table.ledger td.ledger-col-balance {
-            width: 19%;
+            width: 17%;
             padding-left: 8px;
             padding-right: 6px;
         }
@@ -253,11 +253,14 @@
             font-size: 8pt;
         }
         table.ledger thead th {
-            text-align: left;
+            text-align: center;
         }
         table.ledger td.amt {
-            text-align: right;
+            text-align: center;
             font-variant-numeric: tabular-nums;
+        }
+        table.ledger td {
+            text-align: center;
         }
         table.ledger td.ledger-col-date {
             white-space: nowrap;
@@ -265,14 +268,18 @@
         table.ledger td.ledger-col-debit,
         table.ledger td.ledger-col-credit,
         table.ledger td.ledger-col-balance {
-            white-space: nowrap;
+            /* Allow large amounts to wrap instead of overflowing into adjacent columns. */
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.25;
         }
         table.ledger th:last-child,
         table.ledger td:last-child {
             border-right: none;
         }
         table.ledger tr.total-row td.ledger-totals-label {
-            text-align: left;
+            text-align: center;
             font-weight: bold;
             padding-left: 6px;
             padding-right: 10px;
@@ -426,9 +433,9 @@
         <col style="width:24%;">
         <col style="width:12%;">
         <col style="width:11%;">
-        <col style="width:11%;">
-        <col style="width:11%;">
-        <col style="width:19%;">
+        <col style="width:12%;">
+        <col style="width:12%;">
+        <col style="width:17%;">
     </colgroup>
     <thead>
         <tr>
