@@ -32,7 +32,7 @@
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-<p class="text-[11px] text-[#586064] max-w-2xl">Invoices are split into open and settled sections like Receivables. Combined payments are tracked in batches and allocated oldest invoice first.</p>
+<p class="text-[11px] text-[#586064] max-w-2xl">Invoices are split into open and settled sections like Receivables. Combined payments are tracked in batches and distributed proportionally across open invoices.</p>
 
 @if (session('success'))
 <div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
@@ -79,7 +79,7 @@
 </div>
 <button type="submit" class="st-btn-primary h-10 px-4 text-[10px] font-bold uppercase tracking-wider shrink-0">Record combined payment</button>
 </form>
-<p class="text-[10px] text-[#586064] mt-3">Maximum for this batch: {{ $currencySymbol }} {{ number_format($groupTotals['total_remaining'], 2) }}. Allocation is oldest invoice first.</p>
+<p class="text-[10px] text-[#586064] mt-3">Maximum for this batch: {{ $currencySymbol }} {{ number_format($groupTotals['total_remaining'], 2) }}. Allocation is proportional across open invoices.</p>
 </div>
 @endif
 

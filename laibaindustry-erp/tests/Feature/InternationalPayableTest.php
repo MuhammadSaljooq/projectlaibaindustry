@@ -239,7 +239,7 @@ class InternationalPayableTest extends TestCase
             ->assertSee('100.00');
     }
 
-    public function test_group_combined_payment_allocates_fifo_across_vendor_invoices(): void
+    public function test_group_combined_payment_allocates_proportionally_across_vendor_invoices(): void
     {
         $user = User::factory()->create(['role' => 'manager']);
         $supplier = Supplier::create(['name' => 'Merge Vendor']);
@@ -282,12 +282,12 @@ class InternationalPayableTest extends TestCase
 
         $this->assertDatabaseHas('international_payable_payments', [
             'international_purchase_order_id' => $orderA->id,
-            'amount' => 100,
+            'amount' => 60,
             'notes' => 'Combined',
         ]);
         $this->assertDatabaseHas('international_payable_payments', [
             'international_purchase_order_id' => $orderB->id,
-            'amount' => 20,
+            'amount' => 60,
             'notes' => 'Combined',
         ]);
         $this->assertDatabaseHas('international_payable_group_payments', [

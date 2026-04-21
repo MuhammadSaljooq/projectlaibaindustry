@@ -155,7 +155,7 @@ class InternationalPayableController extends Controller
                 ->with('error', 'Amount cannot exceed combined remaining balance ('.number_format($remaining, 2).').');
         }
 
-        $allocations = $this->allocateFifo($fifoList, $amount);
+        $allocations = $this->allocateProRata($fifoList, $amount);
         $sumAlloc = round(array_sum($allocations), 2);
         if (abs($sumAlloc - $amount) > 0.02 || $sumAlloc < 0.01) {
             return redirect()->back()->withInput()
@@ -249,7 +249,7 @@ class InternationalPayableController extends Controller
                 'notes' => $notes,
             ]);
             $fifoList = $this->ordersFifoForGroup($decoded);
-            $allocations = $this->allocateFifo($fifoList, $amount);
+            $allocations = $this->allocateProRata($fifoList, $amount);
             $sumAlloc = round(array_sum($allocations), 2);
             if (abs($sumAlloc - $amount) > 0.02 || $sumAlloc < 0.01) {
                 DB::rollBack();
@@ -551,23 +551,57 @@ class InternationalPayableController extends Controller
     /**
      * @return array<int, float> order_id => slice amount
      */
-    private function allocateFifo(Collection $ordersOldestFirst, float $paymentAmount): array
+    private function allocateProRata(Collection $ordersOldestFirst, float $paymentAmount): array
     {
-        $left = round($paymentAmount, 2);
-        $out = [];
+        $amount = round($paymentAmount, 2);
+        if ($amount <= 0) {
+            return [];
+        }
+
+        $remainingByOrder = [];
+        $totalRemaining = 0.0;
         foreach ($ordersOldestFirst as $order) {
-            if ($left <= 0) {
-                break;
-            }
             $paid = round((float) ($order->payable_payments_sum_amount ?? 0), 2);
             $remaining = round((float) $order->total_amount - $paid, 2);
             if ($remaining <= 0) {
                 continue;
             }
-            $slice = min($left, $remaining);
+            $remainingByOrder[(int) $order->id] = $remaining;
+            $totalRemaining += $remaining;
+        }
+
+        if ($totalRemaining <= 0) {
+            return [];
+        }
+
+        $totalRemaining = round($totalRemaining, 2);
+        $out = [];
+        $allocated = 0.0;
+        foreach ($remainingByOrder as $orderId => $remaining) {
+            $share = round(($remaining / $totalRemaining) * $amount, 2);
+            $slice = min($share, $remaining);
             if ($slice > 0) {
-                $out[(int) $order->id] = $slice;
-                $left = round($left - $slice, 2);
+                $out[$orderId] = $slice;
+                $allocated = round($allocated + $slice, 2);
+            }
+        }
+
+        $left = round($amount - $allocated, 2);
+        if ($left > 0) {
+            foreach ($remainingByOrder as $orderId => $remaining) {
+                if ($left <= 0) {
+                    break;
+                }
+                $current = (float) ($out[$orderId] ?? 0);
+                $capacity = round($remaining - $current, 2);
+                if ($capacity <= 0) {
+                    continue;
+                }
+                $extra = min($capacity, $left);
+                if ($extra > 0) {
+                    $out[$orderId] = round($current + $extra, 2);
+                    $left = round($left - $extra, 2);
+                }
             }
         }
 
