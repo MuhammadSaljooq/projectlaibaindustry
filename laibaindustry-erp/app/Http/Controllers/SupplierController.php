@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Currency;
 use App\Models\Supplier;
 use App\Models\SupplierLedgerEntry;
 use App\Support\StatementCompany;
@@ -41,7 +40,7 @@ class SupplierController extends Controller
             ->groupBy('supplier_id')
             ->pluck('balance', 'supplier_id');
 
-        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $currencySymbol = $this->vendorInternationalCurrency();
 
         return view('suppliers.index', [
             'suppliers'          => $suppliers,
@@ -99,8 +98,12 @@ class SupplierController extends Controller
         try {
             $payload = $this->supplierLedgerPayload($supplier);
             $pdf = Pdf::loadView('suppliers.ledger-pdf', array_merge(
-                ['supplier' => $supplier, 'company' => StatementCompany::normalize(config('company'))],
-                $payload
+                [
+                    'supplier' => $supplier,
+                    'company' => StatementCompany::normalize(config('company')),
+                ],
+                $payload,
+                ['currencySymbol' => 'USD']
             ))
                 ->setPaper('a4', 'portrait')
                 ->setOption('isHtml5ParserEnabled', true)
@@ -158,7 +161,7 @@ class SupplierController extends Controller
             $entry->setAttribute('running_balance', $running);
         }
 
-        $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
+        $currencySymbol = $this->vendorInternationalCurrency();
 
         return [
             'ledgerEntries' => $ledgerEntries,
@@ -167,6 +170,11 @@ class SupplierController extends Controller
             'ledgerTotalPaid' => $totalPaid,
             'currencySymbol' => $currencySymbol,
         ];
+    }
+
+    private function vendorInternationalCurrency(): string
+    {
+        return 'USD';
     }
 
     public function update(Request $request, Supplier $supplier): RedirectResponse
