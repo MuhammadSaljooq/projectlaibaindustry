@@ -11,6 +11,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\TaxSetting;
 use App\Models\VatEntry;
+use App\Services\SalePayableOffsetService;
 use App\Services\SaleDeletionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -206,6 +207,12 @@ class SaleController extends Controller
                 'total_amount' => round($totalAmount, 2),
             ]);
 
+            app(SalePayableOffsetService::class)->syncSaleOffsets(
+                $sale,
+                $request->customer_code,
+                \Carbon\Carbon::parse($request->date, config('app.timezone'))->startOfDay()
+            );
+
             DB::commit();
 
             $redirect = redirect()->route('sales.index')->with('success', 'Sale created successfully.');
@@ -352,6 +359,12 @@ class SaleController extends Controller
                     'vat_amount' => round($taxAmount, 2),
                     'total_amount' => round($totalAmount, 2),
                 ]);
+
+            app(SalePayableOffsetService::class)->syncSaleOffsets(
+                $sale,
+                $request->customer_code,
+                \Carbon\Carbon::parse($request->date, config('app.timezone'))->startOfDay()
+            );
 
             DB::commit();
 

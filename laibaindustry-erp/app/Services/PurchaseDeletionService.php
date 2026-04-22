@@ -10,7 +10,8 @@ use App\Models\VatEntry;
 class PurchaseDeletionService
 {
     public function __construct(
-        private readonly PurchaseReceivableOffsetService $offsetService
+        private readonly PurchaseReceivableOffsetService $offsetService,
+        private readonly SalePayableOffsetService $salePayableOffsetService
     ) {}
 
     public function delete(Purchase $purchase): void
@@ -27,6 +28,7 @@ class PurchaseDeletionService
             ->delete();
 
         $this->offsetService->clearPurchaseOffsets($purchase);
+        $this->salePayableOffsetService->syncPayablesByCustomerCode($purchase->customer_code);
 
         VatEntry::query()
             ->where('source_type', Purchase::class)

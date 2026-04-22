@@ -9,6 +9,7 @@ use App\Models\CustomerLedgerPayableGroupPayment;
 use App\Models\Payable;
 use App\Models\PayableGroupPayment;
 use App\Models\PayableGroupPaymentLine;
+use App\Services\SalePayableOffsetService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PayableController extends Controller
 {
+    public function __construct(
+        private readonly SalePayableOffsetService $salePayableOffsetService
+    ) {}
+
     public function index(): View
     {
         $payables = Payable::query()
@@ -32,7 +37,14 @@ class PayableController extends Controller
                 $latest = $slice->sortByDesc(fn (Payable $p) => $p->date?->timestamp ?? 0)->first();
                 $latestDate = $latest?->date;
                 $bill = (float) $slice->sum(fn (Payable $p) => (float) $p->amount);
+                $directPaid = (float) $slice->sum(function (Payable $p): float {
+                    return (float) CustomerLedgerEntry::query()
+                        ->where('source_type', 'payment_made')
+                        ->where('source_id', $p->id)
+                        ->sum('debit');
+                });
                 $paid = (float) $slice->sum(fn (Payable $p) => (float) $p->received);
+                $offsetPaid = max(0, $paid - $directPaid);
 
                 return [
                     'group_key_encoded' => $this->encodeGroupKeyForRoute($key),
@@ -41,6 +53,8 @@ class PayableController extends Controller
                     'invoice_count' => $slice->count(),
                     'latest_invoice_date' => $latestDate,
                     'total_bill' => $bill,
+                    'total_direct_paid' => $directPaid,
+                    'total_offset_paid' => $offsetPaid,
                     'total_paid' => $paid,
                     'total_balance' => max(0, $bill - $paid),
                 ];
@@ -55,6 +69,9 @@ class PayableController extends Controller
                 COALESCE(SUM(amount) - SUM(received), 0)   AS total_outstanding
             ')
             ->first();
+        $totals->total_direct_paid = (float) CustomerLedgerEntry::query()
+            ->where('source_type', 'payment_made')
+            ->sum('debit');
 
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
@@ -93,8 +110,13 @@ class PayableController extends Controller
         }
 
         foreach ($payables as $payable) {
+            $directPaymentTotal = round((float) CustomerLedgerEntry::query()
+                ->where('source_type', 'payment_made')
+                ->where('source_id', $payable->id)
+                ->sum('debit'), 2);
             $received = round((float) $payable->received, 2);
-            $payable->setAttribute('direct_payment_total', $received);
+            $payable->setAttribute('direct_payment_total', $directPaymentTotal);
+            $payable->setAttribute('sales_offset_total', max(0, round($received - $directPaymentTotal, 2)));
             $payable->setAttribute('remaining_balance', round((float) $payable->amount - $received, 2));
         }
 
@@ -103,11 +125,14 @@ class PayableController extends Controller
 
         $billTotal = (float) $payables->sum(fn (Payable $p) => (float) $p->amount);
         $paidTotal = (float) $payables->sum(fn (Payable $p) => (float) $p->received);
+        $directPaymentsTotal = (float) $payables->sum(fn (Payable $p) => (float) ($p->direct_payment_total ?? 0));
+        $offsetTotal = max(0, $paidTotal - $directPaymentsTotal);
         $outstanding = max(0, $billTotal - $paidTotal);
         $groupTotals = [
             'total_bill' => round($billTotal, 2),
             'total_received' => round($paidTotal, 2),
-            'total_direct_payments' => round($paidTotal, 2),
+            'total_direct_payments' => round($directPaymentsTotal, 2),
+            'total_sales_offsets' => round($offsetTotal, 2),
             'total_remaining' => round($outstanding, 2),
         ];
         $groupPayments = Schema::hasTable('payable_group_payments')
@@ -313,7 +338,10 @@ class PayableController extends Controller
 
     public function edit(Payable $payable): View
     {
-        $payable->load('paymentLedgerEntries');
+        $payable->load([
+            'paymentLedgerEntries',
+            'salesOffsets' => fn ($query) => $query->with(['sale:id,invoice_number,date,total_amount']),
+        ]);
         $currencySymbol = Currency::query()->where('is_default', true)->value('symbol') ?? '$';
 
         return view('payables.edit', compact('payable', 'currencySymbol'));
@@ -485,21 +513,7 @@ class PayableController extends Controller
 
     private function syncReceivedFromLedger(Payable $payable): void
     {
-        $paid = (float) CustomerLedgerEntry::query()
-            ->where('source_type', 'payment_made')
-            ->where('source_id', $payable->id)
-            ->sum('debit');
-        $latestPaidAt = CustomerLedgerEntry::query()
-            ->where('source_type', 'payment_made')
-            ->where('source_id', $payable->id)
-            ->max('date');
-
-        $payable->update([
-            'received' => $paid,
-            'received_date' => $latestPaidAt
-                ? Carbon::parse($latestPaidAt, config('app.timezone'))->startOfDay()
-                : null,
-        ]);
+        $this->salePayableOffsetService->syncPayable($payable);
     }
 
     private function assertPaymentLedgerBelongsToPayable(Payable $payable, CustomerLedgerEntry $entry): void

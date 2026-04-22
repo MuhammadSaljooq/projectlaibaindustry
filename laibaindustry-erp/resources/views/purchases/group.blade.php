@@ -63,7 +63,7 @@
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Total</th>
-<th class="st-th px-4 py-3 text-right w-28"></th>
+<th class="st-th px-4 py-3 text-right w-32"></th>
 </tr>
 </thead>
 <tbody>
@@ -75,10 +75,14 @@ $firstItem = $purchase->items->first();
 $firstName = $firstItem && trim((string) $firstItem->product_name) !== '' ? $firstItem->product_name : '—';
 $linesSummary = $lineCount <= 1 ? ($lineCount === 0 ? 'No line items' : $firstName) : ($firstName.', +'.($lineCount - 1).' more');
 @endphp
-<tr class="st-tr">
+<tr class="st-tr cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
+    data-purchase-url="{{ route('purchases.show', $purchase) }}"
+    role="link"
+    tabindex="0"
+    aria-label="Open purchase {{ e($purchase->invoice_number ?: '#'.$purchase->id) }}">
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_datetime($purchase->date) }}</td>
 <td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
-<a href="{{ route('purchases.show', $purchase) }}" class="text-[#5E5E5E] hover:underline">{{ $purchase->invoice_number ?: '#' . $purchase->id }}</a>
+<a href="{{ route('purchases.show', $purchase) }}" class="text-[#5E5E5E] hover:underline" data-stop-row-nav>{{ $purchase->invoice_number ?: '#' . $purchase->id }}</a>
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $purchase->customer_code ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm text-[#586064] max-w-[280px]" title="{{ e($linesSummary) }}">
@@ -90,10 +94,21 @@ $linesSummary = $lineCount <= 1 ? ($lineCount === 0 ? 'No line items' : $firstNa
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $rowSymbol }} {{ number_format($purchase->subtotal ?? 0, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $rowSymbol }} {{ number_format($purchase->vat_amount ?? 0, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $rowSymbol }} {{ number_format($purchase->total_amount ?? 0, 2) }}</td>
-<td class="st-td px-4 py-3 text-right">
-<a href="{{ route('purchases.show', $purchase) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View">
+<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
+<div class="inline-flex items-center gap-1">
+<a href="{{ route('purchases.show', $purchase) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View" data-stop-row-nav>
 <span class="material-symbols-outlined text-[18px]">visibility</span>
 </a>
+@if(auth()->user()->role !== 'viewer')
+<form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="inline-flex" data-stop-row-nav onsubmit="return confirm('Delete this purchase? This will also remove related payable, VAT, and offsets.');">
+@csrf
+@method('DELETE')
+<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#FDF5F5]" title="Delete" data-stop-row-nav>
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</form>
+@endif
+</div>
 </td>
 </tr>
 @endforeach
@@ -106,5 +121,24 @@ $linesSummary = $lineCount <= 1 ? ($lineCount === 0 ? 'No line items' : $firstNa
 </div>
 </div>
 </main>
+<script>
+(function () {
+    var rows = Array.from(document.querySelectorAll('tr[data-purchase-url]'));
+    rows.forEach(function (row) {
+        var url = row.getAttribute('data-purchase-url');
+        if (!url) return;
+        row.addEventListener('click', function (e) {
+            if (e.target.closest('[data-stop-row-nav], a, button, form')) return;
+            window.location.href = url;
+        });
+        row.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            if (e.target.closest('[data-stop-row-nav], a, button, input, textarea, select')) return;
+            e.preventDefault();
+            window.location.href = url;
+        });
+    });
+})();
+</script>
 </body>
 </html>

@@ -126,6 +126,8 @@ class PurchaseReceivableOffsetService
             'received' => $received,
             'payment_received_at' => $received > 0 && $maxDate ? $maxDate : null,
         ]);
+
+        app(SalePayableOffsetService::class)->syncSalesByCustomerCode($receivable->customer_code);
     }
 
     private function syncReceivablesByIds(array $ids): void

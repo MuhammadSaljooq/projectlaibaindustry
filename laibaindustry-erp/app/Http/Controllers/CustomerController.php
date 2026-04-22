@@ -200,8 +200,8 @@ class CustomerController extends Controller
     }
 
     /**
-     * Statement line order: transaction {@see CustomerLedgerEntry::$date} first, then posting
-     * time ({@see CustomerLedgerEntry::$created_at}, nulls last), then id.
+     * Statement line order by posting sequence (same order as recorded from pages):
+     * created_at (nulls last), then id.
      *
      * @param  Builder<CustomerLedgerEntry>  $query
      * @return Builder<CustomerLedgerEntry>
@@ -209,7 +209,6 @@ class CustomerController extends Controller
     private function applyStatementLedgerOrdering(Builder $query): Builder
     {
         return $query
-            ->orderBy('date')
             ->orderByRaw('CASE WHEN created_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('created_at')
             ->orderBy('id');
@@ -228,29 +227,39 @@ class CustomerController extends Controller
             return $entries;
         }
 
-        $useLink = Schema::hasTable('customer_ledger_receivable_group_payments');
-        $useColumn = Schema::hasColumn('customer_ledger_entries', 'receivable_group_payment_id');
-        if (! $useLink && ! $useColumn) {
+        $useReceivableLink = Schema::hasTable('customer_ledger_receivable_group_payments');
+        $useReceivableColumn = Schema::hasColumn('customer_ledger_entries', 'receivable_group_payment_id');
+        $usePayableLink = Schema::hasTable('customer_ledger_payable_group_payments');
+        $usePayableColumn = Schema::hasColumn('customer_ledger_entries', 'payable_group_payment_id');
+        if (! $useReceivableLink && ! $useReceivableColumn && ! $usePayableLink && ! $usePayableColumn) {
             return $entries;
         }
 
-        /** @var array<int, list<CustomerLedgerEntry>> $buckets */
+        /** @var array<string, list<CustomerLedgerEntry>> $buckets */
         $buckets = [];
         $standalone = [];
 
         foreach ($entries as $entry) {
-            $gid = null;
-            if ($useLink && ($link = $entry->receivableGroupPaymentLink) !== null) {
-                $gid = (int) $link->receivable_group_payment_id;
+            $bucketKey = null;
+
+            if ($useReceivableLink && ($link = $entry->receivableGroupPaymentLink) !== null) {
+                $bucketKey = 'r:'.$link->receivable_group_payment_id;
             }
-            if ($gid === null && $useColumn && $entry->receivable_group_payment_id) {
-                $gid = (int) $entry->receivable_group_payment_id;
+            if ($bucketKey === null && $useReceivableColumn && $entry->receivable_group_payment_id) {
+                $bucketKey = 'r:'.$entry->receivable_group_payment_id;
             }
-            if ($gid !== null) {
-                if (! isset($buckets[$gid])) {
-                    $buckets[$gid] = [];
+            if ($bucketKey === null && $usePayableLink && ($link = $entry->payableGroupPaymentLink) !== null) {
+                $bucketKey = 'p:'.$link->payable_group_payment_id;
+            }
+            if ($bucketKey === null && $usePayableColumn && $entry->payable_group_payment_id) {
+                $bucketKey = 'p:'.$entry->payable_group_payment_id;
+            }
+
+            if ($bucketKey !== null) {
+                if (! isset($buckets[$bucketKey])) {
+                    $buckets[$bucketKey] = [];
                 }
-                $buckets[$gid][] = $entry;
+                $buckets[$bucketKey][] = $entry;
             } else {
                 $standalone[] = $entry;
             }
@@ -268,25 +277,20 @@ class CustomerController extends Controller
     }
 
     /**
-     * Match {@see applyStatementLedgerOrdering}: date, non-null created_at first, created_at, id.
+     * Match {@see applyStatementLedgerOrdering}: non-null created_at first, created_at, id.
      *
      * @param  CustomerLedgerEntry|\stdClass  $e
-     * @return array{0: int, 1: int, 2: int, 3: int}
+     * @return array{0: int, 1: int, 2: int}
      */
     private function ledgerStatementSortKey(object $e): array
     {
-        $dateTs = 0;
-        if (isset($e->date) && $e->date instanceof \DateTimeInterface) {
-            $dateTs = $e->date->getTimestamp();
-        }
-
         $createdNull = empty($e->created_at) ? 1 : 0;
         $createdTs = 0;
         if (! empty($e->created_at) && $e->created_at instanceof \DateTimeInterface) {
             $createdTs = $e->created_at->getTimestamp();
         }
 
-        return [$dateTs, $createdNull, $createdTs, (int) ($e->id ?? 0)];
+        return [$createdNull, $createdTs, (int) ($e->id ?? 0)];
     }
 
     /**
@@ -308,10 +312,13 @@ class CustomerController extends Controller
         }
 
         $desc = trim((string) ($first->description ?? ''));
+        if ($desc === '') {
+            $desc = $first->source_type === 'payment_made' ? 'Payment made' : 'Payment received';
+        }
 
         return (object) [
             'date' => $first->date,
-            'description' => $desc !== '' ? $desc : 'Payment received',
+            'description' => $desc,
             'debit' => $sumDebit,
             'credit' => $sumCredit,
             'source_type' => $first->source_type,
@@ -436,6 +443,9 @@ class CustomerController extends Controller
                 if (Schema::hasTable('customer_ledger_receivable_group_payments')) {
                     $ledgerQuery->with('receivableGroupPaymentLink');
                 }
+                if (Schema::hasTable('customer_ledger_payable_group_payments')) {
+                    $ledgerQuery->with('payableGroupPaymentLink');
+                }
                 $entries = $this->ledgerEntriesForStatementDisplay(
                     $this->applyStatementLedgerOrdering($ledgerQuery)->get()
                 );
@@ -480,6 +490,9 @@ class CustomerController extends Controller
                     ->where('date', '<=', $toEnd);
                 if (Schema::hasTable('customer_ledger_receivable_group_payments')) {
                     $periodLedgerQuery->with('receivableGroupPaymentLink');
+                }
+                if (Schema::hasTable('customer_ledger_payable_group_payments')) {
+                    $periodLedgerQuery->with('payableGroupPaymentLink');
                 }
                 $entries = $this->ledgerEntriesForStatementDisplay(
                     $this->applyStatementLedgerOrdering($periodLedgerQuery)->get()
@@ -558,7 +571,7 @@ class CustomerController extends Controller
         }
 
         if (! class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            throw new \RuntimeException('PDF package not installed on server.');
+            throw new \RuntimeException('PDF package missing on server. Run "composer install" (or "composer require barryvdh/laravel-dompdf"), then run "php artisan optimize:clear".');
         }
 
         $data = $this->getStatementData($customer, $period);
@@ -623,6 +636,20 @@ class CustomerController extends Controller
             && $customerLedgerEntry->receivable_group_payment_id) {
             return redirect()->back()
                 ->with('error', 'This line is part of a combined receivable payment. Remove or edit it from Receivables.');
+        }
+
+        if (Schema::hasTable('customer_ledger_payable_group_payments')) {
+            $customerLedgerEntry->loadMissing('payableGroupPaymentLink');
+            if ($customerLedgerEntry->payableGroupPaymentLink !== null) {
+                return redirect()->back()
+                    ->with('error', 'This line is part of a combined payable payment. Remove or edit it from Payables.');
+            }
+        }
+
+        if (Schema::hasColumn('customer_ledger_entries', 'payable_group_payment_id')
+            && $customerLedgerEntry->payable_group_payment_id) {
+            return redirect()->back()
+                ->with('error', 'This line is part of a combined payable payment. Remove or edit it from Payables.');
         }
 
         $sourceType = (string) ($customerLedgerEntry->source_type ?? '');

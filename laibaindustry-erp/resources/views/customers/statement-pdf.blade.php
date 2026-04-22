@@ -403,6 +403,9 @@
             @endif
         </td>
         <td class="right">
+            @php
+                $signedClosingBalance = ($closingBalance < 0 ? '-' : '').($currencySymbol ?? '$').' '.number_format(abs($closingBalance), 2);
+            @endphp
             <div class="info-block">
                 <div class="info-label">Statement Date</div>
                 <div class="info-value info-value-statement-date">{{ now()->format('F j, Y') }}</div>
@@ -416,7 +419,7 @@
                     'info-value-balance--cr' => $closingBalance < 0,
                     'info-value-balance--neutral' => $closingBalance == 0,
                 ])>
-                    {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
+                    {{ $signedClosingBalance }}
                     @if($closingBalance > 0) DR @elseif($closingBalance < 0) CR @endif
                 </div>
             </div>
@@ -508,7 +511,7 @@
             <td class="amt debit ledger-col-debit">{{ $currencySymbol ?? '$' }} {{ number_format($totalDebit, 2) }}</td>
             <td class="amt credit ledger-col-credit">{{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}</td>
             <td class="amt ledger-col-balance {{ $closingBalance > 0 ? 'balance-dr' : 'balance-cr' }}">
-                {{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}@if($closingBalance > 0)&nbsp;DR @elseif($closingBalance < 0)&nbsp;CR @endif
+                {{ $signedClosingBalance }}@if($closingBalance > 0)&nbsp;DR @elseif($closingBalance < 0)&nbsp;CR @endif
             </td>
         </tr>
         @endif

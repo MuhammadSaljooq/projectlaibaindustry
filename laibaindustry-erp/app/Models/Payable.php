@@ -41,6 +41,13 @@ class Payable extends Model
             ->orderByDesc('id');
     }
 
+    public function salesOffsets(): HasMany
+    {
+        return $this->hasMany(CustomerPayableSaleOffset::class)
+            ->orderByDesc('offset_date')
+            ->orderByDesc('id');
+    }
+
     public function getBalanceAttribute(): float
     {
         return max(0, (float) $this->amount - (float) $this->received);

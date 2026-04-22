@@ -51,6 +51,7 @@
 $balance = max(0, (float) $payable->amount - (float) $payable->received);
 $isPaid = $balance <= 0;
 $ledgerPayments = $payable->paymentLedgerEntries;
+$salesOffsets = $payable->salesOffsets;
 @endphp
 
 <div class="st-paper border border-[#ABB3B7] p-6 md:p-8 bg-white max-w-2xl">
@@ -89,6 +90,37 @@ $ledgerPayments = $payable->paymentLedgerEntries;
 <p class="text-lg font-black font-mono tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($balance, 2) }}</p>
 </div>
 </div>
+
+@if ($salesOffsets->isNotEmpty())
+<div class="mb-10 pb-10 border-b border-[#ABB3B7]">
+<p class="st-label mb-4">Sales offsets (audit)</p>
+<p class="text-xs text-[#586064] mb-4">These slices were auto-applied from sales invoices to settle this payable.</p>
+<div class="overflow-x-auto border border-[#ABB3B7]">
+<table class="w-full text-left border-collapse min-w-[680px]">
+<thead>
+<tr class="bg-[#EAEFF1]">
+<th class="st-th px-3 py-2 text-[10px] uppercase whitespace-nowrap">Offset date</th>
+<th class="st-th px-3 py-2 text-[10px] uppercase whitespace-nowrap">Sale invoice</th>
+<th class="st-th px-3 py-2 text-[10px] uppercase text-right whitespace-nowrap">Sale total</th>
+<th class="st-th px-3 py-2 text-[10px] uppercase text-right whitespace-nowrap">Offset slice</th>
+</tr>
+</thead>
+<tbody>
+@foreach ($salesOffsets as $offset)
+<tr class="border-t border-[#ABB3B7]">
+<td class="st-td px-3 py-3 text-sm font-mono text-[#586064]">{{ format_display_date($offset->offset_date) }}</td>
+<td class="st-td px-3 py-3 text-sm font-semibold text-[#2B3437]">{{ $offset->sale?->invoice_number ?: ('Sale #'.$offset->sale_id) }}</td>
+<td class="st-td px-3 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">
+{{ $offset->sale ? ($currencySymbol.' '.number_format((float) $offset->sale->total_amount, 2)) : '—' }}
+</td>
+<td class="st-td px-3 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format((float) $offset->amount, 2) }}</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+</div>
+</div>
+@endif
 
 @if ($ledgerPayments->isNotEmpty())
 <div class="mb-10 pb-10 border-b border-[#ABB3B7]">

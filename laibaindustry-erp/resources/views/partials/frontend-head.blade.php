@@ -2,6 +2,9 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="{{ csrf_token() }}" name="csrf-token"/>
 <title>{{ $title ?? 'ERP' }}</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-circle-32.png?v=3"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/images/favicon-circle-192.png?v=3"/>
+<link rel="apple-touch-icon" href="/images/favicon-circle.png?v=3"/>
 <script>
   tailwind.config = { darkMode: 'class', theme: { extend: { colors: { primary: '#137fec', 'background-light': '#f6f7f8', 'background-dark': '#101922' }, fontFamily: { display: ['Manrope', 'sans-serif'] } } } }
 </script>

@@ -32,7 +32,7 @@
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
 
-<p class="text-[11px] text-[#586064] max-w-2xl">Invoices are split into open and settled sections like Receivables. Combined payments are tracked in batches and distributed proportionally across open invoices.</p>
+<p class="text-[11px] text-[#586064] max-w-2xl">Combined payments are tracked in batches and distributed proportionally across open invoices.</p>
 
 @if (session('success'))
 <div class="border border-[#ABB3B7] bg-white px-4 py-3 text-sm text-[#2B3437]">
@@ -115,140 +115,6 @@
 @endforeach
 </tbody>
 </table>
-</div>
-@endif
-
-<div class="st-paper border border-[#ABB3B7] bg-white overflow-x-auto">
-<div class="px-4 pt-4 pb-2 border-b border-[#ABB3B7] bg-[#F8F9FA] sticky left-0">
-<p class="st-label">Open invoices</p>
-</div>
-<div class="min-w-[900px]">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="st-thead">
-<th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Payment date</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
-<th class="st-th px-4 py-3">Products</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Direct payment</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Received total</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Remaining</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Status</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Action</th>
-</tr>
-</thead>
-<tbody>
-@forelse($openOrders as $o)
-@php
-    $paidRow = (float) ($o->direct_payment_total ?? 0);
-    $billRow = (float) $o->total_amount;
-    $bal = max(0, (float) ($o->remaining_balance ?? 0));
-    $lineCount = $o->relationLoaded('lines') ? $o->lines->count() : 0;
-    $firstLine = $o->relationLoaded('lines') ? $o->lines->first() : null;
-    $linesSummary = $firstLine ? ($lineCount > 1 ? $firstLine->product_name.', +'.($lineCount - 1).' more' : $firstLine->product_name) : '—';
-    $invLabel = $o->invoice_number ?: '#'.$o->id;
-@endphp
-<tr class="st-tr">
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($o->date) }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $o->payablePayments->sortByDesc('payment_date')->first()?->payment_date ? format_display_date($o->payablePayments->sortByDesc('payment_date')->first()->payment_date) : '—' }}</td>
-<td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">{{ $invLabel }}</td>
-<td class="st-td px-4 py-3 text-sm text-[#586064] max-w-[220px]"><span class="line-clamp-2">{{ $linesSummary }}</span></td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($billRow, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format($paidRow, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($paidRow, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums {{ $bal > 0.009 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format($bal, 2) }}</td>
-<td class="st-td px-4 py-3 text-right">
-<span class="text-[10px] font-bold uppercase tracking-wider text-[#5E5E5E]">Open</span>
-</td>
-<td class="st-td px-4 py-3 text-right">
-@if(auth()->user()->role !== 'viewer')
-@php $latestPayment = $o->payablePayments->first(); @endphp
-<a href="{{ route('international-payables.pay', $o) }}" class="st-btn-primary h-9 px-4 inline-flex items-center gap-2 text-[11px] whitespace-nowrap mr-2">
-<span class="material-symbols-outlined text-[16px]">payments</span>
-Manage
-</a>
-@if($latestPayment)
-<form method="POST" action="{{ route('international-payables.payments.destroy', ['international_purchase' => $o, 'internationalPayablePayment' => $latestPayment, 'groupKey' => $groupKeyEncoded]) }}" class="inline-flex" data-confirm-delete="{{ e('Delete latest recorded payment for this invoice?') }}">
-@csrf
-@method('DELETE')
-<button type="submit" class="h-9 px-3 inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">
-<span class="material-symbols-outlined text-[16px]">delete</span>
-Delete payment
-</button>
-</form>
-@endif
-@else
-<span class="text-xs text-[#586064]">—</span>
-@endif
-</td>
-</tr>
-@empty
-<tr>
-<td colspan="10" class="px-6 py-10 text-center text-sm text-[#586064]">No open invoices for this vendor.</td>
-</tr>
-@endforelse
-</tbody>
-</table>
-</div>
-</div>
-
-@if($settledOrders->isNotEmpty())
-<div class="st-paper border border-[#ABB3B7] bg-white overflow-x-auto">
-<div class="px-4 pt-4 pb-2 border-b border-[#ABB3B7] bg-[#F8F9FA] sticky left-0">
-<p class="st-label">Settled invoices</p>
-</div>
-<div class="min-w-[760px]">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="st-thead">
-<th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Direct payment</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Received total</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Status</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Action</th>
-</tr>
-</thead>
-<tbody>
-@foreach ($settledOrders as $o)
-@php $paidRow = (float) ($o->direct_payment_total ?? 0); @endphp
-<tr class="st-tr">
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($o->date) }}</td>
-<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $o->invoice_number ?: '#'.$o->id }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format((float) $o->total_amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format($paidRow, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format($paidRow, 2) }}</td>
-<td class="st-td px-4 py-3 text-right">
-<span class="text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-1 inline-block bg-[#F8F9FA]">Paid</span>
-</td>
-<td class="st-td px-4 py-3 text-right">
-@if(auth()->user()->role !== 'viewer')
-@php $latestPayment = $o->payablePayments->first(); @endphp
-<a href="{{ route('international-payables.pay', $o) }}" class="st-btn-primary h-9 px-4 inline-flex items-center gap-2 text-[11px] whitespace-nowrap mr-2">
-<span class="material-symbols-outlined text-[16px]">payments</span>
-Manage
-</a>
-@if($latestPayment)
-<form method="POST" action="{{ route('international-payables.payments.destroy', ['international_purchase' => $o, 'internationalPayablePayment' => $latestPayment, 'groupKey' => $groupKeyEncoded]) }}" class="inline-flex" data-confirm-delete="{{ e('Delete latest recorded payment for this invoice?') }}">
-@csrf
-@method('DELETE')
-<button type="submit" class="h-9 px-3 inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] font-bold uppercase tracking-wider border border-[#9F403D] text-[#9F403D] bg-transparent hover:bg-[#F1F4F6]">
-<span class="material-symbols-outlined text-[16px]">delete</span>
-Delete payment
-</button>
-</form>
-@endif
-@else
-<span class="text-xs text-[#586064]">—</span>
-@endif
-</td>
-</tr>
-@endforeach
-</tbody>
-</table>
-</div>
 </div>
 @endif
 

@@ -286,6 +286,9 @@ Email statement
 @endif
 
 <div class="st-paper border border-[#ABB3B7] p-6 bg-white">
+@php
+    $signedClosingBalance = ($closingBalance < 0 ? '-' : '').($currencySymbol ?? '$').' '.number_format(abs($closingBalance), 2);
+@endphp
 <div class="flex flex-col lg:flex-row lg:flex-nowrap items-start justify-between gap-6">
 <div class="flex min-w-0 w-full flex-1 flex-col gap-6">
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-6 min-w-0">
@@ -317,7 +320,7 @@ Email statement
 <div class="text-right shrink-0 border border-[#ABB3B7] p-4 bg-[#F8F9FA] w-full lg:w-auto lg:min-w-[200px]">
 <p class="st-label mb-1">Closing balance</p>
 <p class="text-3xl font-black font-mono tabular-nums text-[#5E5E5E]">
-{{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
+{{ $signedClosingBalance }}
 </p>
 @if($closingBalance > 0)
 <span class="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-[#586064] border border-[#ABB3B7] px-2 py-0.5 bg-white">Receivable</span>
@@ -344,7 +347,7 @@ Email statement
 <div class="p-5 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
 <p class="st-label st-label--primary mb-2">Net balance</p>
 <p class="text-2xl font-black font-mono tabular-nums text-[#5E5E5E]">
-{{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
+{{ $signedClosingBalance }}
 </p>
 <p class="text-xs mt-2 text-[#586064]">
 {{ $closingBalance > 0 ? 'Receivable' : ($closingBalance < 0 ? 'Payable' : 'Settled') }}
@@ -505,7 +508,7 @@ $deleteConfirmMsg = match($row['source_type'] ?? '') {
 {{ $currencySymbol ?? '$' }} {{ number_format($totalCredit, 2) }}
 </td>
 <td class="st-td px-4 py-3 text-sm font-bold font-mono text-right tabular-nums whitespace-nowrap text-[#5E5E5E] bg-[#EAEFF1]">
-{{ $currencySymbol ?? '$' }} {{ number_format(abs($closingBalance), 2) }}
+{{ $signedClosingBalance }}
 {{ $closingBalance > 0 ? 'DR' : ($closingBalance < 0 ? 'CR' : '') }}
 </td>
 <td class="st-td px-4 py-3 bg-[#EAEFF1] no-print"></td>

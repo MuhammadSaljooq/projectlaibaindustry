@@ -36,4 +36,9 @@ class Sale extends Model
     {
         return $this->hasMany(SaleItem::class);
     }
+
+    public function payableOffsets(): HasMany
+    {
+        return $this->hasMany(CustomerPayableSaleOffset::class);
+    }
 }

@@ -7,13 +7,19 @@
 </head>
 <body class="bg-[#F8F9FA] text-[#2B3437] h-screen flex overflow-hidden">
 @include('products.partials.sidebar', ['activeNav' => 'purchases'])
+@php
+    $previousUrl = url()->previous();
+    $backUrl = ($previousUrl && $previousUrl !== url()->current())
+        ? $previousUrl
+        : route('purchases.index');
+@endphp
 <main class="purchases-stitch flex-1 flex flex-col h-full overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
 <button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
-<a href="{{ route('purchases.index') }}" class="p-2 text-[#586064] hover:bg-[#F1F4F6] border border-transparent hover:border-[#ABB3B7] hidden sm:flex items-center" aria-label="Back to purchases">
+<a href="{{ $backUrl }}" class="p-2 text-[#586064] hover:bg-[#F1F4F6] border border-transparent hover:border-[#ABB3B7] hidden sm:flex items-center" aria-label="Go back">
 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
 </a>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase truncate max-w-[50vw]">
@@ -48,9 +54,9 @@
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">{{ $purchase->invoice_number ?: 'Purchase #' . $purchase->id }}</h1>
 <p class="text-sm text-[#586064] mt-1">{{ format_display_datetime($purchase->date) }}</p>
 </div>
-<a href="{{ route('purchases.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 shrink-0">
+<a href="{{ $backUrl }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 shrink-0">
 <span class="material-symbols-outlined text-[18px]">list</span>
-Ledger
+Back
 </a>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>

@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SaleDeletionService
 {
+    public function __construct(
+        private readonly SalePayableOffsetService $salePayableOffsetService
+    ) {}
+
     public function delete(Sale $sale): void
     {
         $sale->load('items.product');
@@ -28,6 +32,8 @@ class SaleDeletionService
             ->where('source_type', 'sale')
             ->where('source_id', $sale->id)
             ->delete();
+
+        $this->salePayableOffsetService->clearSaleOffsets($sale);
 
         VatEntry::query()
             ->where('source_type', Sale::class)

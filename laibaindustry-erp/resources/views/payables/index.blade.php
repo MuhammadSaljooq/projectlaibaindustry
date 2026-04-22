@@ -41,18 +41,22 @@
 <div class="border border-[#9F403D] bg-white px-4 py-3 text-sm text-[#9F403D]">{{ session('error') }}</div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
-<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<div class="grid grid-cols-1 md:grid-cols-2 border border-[#ABB3B7] bg-white">
+<div class="p-5 md:p-6 border-b border-r-0 md:border-r border-[#ABB3B7] min-h-[140px] flex flex-col justify-center">
 <p class="st-label mb-2">Total payable</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_amount ?? 0, 2) }}</p>
+<p class="text-[34px] md:text-[42px] leading-none font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_amount ?? 0, 2) }}</p>
 </div>
-<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
+<div class="p-5 md:p-6 border-b border-[#ABB3B7] min-h-[140px] flex flex-col justify-center">
 <p class="st-label mb-2">Amount paid</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_received ?? 0, 2) }}</p>
+<p class="text-[34px] md:text-[42px] leading-none font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_received ?? 0, 2) }}</p>
 </div>
-<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
+<div class="p-5 md:p-6 border-r-0 md:border-r border-[#ABB3B7] min-h-[140px] flex flex-col justify-center">
+<p class="st-label mb-2">Sales offset</p>
+<p class="text-[34px] md:text-[42px] leading-none font-bold font-mono text-[#2B3437] tabular-nums">{{ $currencySymbol }} {{ number_format(($totals->total_received ?? 0) - ($totals->total_direct_paid ?? 0), 2) }}</p>
+</div>
+<div class="p-5 md:p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px min-h-[140px] flex flex-col justify-center">
 <p class="st-label st-label--primary mb-2">Outstanding</p>
-<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_outstanding ?? 0, 2) }}</p>
+<p class="text-[34px] md:text-[42px] leading-none font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($totals->total_outstanding ?? 0, 2) }}</p>
 </div>
 </div>
 
@@ -81,6 +85,8 @@
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Invoices</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Latest invoice</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Direct</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap">Offset</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Paid</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Balance</th>
 <th class="st-th px-4 py-3 text-right w-44"></th>
@@ -99,6 +105,8 @@
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ number_format($g['invoice_count']) }}</td>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $g['latest_invoice_date'] ? format_display_date($g['latest_invoice_date']) : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format((float) $g['total_bill'], 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format((float) ($g['total_direct_paid'] ?? 0), 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format((float) ($g['total_offset_paid'] ?? 0), 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format((float) $g['total_paid'], 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums {{ (float) $g['total_balance'] > 0.009 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format((float) $g['total_balance'], 2) }}</td>
 <td class="st-td px-4 py-3 text-right" data-stop-row-nav>
@@ -113,14 +121,14 @@
 </tr>
 @empty
 <tr id="pay-empty-db">
-<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="10" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No payables yet</p>
 <p class="mb-3">Created when you save a purchase.</p>
 <a href="{{ route('purchases.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">New purchase</a>
 </td>
 </tr>
 @endforelse
-<tr id="pay-no-results" style="display:none"><td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<tr id="pay-no-results" style="display:none"><td colspan="10" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No customer groups match your search</p>
 <p class="text-xs"><button type="button" id="pay-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">Clear search</button> to see all groups.</p>
 </td></tr>

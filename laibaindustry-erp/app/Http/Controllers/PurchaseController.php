@@ -12,6 +12,7 @@ use App\Models\TaxSetting;
 use App\Models\VatEntry;
 use App\Services\PurchaseDeletionService;
 use App\Services\PurchaseReceivableOffsetService;
+use App\Services\SalePayableOffsetService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -234,6 +235,7 @@ class PurchaseController extends Controller
                 $request->customer_code,
                 \Carbon\Carbon::parse($request->date, config('app.timezone'))->startOfDay()
             );
+            app(SalePayableOffsetService::class)->syncPayablesByCustomerCode($request->customer_code);
 
             VatEntry::create([
                 'type' => 'purchase',
@@ -293,6 +295,8 @@ class PurchaseController extends Controller
 
         try {
             DB::beginTransaction();
+
+            $oldCustomerCode = $purchase->customer_code;
 
             $purchaseSubtotal = 0;
             $purchaseVat = 0;
@@ -402,6 +406,8 @@ class PurchaseController extends Controller
                 $request->customer_code,
                 \Carbon\Carbon::parse($request->date, config('app.timezone'))->startOfDay()
             );
+            app(SalePayableOffsetService::class)->syncPayablesByCustomerCode($request->customer_code);
+            app(SalePayableOffsetService::class)->syncPayablesByCustomerCode($oldCustomerCode);
 
             DB::commit();
 
