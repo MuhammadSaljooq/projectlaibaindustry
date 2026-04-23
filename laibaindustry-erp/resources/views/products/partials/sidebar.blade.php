@@ -118,9 +118,25 @@ $active = $activeNav ?? '';
 (function () {
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebar-overlay');
-    var desktopMedia = window.matchMedia('(min-width: 768px)');
+    var desktopMedia = window.matchMedia ? window.matchMedia('(min-width: 768px)') : null;
 
     if (!sidebar || !overlay) return;
+
+    function closestMatch(start, selector) {
+        var el = start;
+        while (el && el !== document) {
+            if (el.matches ? el.matches(selector) : (el.msMatchesSelector && el.msMatchesSelector(selector))) {
+                return el;
+            }
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    function isDesktop() {
+        if (!desktopMedia) return false;
+        return !!desktopMedia.matches;
+    }
 
     function isOpen() {
         return !sidebar.classList.contains('-translate-x-full');
@@ -129,7 +145,9 @@ $active = $activeNav ?? '';
     function openSidebar() {
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('opacity-0', 'pointer-events-none');
-        document.body.style.overflow = 'hidden';
+        if (!isDesktop()) {
+            document.body.style.overflow = 'hidden';
+        }
     }
 
     function closeSidebar() {
@@ -145,7 +163,7 @@ $active = $activeNav ?? '';
 
     // Delegated binding: works even when toggle buttons render after this partial.
     document.addEventListener('click', function (event) {
-        var toggle = event.target.closest('[data-sidebar-toggle]');
+        var toggle = closestMatch(event.target, '[data-sidebar-toggle]');
         if (toggle) {
             event.preventDefault();
             toggleSidebar();
@@ -153,8 +171,8 @@ $active = $activeNav ?? '';
         }
 
         // On mobile, close after selecting a nav link in sidebar.
-        var navLink = event.target.closest('#sidebar a[href]');
-        if (navLink && !desktopMedia.matches) {
+        var navLink = closestMatch(event.target, '#sidebar a[href]');
+        if (navLink && !isDesktop()) {
             closeSidebar();
         }
     });
@@ -167,13 +185,15 @@ $active = $activeNav ?? '';
 
     // Ensure mobile overlay state is cleared when switching to desktop width.
     function onBreakpointChange() {
-        if (desktopMedia.matches) closeSidebar();
+        if (isDesktop()) closeSidebar();
     }
 
-    if (typeof desktopMedia.addEventListener === 'function') {
-        desktopMedia.addEventListener('change', onBreakpointChange);
-    } else if (typeof desktopMedia.addListener === 'function') {
-        desktopMedia.addListener(onBreakpointChange);
+    if (desktopMedia) {
+        if (typeof desktopMedia.addEventListener === 'function') {
+            desktopMedia.addEventListener('change', onBreakpointChange);
+        } else if (typeof desktopMedia.addListener === 'function') {
+            desktopMedia.addListener(onBreakpointChange);
+        }
     }
 })();
 </script>
