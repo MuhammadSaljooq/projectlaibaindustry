@@ -27,6 +27,17 @@
         .value { font-size: 11pt; font-weight: 600; }
         .value-balance { font-size: 14pt; font-weight: 700; }
         .statement-title { font-size: 12pt; font-weight: bold; margin: 18px 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid #ccc; }
+        .aging-box { border: 1px solid #d8d8d8; margin: 4px 0 18px 0; }
+        .aging-head { background: #f3f3f3; border-bottom: 1px solid #d8d8d8; padding: 8px 10px; font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.08em; color: #4b4b4b; }
+        .aging-summary { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .aging-summary td { width: 50%; padding: 10px; vertical-align: top; }
+        .aging-label { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: #555; margin-bottom: 4px; }
+        .aging-value { font-size: 12pt; font-weight: 700; margin: 0; }
+        .aging-sub { font-size: 8pt; color: #666; margin-top: 3px; }
+        table.aging-lines { width: 100%; border-collapse: collapse; font-size: 8.8pt; table-layout: fixed; }
+        table.aging-lines th { text-align: left; padding: 7px 8px; font-size: 7.8pt; text-transform: uppercase; border-top: 1px solid #d8d8d8; border-bottom: 1px solid #d8d8d8; background: #fafafa; }
+        table.aging-lines td { padding: 7px 8px; border-bottom: 1px solid #ededed; }
+        table.aging-lines th.amt, table.aging-lines td.amt { text-align: right; font-variant-numeric: tabular-nums; }
         table.ledger { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 9pt; table-layout: fixed; }
         table.ledger th { text-align: left; padding: 10px 8px; font-size: 8pt; text-transform: uppercase; border-bottom: 2px solid #1a1a1a; background: #f8f8f8; }
         table.ledger td { padding: 9px 8px; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
@@ -73,6 +84,67 @@
     </tr>
 </table>
 
+@php
+    $outstandingPayables = $outstandingPayables ?? collect();
+    $outstandingByOrderId = [];
+    foreach ($outstandingPayables as $ap) {
+        $oid = (int) ($ap['order_id'] ?? 0);
+        if ($oid > 0) {
+            $outstandingByOrderId[$oid] = (float) ($ap['outstanding'] ?? 0);
+        }
+    }
+@endphp
+@if($outstandingPayables->isNotEmpty())
+    @php
+        $oldestOutstandingDate = null;
+        foreach ($outstandingPayables as $ap) {
+            if ($oldestOutstandingDate === null || $ap['date'] < $oldestOutstandingDate) {
+                $oldestOutstandingDate = $ap['date'];
+            }
+        }
+        $oldestOutstandingDays = $oldestOutstandingDate ? (int) $oldestOutstandingDate->diffInDays(now(), true) : null;
+    @endphp
+    <div class="statement-title">Invoice Aging</div>
+    <div class="aging-box">
+        <div class="aging-head">
+            {{ $outstandingPayables->count() }} outstanding invoice{{ $outstandingPayables->count() === 1 ? '' : 's' }}
+        </div>
+        <table class="aging-summary">
+            <tr>
+                <td>
+                    <div class="aging-label">Oldest outstanding invoice</div>
+                    <p class="aging-value">{{ $oldestOutstandingDays !== null ? $oldestOutstandingDays . ' days' : '—' }}</p>
+                    <div class="aging-sub">Since {{ $oldestOutstandingDate ? $oldestOutstandingDate->format('d/m/Y') : '—' }}</div>
+                </td>
+                <td style="text-align: right;">
+                    <div class="aging-label">Total outstanding</div>
+                    <p class="aging-value">{{ $currencySymbol }} {{ number_format($outstandingPayables->sum('outstanding'), 2) }}</p>
+                </td>
+            </tr>
+        </table>
+        <table class="aging-lines">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Invoice date</th>
+                    <th class="amt">Days outstanding</th>
+                    <th class="amt">Outstanding</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($outstandingPayables as $ap)
+                <tr>
+                    <td>{{ $ap['invoice_number'] ?: '—' }}</td>
+                    <td>{{ format_display_date($ap['date']) }}</td>
+                    <td class="amt">{{ (int) $ap['date']->diffInDays(now(), true) }} days</td>
+                    <td class="amt">{{ $currencySymbol }} {{ number_format($ap['outstanding'], 2) }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif
+
 <div class="statement-title">Ledger Transactions</div>
 <table class="ledger">
     <thead>
@@ -80,6 +152,7 @@
             <th>Date</th>
             <th>Description</th>
             <th>REFRENCE</th>
+            <th class="amt">Days Outstanding</th>
             <th class="amt">Credit</th>
             <th class="amt">Debit</th>
             <th class="amt">Balance</th>
@@ -101,16 +174,31 @@
             <td>{{ format_display_date($e->date) }}</td>
             <td>{{ $e->description }}</td>
             <td>{{ $displayReference ?: '—' }}</td>
+            <td class="amt">
+                @if(($e->source_type ?? null) === 'international_purchase_order')
+                    @php
+                        $orderId = (int) ($e->source_id ?? 0);
+                        $isOutstanding = $orderId > 0 && (($outstandingByOrderId[$orderId] ?? 0) > 0.009);
+                    @endphp
+                    @if($isOutstanding && $e->date)
+                        {{ (int) $e->date->diffInDays(now(), true) }} days
+                    @else
+                        Paid
+                    @endif
+                @else
+                    —
+                @endif
+            </td>
             <td class="amt">@if((float) $e->credit > 0){{ $currencySymbol }} {{ number_format($e->credit, 2) }}@else — @endif</td>
             <td class="amt">@if((float) $e->debit > 0){{ $currencySymbol }} {{ number_format($e->debit, 2) }}@else — @endif</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($e->running_balance ?? 0, 2) }}</td>
         </tr>
     @empty
-        <tr><td colspan="6" class="empty">No ledger entries yet.</td></tr>
+        <tr><td colspan="7" class="empty">No ledger entries yet.</td></tr>
     @endforelse
     @if($ledgerEntries->count() > 0)
         <tr class="totals">
-            <td colspan="3">Totals</td>
+            <td colspan="4">Totals</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($ledgerTotalCredit, 2) }}</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($ledgerTotalPaid, 2) }}</td>
             <td class="amt">{{ $currencySymbol }} {{ number_format($ledgerBalance, 2) }}</td>

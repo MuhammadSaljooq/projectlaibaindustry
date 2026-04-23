@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use App\Models\SupplierLedgerEntry;
+use App\Models\InternationalPurchaseOrder;
 use App\Support\StatementCompany;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -140,7 +141,14 @@ class SupplierController extends Controller
     }
 
     /**
-     * @return array{ledgerEntries: \Illuminate\Support\Collection, ledgerBalance: float, ledgerTotalCredit: float, ledgerTotalPaid: float, currencySymbol: string}
+     * @return array{
+     *     ledgerEntries: \Illuminate\Support\Collection,
+     *     ledgerBalance: float,
+     *     ledgerTotalCredit: float,
+     *     ledgerTotalPaid: float,
+     *     currencySymbol: string,
+     *     outstandingPayables: \Illuminate\Support\Collection
+     * }
      */
     private function supplierLedgerPayload(Supplier $supplier): array
     {
@@ -161,6 +169,20 @@ class SupplierController extends Controller
             $entry->setAttribute('running_balance', $running);
         }
 
+        $outstandingPayables = InternationalPurchaseOrder::query()
+            ->where('supplier_id', $supplier->id)
+            ->withSum('payablePayments', 'amount')
+            ->whereRaw('COALESCE(total_amount, 0) - COALESCE((SELECT SUM(amount) FROM international_payable_payments WHERE international_payable_payments.international_purchase_order_id = international_purchase_orders.id), 0) > 0.009')
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (InternationalPurchaseOrder $order) => [
+                'order_id' => (int) $order->id,
+                'invoice_number' => $order->invoice_number,
+                'date' => $order->date,
+                'outstanding' => round((float) $order->total_amount - (float) ($order->payable_payments_sum_amount ?? 0), 2),
+            ]);
+
         $currencySymbol = $this->vendorInternationalCurrency();
 
         return [
@@ -169,6 +191,7 @@ class SupplierController extends Controller
             'ledgerTotalCredit' => $totalCredit,
             'ledgerTotalPaid' => $totalPaid,
             'currencySymbol' => $currencySymbol,
+            'outstandingPayables' => $outstandingPayables,
         ];
     }
 
