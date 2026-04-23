@@ -44,6 +44,31 @@
   text-transform:uppercase; letter-spacing:0.05em; font-size:11px;
 }
 :is(.stitch-ui, .purchases-stitch) .st-btn-secondary:hover { background:var(--st-container-low); }
+:is(.stitch-ui, .purchases-stitch) .st-btn-primary,
+:is(.stitch-ui, .purchases-stitch) .st-btn-secondary {
+  min-height:2.75rem;
+  min-width:2.75rem;
+  touch-action:manipulation;
+}
+:is(.stitch-ui, .purchases-stitch) .st-touch-target,
+:is(.stitch-ui, .purchases-stitch) [data-touch-target] {
+  min-height:2.75rem;
+  min-width:2.75rem;
+  touch-action:manipulation;
+}
+@media (max-width: 640px) {
+  :is(.stitch-ui, .purchases-stitch) .st-sticky-col {
+    position: sticky;
+    right: 0;
+    z-index: 3;
+    background: var(--st-paper);
+    box-shadow: -6px 0 10px rgba(0, 0, 0, 0.05);
+  }
+  :is(.stitch-ui, .purchases-stitch) .st-sticky-col.st-thead-cell {
+    background: var(--st-container);
+    z-index: 4;
+  }
+}
 :is(.stitch-ui, .purchases-stitch) .st-thead { background:var(--st-container); border-bottom:1px solid var(--st-border); }
 :is(.stitch-ui, .purchases-stitch) .st-th {
   font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--st-on-var); border-right:1px solid var(--st-border);

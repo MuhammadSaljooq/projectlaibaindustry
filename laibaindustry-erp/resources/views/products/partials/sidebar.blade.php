@@ -115,5 +115,65 @@ $active = $activeNav ?? '';
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 <script>
-(function(){var s=document.getElementById('sidebar'),o=document.getElementById('sidebar-overlay');function open(){s?.classList.remove('-translate-x-full');o?.classList.remove('opacity-0','pointer-events-none');document.body.style.overflow='hidden'}function close(){s?.classList.add('-translate-x-full');o?.classList.add('opacity-0','pointer-events-none');document.body.style.overflow=''}document.querySelectorAll('[data-sidebar-toggle]').forEach(function(b){b.addEventListener('click',function(){s?.classList.contains('-translate-x-full')?open():close()})});o?.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();
+(function () {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    var desktopMedia = window.matchMedia('(min-width: 768px)');
+
+    if (!sidebar || !overlay) return;
+
+    function isOpen() {
+        return !sidebar.classList.contains('-translate-x-full');
+    }
+
+    function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = '';
+    }
+
+    function toggleSidebar() {
+        if (isOpen()) closeSidebar();
+        else openSidebar();
+    }
+
+    // Delegated binding: works even when toggle buttons render after this partial.
+    document.addEventListener('click', function (event) {
+        var toggle = event.target.closest('[data-sidebar-toggle]');
+        if (toggle) {
+            event.preventDefault();
+            toggleSidebar();
+            return;
+        }
+
+        // On mobile, close after selecting a nav link in sidebar.
+        var navLink = event.target.closest('#sidebar a[href]');
+        if (navLink && !desktopMedia.matches) {
+            closeSidebar();
+        }
+    });
+
+    overlay.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeSidebar();
+    });
+
+    // Ensure mobile overlay state is cleared when switching to desktop width.
+    function onBreakpointChange() {
+        if (desktopMedia.matches) closeSidebar();
+    }
+
+    if (typeof desktopMedia.addEventListener === 'function') {
+        desktopMedia.addEventListener('change', onBreakpointChange);
+    } else if (typeof desktopMedia.addListener === 'function') {
+        desktopMedia.addListener(onBreakpointChange);
+    }
+})();
 </script>

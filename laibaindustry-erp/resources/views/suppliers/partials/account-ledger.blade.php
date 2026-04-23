@@ -105,7 +105,7 @@
 
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[200px]">
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[840px]">
+<table class="w-full text-left border-collapse min-w-[760px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>

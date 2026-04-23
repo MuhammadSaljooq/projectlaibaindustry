@@ -14,7 +14,7 @@
 <main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Payables</h2>
@@ -77,19 +77,19 @@
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[960px]">
+<table class="w-full text-left border-collapse min-w-[700px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3">Customer</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Code</th>
+<th class="st-th px-4 py-3 whitespace-nowrap hidden sm:table-cell">Code</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Invoices</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Latest invoice</th>
+<th class="st-th px-4 py-3 whitespace-nowrap hidden sm:table-cell">Latest invoice</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Bill</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Direct</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Offset</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">Paid</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">Direct</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">Offset</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">Paid</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Balance</th>
-<th class="st-th px-4 py-3 text-right w-44"></th>
+<th class="st-th st-sticky-col st-thead-cell px-4 py-3 text-right w-44"></th>
 </tr>
 </thead>
 <tbody id="pay-tbody">
@@ -101,17 +101,17 @@
     data-invoice-count="{{ $g['invoice_count'] }}"
     role="link" tabindex="0" aria-label="Open payables for {{ e($g['display_name']) }}">
 <td class="st-td px-4 py-3 text-sm text-[#2B3437]"><p class="font-semibold">{{ $g['display_name'] }}</p></td>
-<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $g['display_code'] !== '' ? $g['display_code'] : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064] hidden sm:table-cell">{{ $g['display_code'] !== '' ? $g['display_code'] : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ number_format($g['invoice_count']) }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $g['latest_invoice_date'] ? format_display_date($g['latest_invoice_date']) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064] hidden sm:table-cell">{{ $g['latest_invoice_date'] ? format_display_date($g['latest_invoice_date']) : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol }} {{ number_format((float) $g['total_bill'], 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format((float) ($g['total_direct_paid'] ?? 0), 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format((float) ($g['total_offset_paid'] ?? 0), 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol }} {{ number_format((float) $g['total_paid'], 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064] hidden sm:table-cell">{{ $currencySymbol }} {{ number_format((float) ($g['total_direct_paid'] ?? 0), 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064] hidden sm:table-cell">{{ $currencySymbol }} {{ number_format((float) ($g['total_offset_paid'] ?? 0), 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064] hidden sm:table-cell">{{ $currencySymbol }} {{ number_format((float) $g['total_paid'], 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums {{ (float) $g['total_balance'] > 0.009 ? 'text-[#9F403D]' : 'text-[#5E5E5E]' }}">{{ $currencySymbol }} {{ number_format((float) $g['total_balance'], 2) }}</td>
-<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
+<td class="st-td st-sticky-col px-4 py-3 text-right" data-stop-row-nav>
 @if((float) $g['total_balance'] > 0.009 && auth()->user()->role !== 'viewer')
-<a href="{{ $groupUrl }}" class="st-btn-primary h-9 px-3 text-[10px] inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[16px]">payments</span>Pay</a>
+<a href="{{ $groupUrl }}" class="st-btn-primary h-9 px-3 st-touch-target text-[10px] inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[16px]">payments</span>Pay</a>
 @elseif((float) $g['total_balance'] <= 0.009)
 <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#5E5E5E] border border-[#ABB3B7] px-2 py-1"><span class="material-symbols-outlined text-[14px]">check</span>Paid</span>
 @else

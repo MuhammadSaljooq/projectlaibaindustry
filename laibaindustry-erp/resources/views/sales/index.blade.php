@@ -10,7 +10,7 @@
 <main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Sales</h2>
@@ -123,17 +123,17 @@ Clear
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[900px]">
+<table class="w-full text-left border-collapse min-w-[700px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
 <th class="st-th px-4 py-3 whitespace-nowrap max-w-[160px]">Customer</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
-<th class="st-th px-4 py-3 min-w-[200px]">Product</th>
+<th class="st-th px-4 py-3 min-w-[200px] hidden sm:table-cell">Product</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">VAT</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Total</th>
-<th class="st-th px-4 py-3 text-right w-28"></th>
+<th class="st-th st-sticky-col st-thead-cell px-4 py-3 text-right w-28"></th>
 </tr>
 </thead>
 <tbody id="s-tbody">
@@ -168,25 +168,25 @@ $searchText = mb_strtolower(implode(' ', array_filter([
 <td class="st-td px-4 py-3 text-sm font-bold text-[#2B3437]">
 <a href="{{ route('sales.show', $sale) }}" class="text-[#5E5E5E] hover:underline" onclick="event.stopPropagation()">{{ $sale->invoice_number ?: '#' . $sale->id }}</a>
 </td>
-<td class="st-td px-4 py-3 text-sm text-[#586064] max-w-[280px]" title="{{ e($linesSummary) }}">
+<td class="st-td px-4 py-3 text-sm text-[#586064] max-w-[280px] hidden sm:table-cell" title="{{ e($linesSummary) }}">
 <span class="line-clamp-2">{{ $linesSummary }}</span>
 @if($lineCount > 1)
 <span class="block text-[10px] uppercase tracking-wide text-[#586064] mt-0.5">{{ $lineCount }} products</span>
 @endif
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $rowSymbol }} {{ number_format($sale->subtotal ?? 0, 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $rowSymbol }} {{ number_format($sale->tax_amount ?? 0, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064] hidden sm:table-cell">{{ $rowSymbol }} {{ number_format($sale->tax_amount ?? 0, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $rowSymbol }} {{ number_format($sale->total_amount ?? 0, 2) }}</td>
-<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
+<td class="st-td st-sticky-col px-4 py-3 text-right" data-stop-row-nav>
 <div class="flex items-center justify-end gap-1 flex-wrap">
-<a href="{{ route('sales.show', $sale) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View">
+<a href="{{ route('sales.show', $sale) }}" class="p-2 st-touch-target border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View">
 <span class="material-symbols-outlined text-[18px]">visibility</span>
 </a>
 @if(auth()->user()->role !== 'viewer')
 <form method="POST" action="{{ route('sales.destroy', $sale) }}" class="inline-flex" data-confirm-delete="{{ e('Delete this sale? Stock will be restored.') }}">
 @csrf
 @method('DELETE')
-<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
+<button type="submit" class="p-2 st-touch-target border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6]" title="Delete">
 <span class="material-symbols-outlined text-[18px]">delete</span>
 </button>
 </form>

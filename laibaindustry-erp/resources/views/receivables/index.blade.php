@@ -10,7 +10,7 @@
 <main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Receivables</h2>
@@ -91,13 +91,13 @@ Search
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[900px]">
+<table class="w-full text-left border-collapse min-w-[680px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Customer</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Invoices</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Latest invoice</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Latest payment</th>
+<th class="st-th px-4 py-3 whitespace-nowrap hidden sm:table-cell">Latest invoice</th>
+<th class="st-th px-4 py-3 whitespace-nowrap hidden sm:table-cell">Latest payment</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Total bill</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Received</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Remaining</th>
@@ -114,7 +114,7 @@ Search
     $aggName = $g->agg_customer_name ?: '—';
     $aggCode = $g->agg_customer_code ? trim((string) $g->agg_customer_code) : '';
 @endphp
-<tr class="st-tr cursor-pointer hover:bg-[#F1F4F6]"
+<tr class="st-tr cursor-pointer hover:bg-[#F1F4F6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
 data-receivable-group-url="{{ $groupUrl }}"
 data-search-text="{{ mb_strtolower($aggName !== '—' ? $aggName : '', 'UTF-8') }} {{ mb_strtolower($aggCode, 'UTF-8') }}"
 tabindex="0"
@@ -127,8 +127,8 @@ aria-label="Open receivables for {{ $aggName }}"
 @endif
 </td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ (int) $g->invoice_count }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestInv ? format_display_date($latestInv) : '—' }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064]">{{ $latestPay ? format_display_date($latestPay) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064] hidden sm:table-cell">{{ $latestInv ? format_display_date($latestInv) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap font-mono text-[#586064] hidden sm:table-cell">{{ $latestPay ? format_display_date($latestPay) : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $g->total_amount, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $g->total_received, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format($remaining, 2) }}</td>
@@ -266,6 +266,7 @@ No results
     });
     tr.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (e.target.closest('a, button, input, select, textarea, label')) return;
       e.preventDefault();
       window.location.href = url;
     });

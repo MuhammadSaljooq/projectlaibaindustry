@@ -10,7 +10,7 @@
 <main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Quotations</h2>
@@ -41,7 +41,7 @@ New quotation
 @endif
 
 <div class="border border-[#ABB3B7] bg-white overflow-x-auto">
-<table class="w-full text-left border-collapse min-w-[900px]">
+<table class="w-full text-left border-collapse min-w-[820px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3">Number</th>
@@ -55,10 +55,10 @@ New quotation
 </thead>
 <tbody>
 @forelse ($quotations as $q)
-<tr class="st-tr hover:bg-[#F8F9FA] cursor-pointer"
+<tr class="st-tr hover:bg-[#F8F9FA] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E]"
     data-open-url="{{ route('quotations.show', $q) }}"
     title="Open quotation"
-    onclick="if (!event.target.closest('a, button')) { window.location.href = this.dataset.openUrl; }">
+    role="link" tabindex="0" aria-label="Open quotation {{ $q->quotation_number }}">
 <td class="st-td px-4 py-3 font-mono font-semibold">
 <a href="{{ route('quotations.show', $q) }}" class="text-[#137fec] hover:underline">{{ $q->quotation_number }}</a>
 </td>
@@ -75,12 +75,12 @@ New quotation
 @endif">{{ $q->status }}</span>
 </td>
 <td class="st-td px-4 py-3 text-right font-mono tabular-nums">SAR {{ number_format((float) $q->total_amount, 2) }}</td>
-<td class="st-td px-4 py-3 text-right" onclick="event.stopPropagation();">
+<td class="st-td px-4 py-3 text-right" data-stop-row-nav>
 <div class="flex flex-wrap justify-end gap-1">
-<a href="{{ route('quotations.preview', $q) }}?v={{ $q->updated_at?->timestamp ?? $q->id }}" target="_blank" rel="noopener" class="st-btn-secondary h-8 px-2 text-[10px] inline-flex items-center gap-1">Preview</a>
-<a href="{{ route('quotations.pdf', $q) }}?v={{ $q->updated_at?->timestamp ?? $q->id }}" class="st-btn-secondary h-8 px-2 text-[10px] inline-flex items-center gap-1">PDF</a>
+<a href="{{ route('quotations.preview', $q) }}?v={{ $q->updated_at?->timestamp ?? $q->id }}" target="_blank" rel="noopener" class="st-btn-secondary h-8 px-2 st-touch-target text-[10px] inline-flex items-center gap-1">Preview</a>
+<a href="{{ route('quotations.pdf', $q) }}?v={{ $q->updated_at?->timestamp ?? $q->id }}" class="st-btn-secondary h-8 px-2 st-touch-target text-[10px] inline-flex items-center gap-1">PDF</a>
 @if(auth()->user()->role !== 'viewer')
-<a href="{{ route('quotations.edit', $q) }}" class="st-btn-primary h-8 px-2 text-[10px] inline-flex items-center gap-1">Edit</a>
+<a href="{{ route('quotations.edit', $q) }}" class="st-btn-primary h-8 px-2 st-touch-target text-[10px] inline-flex items-center gap-1">Edit</a>
 @endif
 </div>
 </td>
@@ -100,5 +100,24 @@ New quotation
 </div>
 </div>
 </main>
+<script>
+(function () {
+    var rows = Array.from(document.querySelectorAll('tr[data-open-url]'));
+    rows.forEach(function (row) {
+        var url = row.getAttribute('data-open-url');
+        if (!url) return;
+        row.addEventListener('click', function (event) {
+            if (event.target.closest('[data-stop-row-nav], a, button, form, input, select, textarea, label')) return;
+            window.location.href = url;
+        });
+        row.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            if (event.target.closest('[data-stop-row-nav], a, button, form, input, select, textarea, label')) return;
+            event.preventDefault();
+            window.location.href = url;
+        });
+    });
+})();
+</script>
 </body>
 </html>

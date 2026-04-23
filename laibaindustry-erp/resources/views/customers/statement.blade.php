@@ -28,7 +28,7 @@
 
 <header class="no-print h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <a href="{{ route('customers.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
@@ -478,7 +478,7 @@ $deleteConfirmMsg = match($row['source_type'] ?? '') {
 <form method="POST" action="{{ route('customers.ledger-entries.destroy', [$customer, $row['ledger_entry_id']]) }}" class="inline-flex" onsubmit="return confirm({!! json_encode($deleteConfirmMsg) !!});">
 @csrf
 @method('DELETE')
-<button type="submit" class="p-2 border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6] rounded-none" title="Delete ledger entry">
+<button type="submit" class="p-2 st-touch-target border border-transparent hover:border-[#9F403D] text-[#586064] hover:text-[#9F403D] hover:bg-[#F1F4F6] rounded-none" title="Delete ledger entry">
 <span class="material-symbols-outlined text-[18px]">delete</span>
 </button>
 </form>

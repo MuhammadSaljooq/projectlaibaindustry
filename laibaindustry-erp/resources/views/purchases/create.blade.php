@@ -10,7 +10,7 @@
 <main class="purchases-stitch flex-1 flex flex-col h-full overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">New Purchase</h2>
@@ -130,7 +130,7 @@ Back to ledger
 <span class="subtotal-display font-mono text-sm font-bold text-[#5E5E5E]">0.00</span>
 </td>
 <td class="st-td px-4 py-3">
-<button type="button" class="remove-row p-2 text-[#586064] hover:text-[#9F403D] border border-transparent hover:border-[#ABB3B7]" title="Remove row">
+<button type="button" class="remove-row p-2 st-touch-target text-[#586064] hover:text-[#9F403D] border border-transparent hover:border-[#ABB3B7]" title="Remove row">
 <span class="material-symbols-outlined text-[20px]">delete</span>
 </button>
 </td>
@@ -165,7 +165,7 @@ Add row
 </div>
 
 <div class="flex flex-wrap gap-3 mt-8">
-<button type="submit" class="st-btn-primary h-10 px-6">Save Purchase</button>
+<button type="submit" class="st-btn-primary h-10 px-6 st-touch-target">Save Purchase</button>
 <a href="{{ route('purchases.index') }}" class="st-btn-secondary h-10 px-6 inline-flex items-center">Cancel</a>
 </div>
 </form>

@@ -10,7 +10,7 @@
 <main class="stitch-ui flex-1 flex flex-col h-full min-h-0 overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <a href="{{ route('sales.index') }}" class="st-btn-secondary h-9 px-3 inline-flex items-center gap-2 text-[10px]">
@@ -116,7 +116,7 @@
 <td class="st-td px-4 py-3 text-right"><span class="amount-display text-sm font-bold font-mono tabular-nums text-[#2B3437]">0.00</span></td>
 <td class="st-td px-4 py-3 text-right"><span class="vat-display text-sm font-mono tabular-nums text-[#586064]">0.00</span></td>
 <td class="st-td px-4 py-3">
-<button type="button" class="remove-row p-2 text-[#586064] hover:text-[#9F403D] border border-transparent hover:border-[#ABB3B7]" title="Remove row">
+<button type="button" class="remove-row p-2 st-touch-target text-[#586064] hover:text-[#9F403D] border border-transparent hover:border-[#ABB3B7]" title="Remove row">
 <span class="material-symbols-outlined text-[18px]">delete</span>
 </button>
 </td>
@@ -196,17 +196,40 @@ Save sale
         nr.querySelector('.amount-display').textContent='0.00'; nr.querySelector('.vat-display').textContent='0.00';
         var nh = nr.querySelector('.stock-hint'); if (nh) { nh.textContent=''; nh.className='stock-hint text-[11px] mt-1 leading-snug'; }
         nr.querySelectorAll('input,select').forEach(el=>el.removeAttribute('required'));
-        tbody.appendChild(nr); rowIndex++; bindRowEvents();
+        tbody.appendChild(nr); rowIndex++;
     });
-    function bindRowEvents() {
-        document.querySelectorAll('.line-item').forEach(row => {
-            row.querySelector('.product-select')?.addEventListener('change', function() { const pid=this.value,prod=products[pid]; if(prod){row.querySelector('.price-input').value=prod.price;} onRowChange(); });
-            row.querySelector('.price-input')?.addEventListener('input', onRowChange);
-            row.querySelector('.qty-input')?.addEventListener('input', onRowChange);
+    const lineItems = document.getElementById('line-items');
+    if (lineItems) {
+        lineItems.addEventListener('change', function (event) {
+            const select = event.target.closest('.product-select');
+            if (!select) return;
+            const row = select.closest('.line-item');
+            if (!row) return;
+            const prod = products[select.value];
+            if (prod) {
+                const priceInput = row.querySelector('.price-input');
+                if (priceInput) priceInput.value = prod.price;
+            }
+            onRowChange();
         });
-        document.querySelectorAll('.remove-row').forEach(btn => { btn.onclick = function() { if(document.querySelectorAll('.line-item').length<=1)return; this.closest('.line-item').remove(); onRowChange(); }; });
+
+        lineItems.addEventListener('input', function (event) {
+            if (event.target.closest('.price-input, .qty-input')) {
+                onRowChange();
+            }
+        });
+
+        lineItems.addEventListener('click', function (event) {
+            const btn = event.target.closest('.remove-row');
+            if (!btn) return;
+            event.preventDefault();
+            if (document.querySelectorAll('.line-item').length <= 1) return;
+            btn.closest('.line-item')?.remove();
+            onRowChange();
+        });
     }
-    bindRowEvents(); onRowChange();
+
+    onRowChange();
 })();
 </script>
 </body>

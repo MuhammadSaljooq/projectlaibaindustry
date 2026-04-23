@@ -10,7 +10,7 @@
 <main class="purchases-stitch flex-1 flex flex-col h-full overflow-hidden relative bg-[#F8F9FA]">
 <header class="h-16 shrink-0 z-10 flex items-center justify-between px-6 border-b border-[#ABB3B7] bg-white">
 <div class="flex items-center gap-4">
-<button class="md:hidden p-2 text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
+<button class="md:hidden p-2 st-touch-target text-[#586064] hover:bg-[#F1F4F6] rounded-none border border-transparent hover:border-[#ABB3B7]" type="button" data-sidebar-toggle aria-label="Toggle menu">
 <span class="material-symbols-outlined text-[#2B3437]">menu</span>
 </button>
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Purchases</h2>
@@ -64,17 +64,17 @@
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[900px]">
+<table class="w-full text-left border-collapse min-w-[680px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap max-w-[180px]">Customer</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Code</th>
+<th class="st-th px-4 py-3 whitespace-nowrap hidden sm:table-cell">Code</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Invoices</th>
-<th class="st-th px-4 py-3 whitespace-nowrap">Latest invoice</th>
+<th class="st-th px-4 py-3 whitespace-nowrap hidden sm:table-cell">Latest invoice</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Subtotal</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap">VAT</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">VAT</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Total</th>
-<th class="st-th px-4 py-3 text-right w-28"></th>
+<th class="st-th st-sticky-col st-thead-cell px-4 py-3 text-right w-28"></th>
 </tr>
 </thead>
 <tbody id="purch-tbody">
@@ -86,13 +86,13 @@
     data-invoice-count="{{ $group['invoice_count'] }}"
     role="link" tabindex="0" aria-label="Open purchases for {{ e($group['display_name']) }}">
 <td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437] truncate max-w-[180px]">{{ $group['display_name'] }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-[#586064]">{{ $group['display_code'] !== '' ? $group['display_code'] : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-[#586064] hidden sm:table-cell">{{ $group['display_code'] !== '' ? $group['display_code'] : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#2B3437]">{{ number_format($group['invoice_count']) }}</td>
-<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ $group['latest_invoice_date'] ? format_display_datetime($group['latest_invoice_date']) : '—' }}</td>
+<td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064] hidden sm:table-cell">{{ $group['latest_invoice_date'] ? format_display_datetime($group['latest_invoice_date']) : '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#2B3437]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $group['total_subtotal'], 2) }}</td>
-<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $group['total_vat'], 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono text-right whitespace-nowrap tabular-nums text-[#586064] hidden sm:table-cell">{{ $currencySymbol ?? '$' }} {{ number_format((float) $group['total_vat'], 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol ?? '$' }} {{ number_format((float) $group['total_amount'], 2) }}</td>
-<td class="st-td px-4 py-3 text-right" data-stop-row-nav><a href="{{ $groupUrl }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View group"><span class="material-symbols-outlined text-[18px]">visibility</span></a></td>
+<td class="st-td st-sticky-col px-4 py-3 text-right" data-stop-row-nav><a href="{{ $groupUrl }}" class="p-2 st-touch-target border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="View group"><span class="material-symbols-outlined text-[18px]">visibility</span></a></td>
 </tr>
 @empty
 <tr id="purch-empty-db"><td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
