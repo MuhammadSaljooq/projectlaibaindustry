@@ -154,6 +154,8 @@ class SupplierController extends Controller
     {
         $ledgerEntries = SupplierLedgerEntry::query()
             ->where('supplier_id', $supplier->id)
+            ->orderByRaw('CASE WHEN date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('date')
             ->orderByRaw('CASE WHEN created_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('created_at')
             ->orderBy('id')

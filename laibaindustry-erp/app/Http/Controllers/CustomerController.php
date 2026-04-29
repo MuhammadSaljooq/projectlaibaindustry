@@ -200,8 +200,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Statement line order by posting sequence (same order as recorded from pages):
-     * created_at (nulls last), then id.
+     * Statement line order by recorded-on date (oldest first), then creation sequence.
      *
      * @param  Builder<CustomerLedgerEntry>  $query
      * @return Builder<CustomerLedgerEntry>
@@ -209,6 +208,8 @@ class CustomerController extends Controller
     private function applyStatementLedgerOrdering(Builder $query): Builder
     {
         return $query
+            ->orderByRaw('CASE WHEN date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('date')
             ->orderByRaw('CASE WHEN created_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('created_at')
             ->orderBy('id');
@@ -277,20 +278,27 @@ class CustomerController extends Controller
     }
 
     /**
-     * Match {@see applyStatementLedgerOrdering}: non-null created_at first, created_at, id.
+     * Match {@see applyStatementLedgerOrdering}: date, created_at, then id.
      *
      * @param  CustomerLedgerEntry|\stdClass  $e
-     * @return array{0: int, 1: int, 2: int}
+     * @return array{0: int, 1: int, 2: int, 3: int, 4: int}
      */
     private function ledgerStatementSortKey(object $e): array
     {
+        $dateNull = empty($e->date) ? 1 : 0;
+        $dateTs = 0;
+        if (! empty($e->date)) {
+            $ts = strtotime((string) $e->date);
+            $dateTs = $ts !== false ? $ts : 0;
+        }
+
         $createdNull = empty($e->created_at) ? 1 : 0;
         $createdTs = 0;
         if (! empty($e->created_at) && $e->created_at instanceof \DateTimeInterface) {
             $createdTs = $e->created_at->getTimestamp();
         }
 
-        return [$createdNull, $createdTs, (int) ($e->id ?? 0)];
+        return [$dateNull, $dateTs, $createdNull, $createdTs, (int) ($e->id ?? 0)];
     }
 
     /**
