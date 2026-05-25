@@ -126,6 +126,7 @@
             button.addEventListener('click', () => {
                 const isPassword = input.type === 'password';
                 input.type = isPassword ? 'text' : 'password';
+                button.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
 
                 const icon = button.querySelector('.material-symbols-outlined');
                 if (icon) {

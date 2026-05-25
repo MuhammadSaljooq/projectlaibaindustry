@@ -59,8 +59,9 @@
                 <button
                     type="button"
                     data-password-toggle="password"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                    class="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none"
                     aria-label="Toggle password visibility"
+                    aria-pressed="false"
                 >
                     <span class="material-symbols-outlined text-[20px]">visibility</span>
                 </button>
@@ -81,8 +82,9 @@
                 <button
                     type="button"
                     data-password-toggle="password_confirmation"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                    class="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none"
                     aria-label="Toggle password visibility"
+                    aria-pressed="false"
                 >
                     <span class="material-symbols-outlined text-[20px]">visibility</span>
                 </button>
@@ -106,21 +108,5 @@
     </div>
 </div>
 </div>
-<script>
-document.querySelectorAll('[data-password-toggle]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        var input = document.getElementById(btn.getAttribute('data-password-toggle'));
-        if (!input) return;
-        var icon = btn.querySelector('.material-symbols-outlined');
-        if (input.type === 'password') {
-            input.type = 'text';
-            if (icon) icon.textContent = 'visibility_off';
-        } else {
-            input.type = 'password';
-            if (icon) icon.textContent = 'visibility';
-        }
-    });
-});
-</script>
 </body>
 </html>

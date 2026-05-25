@@ -62,21 +62,13 @@
                 <button
                     type="button"
                     data-password-toggle="password"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none"
+                    class="absolute right-4 top-1/2 z-10 -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none"
                     aria-label="Toggle password visibility"
+                    aria-pressed="false"
                 >
                     <span class="material-symbols-outlined text-[20px]">visibility</span>
                 </button>
             </div>
-        </div>
-
-        {{-- Remember me & Forgot password --}}
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <label class="flex items-center gap-3 cursor-pointer group">
-                <input class="h-5 w-5 rounded border-gray-500 bg-black text-white focus:ring-white/50 focus:ring-2" type="checkbox" name="remember"/>
-                <span class="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Remember me</span>
-            </label>
-            <a class="text-sm text-gray-400 hover:text-white transition-colors" href="{{ route('password.request', absolute: false) }}">Forgot password?</a>
         </div>
 
         {{-- Sign In Button --}}
@@ -101,21 +93,5 @@
     </div>
 </div>
 </div>
-<script>
-document.querySelectorAll('[data-password-toggle]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        var input = document.getElementById(btn.getAttribute('data-password-toggle'));
-        if (!input) return;
-        var icon = btn.querySelector('.material-symbols-outlined');
-        if (input.type === 'password') {
-            input.type = 'text';
-            if (icon) icon.textContent = 'visibility_off';
-        } else {
-            input.type = 'password';
-            if (icon) icon.textContent = 'visibility';
-        }
-    });
-});
-</script>
 </body>
 </html>
