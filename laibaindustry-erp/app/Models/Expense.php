@@ -36,8 +36,8 @@ class Expense extends Model
     {
         return [
             self::CATEGORY_PERSONAL => 'Personal expenses',
-            self::CATEGORY_TRANSPORT => 'Warehouse/Transport expense',
-            self::CATEGORY_CONTAINER => 'Container expense',
+            self::CATEGORY_TRANSPORT => 'Warehouse/Transport Expenses',
+            self::CATEGORY_CONTAINER => 'Container expenses',
         ];
     }
 
