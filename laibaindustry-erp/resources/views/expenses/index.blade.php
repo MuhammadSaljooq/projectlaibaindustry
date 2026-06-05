@@ -81,19 +81,9 @@ New expense
 @endforeach
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
-<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
-<p class="st-label mb-2">Grand total</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="exp-filtered-grand-total">{{ $currencySymbol }} {{ number_format($filteredGrandTotal ?? 0, 2) }}</p>
-</div>
-<div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
-<p class="st-label mb-2">Matching entries</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="exp-matching-count">{{ number_format($expenses->count()) }}</p>
-</div>
-<div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
-<p class="st-label st-label--primary mb-2">All-time grand total</p>
-<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($allTimeGrandTotal ?? 0, 2) }}</p>
-</div>
+<div class="border border-[#5E5E5E] border-2 bg-white p-6">
+<p class="st-label st-label--primary mb-2">Grand total</p>
+<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums" id="exp-filtered-grand-total">{{ $currencySymbol }} {{ number_format($filteredGrandTotal ?? 0, 2) }}</p>
 </div>
 
 <form id="exp-form" method="GET" action="{{ route('expenses.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
@@ -232,7 +222,6 @@ No results
     var total         = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
     var sym           = (footer && footer.getAttribute('data-currency')) || '';
     var grandTotal    = document.getElementById('exp-filtered-grand-total');
-    var matchingCount = document.getElementById('exp-matching-count');
     var categoryEls   = Array.from(document.querySelectorAll('[data-category-total]'));
     var categories    = categoryEls.map(function (el) { return el.getAttribute('data-category-total'); });
     var hasServerFilter = !!(new URLSearchParams(window.location.search).get('from')
@@ -271,7 +260,6 @@ No results
 
         if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
         updateCategoryTotals(categorySums, sum);
-        if (matchingCount) matchingCount.textContent = visible;
         if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !hasServerFilter);
         if (footer) {
             if (visible > 0 && needle !== '') footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> expenses matching &ldquo;' + esc(query.trim()) + '&rdquo;';

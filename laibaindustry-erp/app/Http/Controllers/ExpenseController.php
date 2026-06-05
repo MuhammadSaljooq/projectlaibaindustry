@@ -43,9 +43,6 @@ class ExpenseController extends Controller
         $categoryTotals = $this->categoryTotalsFromQuery(clone $query);
         $filteredGrandTotal = array_sum($categoryTotals);
 
-        $allTimeCategoryTotals = $this->categoryTotalsFromQuery(Expense::query());
-        $allTimeGrandTotal = array_sum($allTimeCategoryTotals);
-
         $expenses = $query
             ->orderByDesc('date')
             ->get();
@@ -56,8 +53,6 @@ class ExpenseController extends Controller
             'expenses' => $expenses,
             'categoryTotals' => $categoryTotals,
             'filteredGrandTotal' => $filteredGrandTotal,
-            'allTimeCategoryTotals' => $allTimeCategoryTotals,
-            'allTimeGrandTotal' => $allTimeGrandTotal,
             'categoryFilter' => $categoryFilter,
             'search' => $search,
             'currencySymbol' => $currencySymbol,
