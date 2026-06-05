@@ -27,7 +27,7 @@
 <div class="flex flex-col gap-1">
 <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">EXP_AMEND_17</p>
 <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-[#2B3437] leading-none">Edit expense</h1>
-<p class="text-sm text-[#586064] mt-2">{{ $expense->type }} · {{ format_display_date($expense->date) }}</p>
+<p class="text-sm text-[#586064] mt-2">{{ $expense->categoryLabel() }} · {{ format_display_date($expense->date) }}</p>
 </div>
 <div class="h-0.5 w-full bg-[#5E5E5E]" role="presentation"></div>
 </div>
@@ -54,9 +54,21 @@
 <label class="st-label block mb-2" for="date">Date</label>
 <input class="st-input w-full h-10 px-3 text-sm" type="date" name="date" id="date" value="{{ old('date', $expense->date->format('Y-m-d')) }}" required>
 </div>
+<div class="min-w-0">
+<label class="st-label block mb-2" for="category">Category <span class="text-[#9F403D]">*</span></label>
+<div class="relative isolate">
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer @error('category') !border-[#9F403D] @enderror" name="category" id="category" required>
+@foreach($categoryLabels as $value => $label)
+<option value="{{ $value }}" {{ old('category', $expense->category) === $value ? 'selected' : '' }}>{{ $label }}</option>
+@endforeach
+</select>
+<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none select-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
+</div>
+@error('category')<p class="mt-1.5 text-xs text-[#9F403D] font-medium">{{ $message }}</p>@enderror
+</div>
 <div>
-<label class="st-label block mb-2" for="type">Type</label>
-<input class="st-input w-full h-10 px-3 text-sm" type="text" name="type" id="type" value="{{ old('type', $expense->type) }}" placeholder="e.g. Rent, utilities" required maxlength="255">
+<label class="st-label block mb-2" for="description">Description <span class="text-[#586064] font-normal normal-case tracking-normal">(optional)</span></label>
+<input class="st-input w-full h-10 px-3 text-sm" type="text" name="description" id="description" value="{{ old('description', $expense->description) }}" placeholder="e.g. Fuel, port fees" maxlength="255">
 </div>
 <div>
 <label class="st-label block mb-2" for="amount">Amount</label>

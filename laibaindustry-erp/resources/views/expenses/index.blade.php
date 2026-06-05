@@ -72,27 +72,48 @@ New expense
 </div>
 @endif
 
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-0 border border-[#ABB3B7] bg-white sm:divide-x sm:divide-[#ABB3B7]">
+@foreach(\App\Models\Expense::categories() as $categoryKey)
+<div class="p-6 border-b sm:border-b-0 border-[#ABB3B7] last:border-b-0">
+<p class="st-label mb-2">{{ $categoryLabels[$categoryKey] }}</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="exp-total-{{ $categoryKey }}" data-category-total="{{ $categoryKey }}">{{ $currencySymbol }} {{ number_format($categoryTotals[$categoryKey] ?? 0, 2) }}</p>
+</div>
+@endforeach
+</div>
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
-<p class="st-label mb-2">Filtered total</p>
-<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="exp-filtered-total">{{ $currencySymbol }} {{ number_format($filteredTotal ?? 0, 2) }}</p>
+<p class="st-label mb-2">Grand total</p>
+<p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="exp-filtered-grand-total">{{ $currencySymbol }} {{ number_format($filteredGrandTotal ?? 0, 2) }}</p>
 </div>
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Matching entries</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums" id="exp-matching-count">{{ number_format($expenses->count()) }}</p>
 </div>
 <div class="p-6 border-2 border-[#5E5E5E] max-md:m-0 -m-px">
-<p class="st-label st-label--primary mb-2">All-time total</p>
-<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($totalAmount ?? 0, 2) }}</p>
+<p class="st-label st-label--primary mb-2">All-time grand total</p>
+<p class="text-2xl font-black font-mono text-[#5E5E5E] tabular-nums">{{ $currencySymbol }} {{ number_format($allTimeGrandTotal ?? 0, 2) }}</p>
 </div>
 </div>
 
 <form id="exp-form" method="GET" action="{{ route('expenses.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
+<div class="min-w-[200px]">
+<label class="st-label block mb-2" for="e-category">Category</label>
+<div class="relative isolate">
+<select class="st-select w-full h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="e-category" name="category">
+<option value="">All categories</option>
+@foreach($categoryLabels as $value => $label)
+<option value="{{ $value }}" {{ ($categoryFilter ?? '') === $value ? 'selected' : '' }}>{{ $label }}</option>
+@endforeach
+</select>
+<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
+</div>
+</div>
 <div class="flex-1 min-w-[200px]">
-<label class="st-label block mb-2" for="e-search">Search</label>
+<label class="st-label block mb-2" for="e-search">Description</label>
 <div class="relative">
 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#586064] material-symbols-outlined text-[18px] pointer-events-none">search</span>
-<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="e-search" type="text" name="search" value="{{ request('search') }}" placeholder="Expense type…" autocomplete="off">
+<input class="st-input w-full h-10 pl-10 pr-3 text-sm" id="e-search" type="text" name="search" value="{{ $search ?? request('search') }}" placeholder="Search description…" autocomplete="off">
 </div>
 </div>
 <div class="min-w-[140px]">
@@ -108,7 +129,7 @@ New expense
 <span class="material-symbols-outlined text-[16px]">filter_list</span>
 Filter
 </button>
-<a href="{{ route('expenses.index') }}" id="exp-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ request('search') || request('from') || request('to') ? '' : ' hidden' }}">
+<a href="{{ route('expenses.index') }}" id="exp-clear-btn" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ ($categoryFilter ?? '') || ($search ?? '') || request('from') || request('to') ? '' : ' hidden' }}">
 <span class="material-symbols-outlined text-[16px]">close</span>
 Clear
 </a>
@@ -118,15 +139,16 @@ Clear
 <div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Expense ledger</h3>
-<p class="text-[11px] text-[#586064] mt-1">Date · type · amount · edit or delete from actions</p>
+<p class="text-[11px] text-[#586064] mt-1">Date · category · description · amount · edit or delete from actions</p>
 </div>
 
 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse min-w-[640px]">
+<table class="w-full text-left border-collapse min-w-[720px]">
 <thead>
 <tr class="st-thead">
 <th class="st-th px-4 py-3 whitespace-nowrap">Date</th>
-<th class="st-th px-4 py-3">Type</th>
+<th class="st-th px-4 py-3">Category</th>
+<th class="st-th px-4 py-3">Description</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Amount</th>
 @if(auth()->user()->role !== 'viewer')
 <th class="st-th px-4 py-3 text-right w-36"></th>
@@ -136,11 +158,13 @@ Clear
 <tbody id="exp-tbody">
 @forelse($expenses as $expense)
 <tr class="st-tr @if(auth()->user()->role !== 'viewer') cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#5E5E5E] @endif"
-    data-search-text="{{ mb_strtolower($expense->type ?? '', 'UTF-8') }}"
+    data-search-text="{{ mb_strtolower($expense->description ?? '', 'UTF-8') }}"
+    data-category="{{ $expense->category }}"
     data-amount="{{ $expense->amount }}"
-    @if(auth()->user()->role !== 'viewer') data-expense-edit-url="{{ route('expenses.edit', $expense) }}" role="link" tabindex="0" aria-label="Edit expense {{ e($expense->type) }}" @endif>
+    @if(auth()->user()->role !== 'viewer') data-expense-edit-url="{{ route('expenses.edit', $expense) }}" role="link" tabindex="0" aria-label="Edit expense {{ e($expense->categoryLabel()) }}" @endif>
 <td class="st-td px-4 py-3 text-sm whitespace-nowrap text-[#586064]">{{ format_display_date($expense->date) }}</td>
-<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $expense->type }}</td>
+<td class="st-td px-4 py-3 text-sm font-semibold text-[#2B3437]">{{ $expense->categoryLabel() }}</td>
+<td class="st-td px-4 py-3 text-sm text-[#586064]">{{ $expense->description ?: '—' }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right whitespace-nowrap tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($expense->amount, 2) }}</td>
 @if(auth()->user()->role !== 'viewer')
 <td class="st-td px-4 py-3 text-right" data-stop-row-nav>
@@ -161,7 +185,7 @@ Clear
 </tr>
 @empty
 <tr id="exp-empty-db">
-<td colspan="{{ auth()->user()->role === 'viewer' ? 3 : 4 }}" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="{{ auth()->user()->role === 'viewer' ? 4 : 5 }}" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No expenses yet</p>
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('expenses.create') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Add first expense</a>
@@ -172,7 +196,7 @@ Clear
 </tr>
 @endforelse
 <tr id="exp-no-results" style="display:none">
-<td colspan="{{ auth()->user()->role === 'viewer' ? 3 : 4 }}" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="{{ auth()->user()->role === 'viewer' ? 4 : 5 }}" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No expenses match your search</p>
 <p class="text-xs">Try a different term, or <button type="button" id="exp-no-results-clear" class="font-bold text-[#5E5E5E] underline underline-offset-2">clear search</button> to see all.</p>
 </td>
@@ -207,31 +231,59 @@ No results
     var footer        = document.getElementById('exp-footer-text');
     var total         = parseInt((footer && footer.getAttribute('data-total')) || '0', 10);
     var sym           = (footer && footer.getAttribute('data-currency')) || '';
-    var filteredTotal = document.getElementById('exp-filtered-total');
+    var grandTotal    = document.getElementById('exp-filtered-grand-total');
     var matchingCount = document.getElementById('exp-matching-count');
-    var hasDateFilter = !!(new URLSearchParams(window.location.search).get('from') || new URLSearchParams(window.location.search).get('to'));
+    var categoryEls   = Array.from(document.querySelectorAll('[data-category-total]'));
+    var categories    = categoryEls.map(function (el) { return el.getAttribute('data-category-total'); });
+    var hasServerFilter = !!(new URLSearchParams(window.location.search).get('from')
+        || new URLSearchParams(window.location.search).get('to')
+        || new URLSearchParams(window.location.search).get('category'));
 
     function fmt(n) { return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+    function updateCategoryTotals(categorySums, sum) {
+        categoryEls.forEach(function (el) {
+            var key = el.getAttribute('data-category-total');
+            el.textContent = sym + ' ' + fmt(categorySums[key] || 0);
+        });
+        if (grandTotal) grandTotal.textContent = sym + ' ' + fmt(sum);
+    }
+
     function filterRows(query) {
         var needle = query.trim().toLowerCase(), visible = 0, sum = 0;
+        var categorySums = {};
+        categories.forEach(function (key) { categorySums[key] = 0; });
+
         rows.forEach(function (row) {
             var show = needle === '' || (row.getAttribute('data-search-text') || '').indexOf(needle) !== -1;
             row.style.display = show ? '' : 'none';
-            if (show) { visible++; sum += parseFloat(row.getAttribute('data-amount') || '0'); }
+            if (show) {
+                visible++;
+                var amount = parseFloat(row.getAttribute('data-amount') || '0');
+                var category = row.getAttribute('data-category') || '';
+                sum += amount;
+                if (categorySums[category] !== undefined) {
+                    categorySums[category] += amount;
+                }
+            }
         });
+
         if (noResults) noResults.style.display = (visible === 0 && needle !== '') ? '' : 'none';
-        if (filteredTotal) filteredTotal.textContent = sym + ' ' + fmt(sum);
+        updateCategoryTotals(categorySums, sum);
         if (matchingCount) matchingCount.textContent = visible;
-        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !hasDateFilter);
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !hasServerFilter);
         if (footer) {
             if (visible > 0 && needle !== '') footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> of <span class="font-bold text-[#2B3437] tabular-nums">' + total + '</span> expenses matching &ldquo;' + esc(query.trim()) + '&rdquo;';
             else if (visible > 0) footer.innerHTML = 'Showing <span class="font-bold text-[#2B3437] tabular-nums">' + visible + '</span> expense' + (visible === 1 ? '' : 's');
             else if (needle !== '') footer.textContent = 'No matches';
             else footer.textContent = 'No results';
         }
-        try { var url = new URL(window.location.href); needle !== '' ? url.searchParams.set('search', query.trim()) : url.searchParams.delete('search'); history.replaceState(null, '', url.toString()); } catch (e) {}
+        try {
+            var url = new URL(window.location.href);
+            needle !== '' ? url.searchParams.set('search', query.trim()) : url.searchParams.delete('search');
+            history.replaceState(null, '', url.toString());
+        } catch (e) {}
     }
 
     function clearSearch() { if (searchInput) { searchInput.value = ''; filterRows(''); searchInput.focus(); } }
@@ -240,7 +292,7 @@ No results
         searchInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); filterRows(this.value); } });
         searchInput.addEventListener('input', function () { filterRows(this.value); });
     }
-    if (clearBtn) clearBtn.addEventListener('click', function (e) { if (!hasDateFilter) { e.preventDefault(); clearSearch(); } });
+    if (clearBtn) clearBtn.addEventListener('click', function (e) { if (!hasServerFilter) { e.preventDefault(); clearSearch(); } });
     if (noResultsClr) noResultsClr.addEventListener('click', clearSearch);
     if (searchInput && searchInput.value.trim() !== '') filterRows(searchInput.value);
 
