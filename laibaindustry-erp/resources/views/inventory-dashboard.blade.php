@@ -83,15 +83,12 @@ Add item
 </div>
 <div class="min-w-[200px]">
 <label class="st-label block mb-2" for="inv-cat">Category</label>
-<div class="relative isolate">
-<select class="st-select w-full h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="inv-cat" name="category_id">
+<select class="st-select w-full h-10 pl-3 pr-12 text-sm cursor-pointer" id="inv-cat" name="category_id">
 <option value="">All categories</option>
 @foreach($categories ?? [] as $cat)
 <option value="{{ $cat->id }}" {{ (string) request('category_id') === (string) $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
 @endforeach
 </select>
-<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-</div>
 </div>
 <div class="flex flex-wrap gap-2">
 <button type="submit" class="st-btn-primary h-10 px-4 inline-flex items-center gap-2">

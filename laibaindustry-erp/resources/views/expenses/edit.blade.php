@@ -56,14 +56,11 @@
 </div>
 <div class="min-w-0">
 <label class="st-label block mb-2" for="category">Category <span class="text-[#9F403D]">*</span></label>
-<div class="relative isolate">
-<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer @error('category') !border-[#9F403D] @enderror" name="category" id="category" required>
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm cursor-pointer @error('category') !border-[#9F403D] @enderror" name="category" id="category" required>
 @foreach($categoryLabels as $value => $label)
 <option value="{{ $value }}" {{ old('category', $expense->category) === $value ? 'selected' : '' }}>{{ $label }}</option>
 @endforeach
 </select>
-<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none select-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-</div>
 @error('category')<p class="mt-1.5 text-xs text-[#9F403D] font-medium">{{ $message }}</p>@enderror
 </div>
 <div>

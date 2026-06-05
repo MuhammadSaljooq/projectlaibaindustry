@@ -89,15 +89,12 @@ New expense
 <form id="exp-form" method="GET" action="{{ route('expenses.index') }}" class="flex flex-wrap items-end gap-4 p-5 bg-[#F8F9FA] border border-[#ABB3B7]">
 <div class="min-w-[200px]">
 <label class="st-label block mb-2" for="e-category">Category</label>
-<div class="relative isolate">
-<select class="st-select w-full h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="e-category" name="category">
+<select class="st-select w-full h-10 pl-3 pr-12 text-sm cursor-pointer" id="e-category" name="category">
 <option value="">All categories</option>
 @foreach($categoryLabels as $value => $label)
 <option value="{{ $value }}" {{ ($categoryFilter ?? '') === $value ? 'selected' : '' }}>{{ $label }}</option>
 @endforeach
 </select>
-<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-</div>
 </div>
 <div class="flex-1 min-w-[200px]">
 <label class="st-label block mb-2" for="e-search">Description</label>

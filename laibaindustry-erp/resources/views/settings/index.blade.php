@@ -81,35 +81,28 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl">
 <div>
 <label class="st-label block mb-2" for="timezone">Timezone</label>
-<div class="relative isolate">
-<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-not-allowed opacity-70" id="timezone" name="timezone" disabled>
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm cursor-not-allowed opacity-70" id="timezone" name="timezone" disabled>
 <option value="UTC">UTC</option>
 <option value="America/New_York">America / New York</option>
 <option value="Europe/London">Europe / London</option>
 <option value="Asia/Karachi">Asia / Karachi</option>
 <option value="Asia/Riyadh">Asia / Riyadh</option>
 </select>
-<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-</div>
 </div>
 
 <div>
 <label class="st-label block mb-2" for="language">Language</label>
-<div class="relative isolate">
-<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="language" name="language">
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm cursor-pointer" id="language" name="language">
 <option value="en">English</option>
 <option value="ar">العربية (Arabic)</option>
 <option value="ur">Urdu</option>
 <option value="fr">Français (French)</option>
 </select>
-<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-</div>
 </div>
 
 <div>
 <label class="st-label block mb-2" for="currency">Default currency</label>
-<div class="relative isolate">
-<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer" id="currency" name="currency" required>
+<select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm cursor-pointer" id="currency" name="currency" required>
 <option value="SAR" {{ ($defaultCurrencyCode ?? 'USD') === 'SAR' ? 'selected' : '' }}>SAR — Saudi Riyal</option>
 <option value="USD" {{ ($defaultCurrencyCode ?? 'USD') === 'USD' ? 'selected' : '' }}>USD — US Dollar</option>
 <option value="EUR" {{ ($defaultCurrencyCode ?? 'USD') === 'EUR' ? 'selected' : '' }}>EUR — Euro</option>
@@ -117,8 +110,6 @@
 <option value="PKR" {{ ($defaultCurrencyCode ?? 'USD') === 'PKR' ? 'selected' : '' }}>PKR — Pakistani Rupee</option>
 <option value="AED" {{ ($defaultCurrencyCode ?? 'USD') === 'AED' ? 'selected' : '' }}>AED — UAE Dirham</option>
 </select>
-<span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-</div>
 </div>
 
 <div>

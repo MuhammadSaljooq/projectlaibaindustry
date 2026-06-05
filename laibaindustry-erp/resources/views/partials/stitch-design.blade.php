@@ -20,15 +20,21 @@
 :is(.stitch-ui, .purchases-stitch) textarea.st-input {
   display:block; width:100%; max-width:100%; box-sizing:border-box; resize:vertical; min-height:5rem;
 }
-/* Kill the native dropdown arrow everywhere — otherwise it stacks on top of a custom chevron. */
-:is(.stitch-ui, .purchases-stitch) .st-select {
+/* One chevron per select — overrides Tailwind forms plugin + native arrows (no stacked icons). */
+:is(.stitch-ui, .purchases-stitch) select.st-select,
+:is(.stitch-ui, .purchases-stitch) select.st-input {
   min-height:2.5rem;
-  background-repeat:no-repeat;
   -webkit-appearance:none;
   -moz-appearance:none;
   appearance:none;
+  background-color:var(--st-paper);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23586064'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
+  background-repeat:no-repeat !important;
+  background-position:right 0.625rem center !important;
+  background-size:1.125rem !important;
 }
-:is(.stitch-ui, .purchases-stitch) .st-select::-ms-expand {
+:is(.stitch-ui, .purchases-stitch) select.st-select::-ms-expand,
+:is(.stitch-ui, .purchases-stitch) select.st-input::-ms-expand {
   display:none;
 }
 :is(.stitch-ui, .purchases-stitch) .st-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--st-on-var); }

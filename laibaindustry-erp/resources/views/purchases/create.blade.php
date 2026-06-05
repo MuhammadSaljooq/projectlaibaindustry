@@ -64,7 +64,7 @@ Back to ledger
 <div class="space-y-4">
 <div>
 <label class="st-label block mb-2" for="customer_select">Customer / Vendor</label>
-<select class="st-select w-full px-4 py-2 text-sm" id="customer_select">
+<select class="st-select w-full pl-4 pr-12 py-2 text-sm" id="customer_select">
 <option value="">Add new vendor</option>
 @foreach($customers as $c)
 <option value="{{ $c->id }}" data-code="{{ e($c->customer_code) }}" data-name="{{ e($c->customer_name) }}">{{ $c->customer_name }} ({{ $c->customer_code }})</option>

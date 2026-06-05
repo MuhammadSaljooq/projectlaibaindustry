@@ -58,7 +58,7 @@ if (! is_array($itemRows) || count($itemRows) === 0) {
 <div class="space-y-5 max-w-xl mb-8">
 <div>
 <label class="st-label block mb-2" for="supplier_id">Vendor</label>
-<select class="st-input w-full h-10 px-3 text-sm" name="supplier_id" id="supplier_id">
+<select class="st-input w-full h-10 pl-3 pr-12 text-sm" name="supplier_id" id="supplier_id">
 <option value="">— None —</option>
 @foreach($suppliers as $s)
 <option value="{{ $s->id }}" @selected((string) old('supplier_id') === (string) $s->id)>{{ $s->name }}</option>

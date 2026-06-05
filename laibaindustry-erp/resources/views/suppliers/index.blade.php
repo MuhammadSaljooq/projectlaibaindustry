@@ -82,8 +82,7 @@ New vendor
 <div class="min-w-[160px]">
 <label class="st-label block mb-2" for="s-country">Country</label>
 <div class="relative">
-<select class="st-select w-full h-10 pl-3 pr-8 text-sm" id="s-country" name="country"
-        style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23586064' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 0.5rem center;padding-right:2rem;">
+<select class="st-select w-full h-10 pl-3 pr-12 text-sm" id="s-country" name="country">
 <option value="">All countries</option>
 @foreach($countries as $c)
 <option value="{{ $c }}" @selected($country === $c)>{{ $c }}</option>

@@ -56,7 +56,7 @@
 
 <div class="space-y-4 mb-6">
 <label class="st-label block mb-2" for="customer_select">Customer</label>
-<select class="st-select w-full pl-4 pr-10 py-2 text-sm appearance-none bg-no-repeat bg-[length:1rem] bg-[right_0.75rem_center]" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23586064%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E');" id="customer_select">
+<select class="st-select w-full pl-4 pr-12 py-2 text-sm" id="customer_select">
 <option value="">Select or add new customer</option>
 @foreach($customers ?? [] as $c)
 <option value="{{ $c->id }}" data-code="{{ e($c->customer_code) }}" data-name="{{ e($c->customer_name) }}">{{ $c->customer_name }} ({{ $c->customer_code }})</option>
@@ -102,7 +102,7 @@
 <tr class="line-item st-tr">
 <td class="st-td px-4 py-3 align-top">
 <div class="min-w-0">
-<select class="product-select st-select w-full h-10 pl-3 pr-9 text-sm appearance-none bg-no-repeat bg-[length:1rem] bg-[right_0.5rem_center]" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23586064%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E');" name="items[0][product_id]" required>
+<select class="product-select st-select w-full h-10 pl-3 pr-12 text-sm" name="items[0][product_id]" required>
 <option value="">Select product</option>
 @foreach($products as $p)
 <option value="{{ $p->id }}" data-price="{{ $p->selling_price ?? $p->cost_price }}" data-stock="{{ $p->stock_quantity }}">{{ $p->name }} ({{ $p->sku }})</option>

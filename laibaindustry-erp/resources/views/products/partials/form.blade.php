@@ -18,16 +18,12 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
     <div class="min-w-0">
         <label class="st-label block mb-2" for="category_id">Category <span class="text-[#9F403D]">*</span></label>
-        <div class="relative isolate">
-            {{-- Extra right padding so label text never sits under the chevron (Material icon ~24px + inset) --}}
-            <select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer @error('category_id') !border-[#9F403D] @enderror" id="category_id" name="category_id" required>
-                <option value="">Select category</option>
-                @foreach($categories ?? [] as $cat)
-                <option value="{{ $cat->id }}" {{ old('category_id', $product?->category_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                @endforeach
-            </select>
-            <span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none select-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-        </div>
+        <select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm cursor-pointer @error('category_id') !border-[#9F403D] @enderror" id="category_id" name="category_id" required>
+            <option value="">Select category</option>
+            @foreach($categories ?? [] as $cat)
+            <option value="{{ $cat->id }}" {{ old('category_id', $product?->category_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+            @endforeach
+        </select>
         @error('category_id')<p class="mt-1.5 text-xs text-[#9F403D] font-medium">{{ $message }}</p>@enderror
     </div>
     <div></div>

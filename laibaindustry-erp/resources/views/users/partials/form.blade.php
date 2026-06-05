@@ -32,15 +32,12 @@
     @endif
     <div class="min-w-0">
         <label class="st-label block mb-2" for="role">Role <span class="text-[#9F403D]">*</span></label>
-        <div class="relative isolate">
-            <select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm appearance-none cursor-pointer @error('role') !border-[#9F403D] @enderror" id="role" name="role" required>
-                <option value="">Select role</option>
-                @foreach($roles as $value => $label)
-                <option value="{{ $value }}" {{ old('role', $user?->role) == $value ? 'selected' : '' }}>{{ $label }}</option>
-                @endforeach
-            </select>
-            <span class="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-[#586064] !text-[18px] leading-none w-6 flex items-center justify-center" aria-hidden="true">expand_more</span>
-        </div>
+        <select class="st-select w-full min-w-0 h-10 pl-3 pr-12 text-sm cursor-pointer @error('role') !border-[#9F403D] @enderror" id="role" name="role" required>
+            <option value="">Select role</option>
+            @foreach($roles as $value => $label)
+            <option value="{{ $value }}" {{ old('role', $user?->role) == $value ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
+        </select>
         @error('role')<p class="mt-1.5 text-xs text-[#9F403D] font-medium">{{ $message }}</p>@enderror
     </div>
 </div>
