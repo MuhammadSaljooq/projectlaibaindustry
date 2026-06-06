@@ -3,7 +3,7 @@
 <head>
 @include('partials.frontend-head', ['title' => 'Login - Laiba Safety'])
 </head>
-<body class="bg-black font-display text-white min-h-screen">
+<body class="font-display text-white min-h-screen" style="background-color:#000">
 <div class="min-h-screen w-full flex items-center justify-center p-6 sm:p-8">
 <div class="w-full max-w-md">
     {{-- Logo and Title --}}
