@@ -132,6 +132,17 @@ $active = $activeNav ?? '';
         });
     });
 
+    // Restore scroll position from previous page visit.
+    var savedScroll = sessionStorage.getItem('sidebar-scroll');
+    if (savedScroll !== null) {
+        sidebar.scrollTop = parseInt(savedScroll, 10);
+    }
+
+    // Save scroll position before navigating away.
+    window.addEventListener('beforeunload', function () {
+        sessionStorage.setItem('sidebar-scroll', sidebar.scrollTop);
+    });
+
     function closestMatch(start, selector) {
         var el = start;
         while (el && el !== document) {
