@@ -115,7 +115,11 @@ jobs:
           grep -q "__DIR__.'/storage/framework/maintenance.php'" ../deploy-package/index.php
           grep -q "require __DIR__.'/vendor/autoload.php';" ../deploy-package/index.php
           grep -q "require_once __DIR__.'/bootstrap/app.php';" ../deploy-package/index.php
-          rm -rf ../deploy-package/public
+
+          # Keep public/build/ so Laravel's Vite helper can find manifest.json at
+          # public_path('build/manifest.json'). Remove everything else from public/
+          # since those files were already copied to the root by rsync above.
+          find ../deploy-package/public -mindepth 1 -maxdepth 1 ! -name 'build' -exec rm -rf {} \;
 
       - name: Validate FTP server secret format
         env:
