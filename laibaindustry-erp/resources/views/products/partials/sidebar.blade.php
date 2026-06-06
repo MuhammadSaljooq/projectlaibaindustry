@@ -14,7 +14,7 @@
 </div>
 
 {{-- Nav Links --}}
-<div class="flex-1 flex flex-col gap-0.5 px-2 py-3 overflow-y-auto no-scrollbar">
+<div id="sidebar-nav" class="flex-1 flex flex-col gap-0.5 px-2 py-3 overflow-y-auto no-scrollbar">
 
 @php
 $navItems = [
@@ -132,16 +132,18 @@ $active = $activeNav ?? '';
         });
     });
 
-    // Restore scroll position from previous page visit.
-    var savedScroll = sessionStorage.getItem('sidebar-scroll');
-    if (savedScroll !== null) {
-        sidebar.scrollTop = parseInt(savedScroll, 10);
+    // Persist the nav list scroll position across page navigations.
+    // The scrollable element is the inner nav div, not the <aside>.
+    var sidebarNav = document.getElementById('sidebar-nav');
+    if (sidebarNav) {
+        var savedScroll = sessionStorage.getItem('sidebar-scroll');
+        if (savedScroll !== null) {
+            sidebarNav.scrollTop = parseInt(savedScroll, 10);
+        }
+        window.addEventListener('beforeunload', function () {
+            sessionStorage.setItem('sidebar-scroll', sidebarNav.scrollTop);
+        });
     }
-
-    // Save scroll position before navigating away.
-    window.addEventListener('beforeunload', function () {
-        sessionStorage.setItem('sidebar-scroll', sidebar.scrollTop);
-    });
 
     function closestMatch(start, selector) {
         var el = start;
