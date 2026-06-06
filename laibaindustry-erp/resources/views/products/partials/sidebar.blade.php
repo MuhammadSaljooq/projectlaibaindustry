@@ -122,6 +122,16 @@ $active = $activeNav ?? '';
 
     if (!sidebar || !overlay) return;
 
+    // Suppress the slide-in animation on initial page load.
+    // The sidebar starts with -translate-x-full and md:translate-x-0 overrides it
+    // at desktop widths — without this the transition fires on every navigation.
+    sidebar.style.transition = 'none';
+    requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+            sidebar.style.transition = '';
+        });
+    });
+
     function closestMatch(start, selector) {
         var el = start;
         while (el && el !== document) {
