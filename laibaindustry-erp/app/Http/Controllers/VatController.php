@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\VatEntry;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -87,8 +88,10 @@ class VatController extends Controller
         try {
             $vat_entry->delete();
         } catch (\Throwable $e) {
+            Log::error('VAT entry deletion failed', ['id' => $vat_entry->id, 'exception' => $e]);
+
             return redirect()->route('vat.index', $query)
-                ->with('error', 'Failed to remove VAT entry: '.$e->getMessage());
+                ->with('error', 'Could not delete this VAT entry.');
         }
 
         return redirect()->route('vat.index', $query)

@@ -5,9 +5,15 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Manrope', sans-serif;
+    --color-primary: #137fec;
+    --color-background-light: #f6f7f8;
+    --color-background-dark: #101922;
 }
 
 /* Line-item number fields (when built with Vite): hide native stepper arrows */

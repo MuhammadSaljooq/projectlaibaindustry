@@ -29,7 +29,7 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store')->middleware('throttle:5,1');
     Route::view('/forgot-password', 'auth.forgot-password')->name('password.request');
     Route::post('/forgot-password', function (Request $request) {
         $request->validate(['email' => ['required', 'email']]);

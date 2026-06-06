@@ -9,7 +9,7 @@
 <h1 class="text-[#2B3437] font-black uppercase tracking-tighter text-xl leading-tight whitespace-nowrap">Laiba Safety</h1>
 <p class="mt-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#586064]">Admin Console</p>
 </div>
-<img src="/images/laiba-logo-icon.png" alt="Laiba Industry logo" class="h-16 w-auto object-contain shrink-0">
+<img src="/images/laiba-logo-icon.png" alt="Laiba Safety logo" class="h-16 w-auto object-contain shrink-0">
 </div>
 </div>
 
@@ -40,12 +40,12 @@ $active = $activeNav ?? '';
 @if($active === $item['key'])
 <a class="flex items-center gap-3 px-3 py-2.5 text-[#2B3437] font-bold bg-[#EAEFF1] border-l-2 border-[#5E5E5E] rounded-none transition-colors" href="{{ $item['route'] }}">
 <span class="material-symbols-outlined text-[20px] text-[#5E5E5E]">{{ $item['icon'] }}</span>
-<span class="text-[11px] font-bold uppercase tracking-tight">{{ $item['label'] }}</span>
+<span class="text-xs font-bold uppercase tracking-tight">{{ $item['label'] }}</span>
 </a>
 @else
 <a class="flex items-center gap-3 px-3 py-2.5 font-medium text-[#586064] border-l-2 border-transparent rounded-none hover:bg-[#F1F4F6] hover:text-[#2B3437] transition-colors" href="{{ $item['route'] }}">
 <span class="material-symbols-outlined text-[20px]">{{ $item['icon'] }}</span>
-<span class="text-sm tracking-tight">{{ $item['label'] }}</span>
+<span class="text-xs tracking-tight">{{ $item['label'] }}</span>
 </a>
 @endif
 @endforeach
@@ -57,12 +57,12 @@ $active = $activeNav ?? '';
 @if($active === 'users')
 <a class="flex items-center gap-3 px-3 py-2.5 text-[#2B3437] font-bold bg-[#EAEFF1] border-l-2 border-[#5E5E5E] rounded-none transition-colors" href="{{ route('users.index', absolute: false) }}">
 <span class="material-symbols-outlined text-[20px] text-[#5E5E5E]">person</span>
-<span class="text-[11px] font-bold uppercase tracking-tight">Users</span>
+<span class="text-xs font-bold uppercase tracking-tight">Users</span>
 </a>
 @else
 <a class="flex items-center gap-3 px-3 py-2.5 font-medium text-[#586064] border-l-2 border-transparent rounded-none hover:bg-[#F1F4F6] hover:text-[#2B3437] transition-colors" href="{{ route('users.index', absolute: false) }}">
 <span class="material-symbols-outlined text-[20px]">person</span>
-<span class="text-sm tracking-tight">Users</span>
+<span class="text-xs tracking-tight">Users</span>
 </a>
 @endif
 @endif
@@ -70,12 +70,12 @@ $active = $activeNav ?? '';
 @if($active === 'settings')
 <a class="flex items-center gap-3 px-3 py-2.5 text-[#2B3437] font-bold bg-[#EAEFF1] border-l-2 border-[#5E5E5E] rounded-none transition-colors" href="{{ route('settings.index', absolute: false) }}">
 <span class="material-symbols-outlined text-[20px] text-[#5E5E5E]">settings</span>
-<span class="text-[11px] font-bold uppercase tracking-tight">Settings</span>
+<span class="text-xs font-bold uppercase tracking-tight">Settings</span>
 </a>
 @else
 <a class="flex items-center gap-3 px-3 py-2.5 font-medium text-[#586064] border-l-2 border-transparent rounded-none hover:bg-[#F1F4F6] hover:text-[#2B3437] transition-colors" href="{{ route('settings.index', absolute: false) }}">
 <span class="material-symbols-outlined text-[20px]">settings</span>
-<span class="text-sm tracking-tight">Settings</span>
+<span class="text-xs tracking-tight">Settings</span>
 </a>
 @endif
 
