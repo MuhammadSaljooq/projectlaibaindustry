@@ -143,7 +143,7 @@ Clear
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Qty</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap hidden md:table-cell">Unit price</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Line total</th>
-<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden lg:table-cell">Remaining stock</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden lg:table-cell">Stock (current)</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
 </tr>
 </thead>

@@ -91,8 +91,24 @@ class InventoryHistoryController extends Controller
         $productId = $request->integer('product_id') ?: null;
         $productName = $productId ? (Product::find($productId)?->name) : null;
 
+        // Compute running stock balance per item.
+        // Items arrive newest-first. We walk forward: the stock shown for each
+        // row is what remained AFTER that sale. We start from each product's
+        // current stock_quantity and add back quantities as we go older.
+        $runningStock  = [];   // product_id → running balance
+        $itemStockMap  = [];   // item_id    → remaining stock shown on that row
+
+        foreach ($items as $item) {
+            $pid = $item->product_id;
+            if (!array_key_exists($pid, $runningStock)) {
+                $runningStock[$pid] = (int) ($item->product?->stock_quantity ?? 0);
+            }
+            $itemStockMap[$item->id] = $runningStock[$pid];
+            $runningStock[$pid] += (int) $item->quantity;
+        }
+
         $pdf = Pdf::loadView('inventory.history-pdf', compact(
-            'items', 'totals', 'company', 'currencySymbol', 'from', 'to', 'search', 'productName'
+            'items', 'totals', 'company', 'currencySymbol', 'from', 'to', 'search', 'productName', 'itemStockMap'
         ))
             ->setPaper('a4', 'landscape')
             ->setOption('isHtml5ParserEnabled', true)
