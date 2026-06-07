@@ -239,10 +239,15 @@ No results
         if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !document.querySelector('[name="product_id"]').value && !document.getElementById('ih-customer').value && !document.getElementById('ih-from').value && !document.getElementById('ih-to').value);
     }
 
-    searchInput.addEventListener('input', function () { filterRows(this.value); });
+    var searchTimer;
+    searchInput.addEventListener('input', function () {
+        filterRows(this.value);
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () { searchInput.form.submit(); }, 500);
+    });
 
     searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); this.form.submit(); }
+        if (e.key === 'Enter') { e.preventDefault(); clearTimeout(searchTimer); this.form.submit(); }
     });
 
     if (searchInput.value.trim() !== '') filterRows(searchInput.value);
