@@ -23,7 +23,7 @@ class InventoryHistoryController extends Controller
         $query = $this->baseQuery();
         $this->applyFilters($query, $from, $to, $request);
 
-        $totals = (clone $query)->selectRaw('
+        $totals = (clone $query)->reorder()->selectRaw('
             COUNT(*) as total_lines,
             COALESCE(SUM(sales_items.quantity), 0) as total_qty,
             COALESCE(SUM(sales_items.quantity * sales_items.selling_price), 0) as total_revenue
@@ -49,7 +49,7 @@ class InventoryHistoryController extends Controller
         $query = $this->baseQuery()->where('sales_items.product_id', $product->id);
         $this->applyFilters($query, $from, $to, $request);
 
-        $totals = (clone $query)->selectRaw('
+        $totals = (clone $query)->reorder()->selectRaw('
             COUNT(*) as total_lines,
             COALESCE(SUM(sales_items.quantity), 0) as total_qty,
             COALESCE(SUM(sales_items.quantity * sales_items.selling_price), 0) as total_revenue
