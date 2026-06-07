@@ -56,6 +56,7 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('/inventory-dashboard', [ProductController::class, 'index'])->name('inventory.dashboard');
     Route::get('/inventory/history', [InventoryHistoryController::class, 'index'])->name('inventory.history');
     Route::get('/inventory/history/export', [InventoryHistoryController::class, 'export'])->name('inventory.history.export');
+    Route::get('/inventory/history/pdf', [InventoryHistoryController::class, 'pdf'])->name('inventory.history.pdf');
     Route::get('/products/{product}/history', [InventoryHistoryController::class, 'productHistory'])->name('products.history');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 

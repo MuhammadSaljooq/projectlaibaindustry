@@ -20,7 +20,11 @@
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Inventory History</h2>
 </div>
 <div class="flex items-center gap-2">
-<a href="{{ route('inventory.history.export') }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
+<a id="ih-pdf-btn" href="{{ route('inventory.history.pdf') }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}" data-base="{{ route('inventory.history.pdf') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+PDF
+</a>
+<a id="ih-csv-btn" href="{{ route('inventory.history.export') }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}" data-base="{{ route('inventory.history.export') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
 <span class="material-symbols-outlined text-[18px]">download</span>
 CSV
 </a>
@@ -216,62 +220,98 @@ No results
     var form        = document.getElementById('ih-form');
     var searchInput = document.getElementById('ih-search');
     var productSel  = document.getElementById('ih-product');
+    var fromInput   = document.getElementById('ih-from');
+    var toInput     = document.getElementById('ih-to');
     var clearBtn    = document.getElementById('ih-clear-btn');
+    var pdfBtn      = document.getElementById('ih-pdf-btn');
+    var csvBtn      = document.getElementById('ih-csv-btn');
     var statsEl     = document.getElementById('ih-stats');
     var resultsEl   = document.getElementById('ih-results');
 
     if (!form || !searchInput) return;
 
     var timer, ctrl;
+    var reqId = 0; // monotonic counter — lets finally() know if it's the latest request
+
+    var DEBOUNCE = 350;
 
     function syncClear() {
         if (!clearBtn) return;
         var active = searchInput.value.trim() !== '' ||
                      (productSel && productSel.value !== '') ||
-                     document.getElementById('ih-from').value !== '' ||
-                     document.getElementById('ih-to').value !== '';
+                     (fromInput && fromInput.value.trim() !== '') ||
+                     (toInput   && toInput.value.trim()   !== '');
         clearBtn.classList.toggle('hidden', !active);
+    }
+
+    function updateExportLinks(qs) {
+        if (pdfBtn) pdfBtn.href = pdfBtn.dataset.base + (qs ? '?' + qs : '');
+        if (csvBtn) csvBtn.href = csvBtn.dataset.base + (qs ? '?' + qs : '');
     }
 
     function doFetch() {
         if (ctrl) ctrl.abort();
         ctrl = new AbortController();
 
+        var myId = ++reqId;
+
         var params = new URLSearchParams(new FormData(form)).toString();
         var url    = form.action + (params ? '?' + params : '');
 
         history.replaceState(null, '', url);
         syncClear();
+        updateExportLinks(params);
 
         if (resultsEl) resultsEl.style.opacity = '0.4';
 
         fetch(url, { signal: ctrl.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { return r.text(); })
             .then(function (html) {
+                if (myId !== reqId) return; // a newer request already fired — discard this response
                 var doc = new DOMParser().parseFromString(html, 'text/html');
                 var ns  = doc.getElementById('ih-stats');
                 var nr  = doc.getElementById('ih-results');
-                if (statsEl && ns)   statsEl.outerHTML   = ns.outerHTML;
-                if (resultsEl && nr) resultsEl.outerHTML = nr.outerHTML;
-                resultsEl = document.getElementById('ih-results');
-                statsEl   = document.getElementById('ih-stats');
+                if (statsEl && ns)   { statsEl.outerHTML   = ns.outerHTML;   statsEl   = document.getElementById('ih-stats'); }
+                if (resultsEl && nr) { resultsEl.outerHTML = nr.outerHTML;   resultsEl = document.getElementById('ih-results'); }
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error(e); })
-            .finally(function () { if (resultsEl) resultsEl.style.opacity = ''; });
+            .finally(function () {
+                // Only restore opacity for the most recent request to avoid clearing
+                // the dim while a newer request is still loading.
+                if (myId !== reqId) return;
+                if (resultsEl) resultsEl.style.opacity = '';
+            });
     }
 
-    var DEBOUNCE = 350;
-
+    // ── Search: debounced live fetch on every keystroke
     searchInput.addEventListener('input', function () {
         clearTimeout(timer);
         syncClear();
         timer = setTimeout(doFetch, DEBOUNCE);
     });
 
-    searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); doFetch(); }
+    // ── Prevent Enter from doing a full form submit in any filter input
+    [searchInput, fromInput, toInput].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(timer);
+                doFetch();
+            }
+        });
     });
 
+    // ── Date fields: fetch when the user finishes editing (on blur after change)
+    [fromInput, toInput].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener('change', function () {
+            clearTimeout(timer);
+            timer = setTimeout(doFetch, DEBOUNCE);
+        });
+    });
+
+    // ── Product dropdown: fetch immediately on selection
     productSel && productSel.addEventListener('change', function () {
         clearTimeout(timer);
         doFetch();

@@ -25,6 +25,18 @@ class SaleDeletionService
         }
 
         if ($sale->invoice_number) {
+            // Delete any payment_received ledger entries linked to this sale's receivables
+            // before removing the receivables themselves, so the customer statement stays clean.
+            $receivableIds = $this->receivablesLinkedToSale($sale->invoice_number, $sale->customer_code)
+                ->pluck('id');
+
+            if ($receivableIds->isNotEmpty()) {
+                CustomerLedgerEntry::query()
+                    ->where('source_type', 'payment_received')
+                    ->whereIn('source_id', $receivableIds)
+                    ->delete();
+            }
+
             $this->receivablesLinkedToSale($sale->invoice_number, $sale->customer_code)->delete();
         }
 

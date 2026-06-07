@@ -255,7 +255,6 @@ class SaleController extends Controller
             return redirect()->back()->withInput()->with('error', 'Please add at least one product to the sale.');
         }
 
-        $defaultCurrencyId = \App\Models\Currency::query()->where('is_default', true)->value('id');
         $taxRate = (float) ($sale->tax_rate ?? 15.0);
 
         try {
@@ -324,41 +323,101 @@ class SaleController extends Controller
                 }
             }
 
-            if ($oldInvoiceRef) {
-                $receivable = app(SaleDeletionService::class)->receivablesLinkedToSale($oldInvoiceRef, $oldCustomerCode)->first();
-                if ($receivable) {
-                    $received = (float) $receivable->received;
-                    $receivable->update([
-                        'date' => $request->date,
-                        'invoice_number' => $request->invoice_number,
-                        'customer_name' => $request->customer_name ?: null,
-                        'customer_code' => $request->customer_code ?: null,
-                        'amount' => max(round($totalAmount, 2), $received),
-                    ]);
-                }
+            // ── Receivable: update if found, create if missing ──────────────────
+            $receivable = $oldInvoiceRef
+                ? app(SaleDeletionService::class)->receivablesLinkedToSale($oldInvoiceRef, $oldCustomerCode)->first()
+                : null;
+
+            if ($receivable) {
+                $received = (float) $receivable->received;
+                $receivable->update([
+                    'date'          => $request->date,
+                    'invoice_number'=> $request->invoice_number,
+                    'customer_name' => $request->customer_name ?: null,
+                    'customer_code' => $request->customer_code ?: null,
+                    'amount'        => max(round($totalAmount, 2), $received),
+                ]);
+            } else {
+                // Receivable was missing (deleted externally or never created) — recreate
+                Receivable::create([
+                    'date'          => $request->date,
+                    'invoice_number'=> $request->invoice_number,
+                    'customer_name' => $request->customer_name ?: null,
+                    'customer_code' => $request->customer_code ?: null,
+                    'amount'        => round($totalAmount, 2),
+                    'received'      => 0,
+                ]);
             }
 
-            // Ledger: update the existing Debit entry for this sale
+            // ── Customer: ensure record exists when code is provided ────────────
+            $customerCode = trim($request->customer_code ?? '');
+            $customerName = trim($request->customer_name ?? '');
+            $customer = null;
+            if ($customerCode !== '') {
+                $customer = Customer::firstOrCreate(
+                    ['customer_code' => $customerCode],
+                    ['customer_name' => $customerName ?: $customerCode, 'phone' => null, 'email' => null, 'address' => null, 'opening_balance' => 0, 'opening_balance_date' => null]
+                );
+            }
+
+            // ── Ledger: update customer_id + amounts; create if missing; delete if customer removed ──
             CustomerLedgerEntry::where('source_type', 'sale')
                 ->where('source_id', $sale->id)
                 ->update([
-                    'date' => $request->date,
-                    'reference' => $request->invoice_number,
-                    'debit' => round($totalAmount, 2),
+                    'customer_id' => $customer?->id,
+                    'date'        => $request->date,
+                    'reference'   => $request->invoice_number,
+                    'debit'       => round($totalAmount, 2),
                 ]);
 
-            VatEntry::where('source_type', Sale::class)
+            if ($customer && ! CustomerLedgerEntry::where('source_type', 'sale')->where('source_id', $sale->id)->exists()) {
+                CustomerLedgerEntry::create([
+                    'customer_id' => $customer->id,
+                    'date'        => $request->date,
+                    'description' => 'Sale Invoice',
+                    'reference'   => $request->invoice_number,
+                    'debit'       => round($totalAmount, 2),
+                    'credit'      => 0,
+                    'source_type' => 'sale',
+                    'source_id'   => $sale->id,
+                ]);
+            }
+
+            if (! $customer) {
+                CustomerLedgerEntry::where('source_type', 'sale')
+                    ->where('source_id', $sale->id)
+                    ->delete();
+            }
+
+            // ── VAT: update if exists, create if missing ────────────────────────
+            $vatRowsUpdated = VatEntry::where('source_type', Sale::class)
                 ->where('source_id', $sale->id)
                 ->update([
-                    'date' => $request->date,
-                    'invoice_number' => $request->invoice_number,
+                    'date'          => $request->date,
+                    'invoice_number'=> $request->invoice_number,
                     'customer_name' => $request->customer_name ?: null,
                     'customer_code' => $request->customer_code ?: null,
-                    'subtotal' => round($subtotal, 2),
-                    'vat_rate' => $taxRate,
-                    'vat_amount' => round($taxAmount, 2),
-                    'total_amount' => round($totalAmount, 2),
+                    'subtotal'      => round($subtotal, 2),
+                    'vat_rate'      => $taxRate,
+                    'vat_amount'    => round($taxAmount, 2),
+                    'total_amount'  => round($totalAmount, 2),
                 ]);
+
+            if (! $vatRowsUpdated) {
+                VatEntry::create([
+                    'type'          => 'sale',
+                    'source_type'   => Sale::class,
+                    'source_id'     => $sale->id,
+                    'date'          => $request->date,
+                    'invoice_number'=> $request->invoice_number,
+                    'customer_name' => $request->customer_name ?: null,
+                    'customer_code' => $request->customer_code ?: null,
+                    'subtotal'      => round($subtotal, 2),
+                    'vat_rate'      => $taxRate,
+                    'vat_amount'    => round($taxAmount, 2),
+                    'total_amount'  => round($totalAmount, 2),
+                ]);
+            }
 
             app(SalePayableOffsetService::class)->syncSaleOffsets(
                 $sale,

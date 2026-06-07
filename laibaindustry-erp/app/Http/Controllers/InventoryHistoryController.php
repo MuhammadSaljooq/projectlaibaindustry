@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Currency;
 use App\Models\Product;
 use App\Models\SaleItem;
+use App\Support\StatementCompany;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -62,6 +65,43 @@ class InventoryHistoryController extends Controller
             'items'          => $items,
             'totals'         => $totals,
             'currencySymbol' => Currency::where('is_default', true)->value('symbol') ?? '$',
+        ]);
+    }
+
+    public function pdf(Request $request): Response|RedirectResponse
+    {
+        [$redirect, $from, $to] = parse_list_date_filters();
+        if ($redirect) {
+            return $redirect;
+        }
+
+        $query = $this->baseQuery();
+        $this->applyFilters($query, $from, $to, $request);
+
+        $totals = (clone $query)->reorder()->selectRaw('
+            COUNT(*) as total_lines,
+            COALESCE(SUM(sales_items.quantity), 0) as total_qty,
+            COALESCE(SUM(sales_items.quantity * sales_items.selling_price), 0) as total_revenue
+        ')->first();
+
+        $items = $query->select('sales_items.*')->get();
+        $company = StatementCompany::normalize(config('company'));
+        $currencySymbol = Currency::where('is_default', true)->value('symbol') ?? '$';
+        $search = trim((string) $request->input('search', ''));
+        $productId = $request->integer('product_id') ?: null;
+        $productName = $productId ? (Product::find($productId)?->name) : null;
+
+        $pdf = Pdf::loadView('inventory.history-pdf', compact(
+            'items', 'totals', 'company', 'currencySymbol', 'from', 'to', 'search', 'productName'
+        ))
+            ->setPaper('a4', 'landscape')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', false)
+            ->setOption('defaultFont', 'DejaVu Sans');
+
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="inventory-history-'.now()->format('Y-m-d').'.pdf"',
         ]);
     }
 
