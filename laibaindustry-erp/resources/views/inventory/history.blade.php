@@ -102,10 +102,6 @@ Inventory
 @endforeach
 </select>
 </div>
-<div class="min-w-[160px]">
-<label class="st-label block mb-2" for="ih-customer">Customer</label>
-<input class="st-input w-full h-10 px-3 text-sm" id="ih-customer" type="text" name="customer" value="{{ request('customer') }}" placeholder="Name or code…" autocomplete="off">
-</div>
 <div class="min-w-[130px]">
 <label class="st-label block mb-2" for="ih-from">From</label>
 <input class="st-input w-full h-10 px-3 text-sm font-mono" id="ih-from" type="text" name="from" value="{{ old('from', filter_date_input_value(request('from'))) }}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
@@ -119,7 +115,7 @@ Inventory
 <span class="material-symbols-outlined text-[16px]">filter_list</span>
 Filter
 </button>
-<a href="{{ route('inventory.history') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ request('search') || request('product_id') || request('customer') || request('from') || request('to') ? '' : ' hidden' }}" id="ih-clear-btn">
+<a href="{{ route('inventory.history') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2{{ request('search') || request('product_id') || request('from') || request('to') ? '' : ' hidden' }}" id="ih-clear-btn">
 <span class="material-symbols-outlined text-[16px]">close</span>
 Clear
 </a>
@@ -236,7 +232,7 @@ No results
         if (emptyRow) emptyRow.style.display = (visible === 0 && needle !== '') ? '' : 'none';
 
         var clearBtn = document.getElementById('ih-clear-btn');
-        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !document.querySelector('[name="product_id"]').value && !document.getElementById('ih-customer').value && !document.getElementById('ih-from').value && !document.getElementById('ih-to').value);
+        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !document.querySelector('[name="product_id"]').value && !document.getElementById('ih-from').value && !document.getElementById('ih-to').value);
     }
 
     var searchTimer;
