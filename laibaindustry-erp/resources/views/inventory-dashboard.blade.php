@@ -20,6 +20,10 @@
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Inventory</h2>
 </div>
 <div class="flex items-center gap-2">
+<a href="{{ route('inventory.history') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">history</span>
+History
+</a>
 @if(auth()->user()->role !== 'viewer')
 <a href="{{ route('products.create') }}" class="st-btn-primary h-10 px-5 inline-flex items-center gap-2 whitespace-nowrap">
 <span class="material-symbols-outlined text-[20px]">add</span>
@@ -152,8 +156,11 @@ Clear
 @endif
 </td>
 <td class="st-td px-4 py-3 text-right" data-stop-row-nav>
-@if(auth()->user()->role !== 'viewer')
 <div class="flex items-center justify-end gap-1 flex-wrap">
+<a href="{{ route('products.history', $product) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="Sales history">
+<span class="material-symbols-outlined text-[18px]">history</span>
+</a>
+@if(auth()->user()->role !== 'viewer')
 <a href="{{ route('products.edit', $product) }}" class="p-2 border border-transparent hover:border-[#ABB3B7] text-[#586064] hover:text-[#2B3437] hover:bg-[#F1F4F6]" title="Edit">
 <span class="material-symbols-outlined text-[18px]">edit</span>
 </a>
@@ -164,8 +171,8 @@ Clear
 <span class="material-symbols-outlined text-[18px]">delete</span>
 </button>
 </form>
-</div>
 @endif
+</div>
 </td>
 </tr>
 @empty

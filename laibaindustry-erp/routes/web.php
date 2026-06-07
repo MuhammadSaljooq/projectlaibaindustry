@@ -8,6 +8,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InternationalPayableController;
 use App\Http\Controllers\InternationalPurchaseController;
 use App\Http\Controllers\PayableController;
+use App\Http\Controllers\InventoryHistoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\QuotationController;
@@ -53,6 +54,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/inventory-dashboard', [ProductController::class, 'index'])->name('inventory.dashboard');
+    Route::get('/inventory/history', [InventoryHistoryController::class, 'index'])->name('inventory.history');
+    Route::get('/inventory/history/export', [InventoryHistoryController::class, 'export'])->name('inventory.history.export');
+    Route::get('/products/{product}/history', [InventoryHistoryController::class, 'productHistory'])->name('products.history');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::resource('products', ProductController::class);
