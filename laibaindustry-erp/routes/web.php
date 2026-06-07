@@ -9,6 +9,7 @@ use App\Http\Controllers\InternationalPayableController;
 use App\Http\Controllers\InternationalPurchaseController;
 use App\Http\Controllers\PayableController;
 use App\Http\Controllers\InventoryHistoryController;
+use App\Http\Controllers\StockAdditionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\QuotationController;
@@ -58,6 +59,10 @@ Route::middleware(['auth', 'blockViewerWrite'])->group(function () {
     Route::get('/inventory/history/export', [InventoryHistoryController::class, 'export'])->name('inventory.history.export');
     Route::get('/inventory/history/pdf', [InventoryHistoryController::class, 'pdf'])->name('inventory.history.pdf');
     Route::get('/products/{product}/history', [InventoryHistoryController::class, 'productHistory'])->name('products.history');
+
+    Route::get('/stock-additions/export', [StockAdditionController::class, 'export'])->name('stock-additions.export');
+    Route::get('/stock-additions/pdf', [StockAdditionController::class, 'pdf'])->name('stock-additions.pdf');
+    Route::resource('stock-additions', StockAdditionController::class);
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::resource('products', ProductController::class);
