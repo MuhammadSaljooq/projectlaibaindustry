@@ -70,7 +70,7 @@ Inventory
 </div>
 @endif
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
+<div id="ih-stats" class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-[#ABB3B7] bg-white md:divide-x md:divide-[#ABB3B7]">
 <div class="p-6 border-b md:border-b-0 border-[#ABB3B7]">
 <p class="st-label mb-2">Total lines</p>
 <p class="text-2xl font-bold font-mono text-[#2B3437] tabular-nums">{{ number_format($totals->total_lines ?? 0) }}</p>
@@ -122,7 +122,7 @@ Clear
 </div>
 </form>
 
-<div class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]">
+<div id="ih-results" class="st-paper flex flex-col border border-[#ABB3B7] bg-white min-h-[320px]" style="transition:opacity .15s ease">
 <div class="px-5 py-4 border-b border-[#ABB3B7] bg-[#EAEFF1]">
 <h3 class="text-xs font-bold uppercase tracking-widest text-[#586064]">Sales line items</h3>
 <p class="text-[11px] text-[#586064] mt-1">One row per product per invoice · click invoice to open sale</p>
@@ -213,40 +213,69 @@ No results
 </main>
 <script>
 (function () {
+    var form        = document.getElementById('ih-form');
     var searchInput = document.getElementById('ih-search');
-    var tbody       = document.querySelector('table tbody');
-    if (!searchInput || !tbody) return;
+    var productSel  = document.getElementById('ih-product');
+    var clearBtn    = document.getElementById('ih-clear-btn');
+    var statsEl     = document.getElementById('ih-stats');
+    var resultsEl   = document.getElementById('ih-results');
 
-    var rows = Array.from(tbody.querySelectorAll('tr[data-ih-search-text]'));
+    if (!form || !searchInput) return;
 
-    function filterRows(query) {
-        var needle = query.trim().toLowerCase();
-        var visible = 0;
-        rows.forEach(function (row) {
-            var show = needle === '' || (row.getAttribute('data-ih-search-text') || '').indexOf(needle) !== -1;
-            row.style.display = show ? '' : 'none';
-            if (show) visible++;
-        });
+    var timer, ctrl;
 
-        var emptyRow = tbody.querySelector('tr:not([data-ih-search-text])');
-        if (emptyRow) emptyRow.style.display = (visible === 0 && needle !== '') ? '' : 'none';
-
-        var clearBtn = document.getElementById('ih-clear-btn');
-        if (clearBtn) clearBtn.classList.toggle('hidden', needle === '' && !document.querySelector('[name="product_id"]').value && !document.getElementById('ih-from').value && !document.getElementById('ih-to').value);
+    function syncClear() {
+        if (!clearBtn) return;
+        var active = searchInput.value.trim() !== '' ||
+                     (productSel && productSel.value !== '') ||
+                     document.getElementById('ih-from').value !== '' ||
+                     document.getElementById('ih-to').value !== '';
+        clearBtn.classList.toggle('hidden', !active);
     }
 
-    var searchTimer;
+    function doFetch() {
+        if (ctrl) ctrl.abort();
+        ctrl = new AbortController();
+
+        var params = new URLSearchParams(new FormData(form)).toString();
+        var url    = form.action + (params ? '?' + params : '');
+
+        history.replaceState(null, '', url);
+        syncClear();
+
+        if (resultsEl) resultsEl.style.opacity = '0.4';
+
+        fetch(url, { signal: ctrl.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var ns  = doc.getElementById('ih-stats');
+                var nr  = doc.getElementById('ih-results');
+                if (statsEl && ns)   statsEl.outerHTML   = ns.outerHTML;
+                if (resultsEl && nr) resultsEl.outerHTML = nr.outerHTML;
+                resultsEl = document.getElementById('ih-results');
+                statsEl   = document.getElementById('ih-stats');
+            })
+            .catch(function (e) { if (e.name !== 'AbortError') console.error(e); })
+            .finally(function () { if (resultsEl) resultsEl.style.opacity = ''; });
+    }
+
+    var DEBOUNCE = 350;
+
     searchInput.addEventListener('input', function () {
-        filterRows(this.value);
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(function () { searchInput.form.submit(); }, 500);
+        clearTimeout(timer);
+        syncClear();
+        timer = setTimeout(doFetch, DEBOUNCE);
     });
 
     searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); clearTimeout(searchTimer); this.form.submit(); }
+        if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); doFetch(); }
     });
 
-    if (searchInput.value.trim() !== '') filterRows(searchInput.value);
+    productSel && productSel.addEventListener('change', function () {
+        clearTimeout(timer);
+        doFetch();
+    });
 })();
 </script>
 </body>
