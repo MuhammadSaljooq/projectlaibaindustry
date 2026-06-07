@@ -19,8 +19,7 @@
 @php
 $navItems = [
     ['key' => 'dashboard',    'icon' => 'dashboard',              'label' => 'Dashboard',   'route' => route('dashboard', absolute: false)],
-    ['key' => 'products',        'icon' => 'inventory_2',            'label' => 'Inventory',        'route' => route('inventory.dashboard', absolute: false)],
-    ['key' => 'stock_additions', 'icon' => 'move_to_inbox',          'label' => 'Stock Additions',  'route' => route('stock-additions.index', absolute: false)],
+    ['key' => 'products',     'icon' => 'inventory_2',            'label' => 'Inventory',   'route' => route('inventory.dashboard', absolute: false)],
     ['key' => 'customers',    'icon' => 'group',                  'label' => 'Customers',   'route' => route('customers.index', absolute: false)],
     ['key' => 'suppliers',    'icon' => 'storefront',             'label' => 'Vendors',     'route' => route('suppliers.index', absolute: false)],
     ['key' => 'sales',        'icon' => 'payments',               'label' => 'Sales',       'route' => route('sales.index', absolute: false)],

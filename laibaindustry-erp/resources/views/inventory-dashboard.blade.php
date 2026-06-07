@@ -20,6 +20,10 @@
 <h2 class="text-lg font-bold text-[#2B3437] hidden sm:block tracking-tight uppercase">Inventory</h2>
 </div>
 <div class="flex items-center gap-2">
+<a href="{{ route('stock-additions.index') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">move_to_inbox</span>
+Stock Additions
+</a>
 <a href="{{ route('inventory.history') }}" class="st-btn-secondary h-10 px-4 inline-flex items-center gap-2 whitespace-nowrap">
 <span class="material-symbols-outlined text-[18px]">history</span>
 History
