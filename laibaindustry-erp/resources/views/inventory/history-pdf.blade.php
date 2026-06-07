@@ -297,6 +297,7 @@
             <th class="text-right">Qty</th>
             <th class="text-right">Unit Price</th>
             <th class="text-right">Line Total</th>
+            <th class="text-right">Remaining Stock</th>
             <th>Invoice</th>
         </tr>
     </thead>
@@ -317,11 +318,14 @@
                 <td class="text-right" style="font-weight:bold;">{{ $item->quantity }}</td>
                 <td class="text-right muted">{{ $currencySymbol }} {{ number_format($item->selling_price, 2) }}</td>
                 <td class="text-right" style="font-weight:bold;">{{ $currencySymbol }} {{ number_format($lineTotal, 2) }}</td>
+                <td class="text-right{{ ($item->product?->stock_quantity ?? 0) <= ($item->product?->reorder_level ?? 0) ? '" style="font-weight:bold;color:#9F403D;' : '" style="font-weight:bold;' }}">
+                    {{ $item->product ? number_format($item->product->stock_quantity) : '—' }}
+                </td>
                 <td class="mono" style="font-weight:bold;">{{ $item->sale?->invoice_number ?? '—' }}</td>
             </tr>
         @empty
             <tr class="empty-row">
-                <td colspan="8">No sales history found for the selected filters.</td>
+                <td colspan="9">No sales history found for the selected filters.</td>
             </tr>
         @endforelse
     </tbody>
@@ -334,6 +338,7 @@
             <td class="text-right">{{ number_format($totals->total_qty ?? 0) }}</td>
             <td></td>
             <td class="text-right">{{ $currencySymbol }} {{ number_format($totals->total_revenue ?? 0, 2) }}</td>
+            <td></td>
             <td></td>
         </tr>
     </tfoot>

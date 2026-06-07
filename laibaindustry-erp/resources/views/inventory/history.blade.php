@@ -143,6 +143,7 @@ Clear
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Qty</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap hidden md:table-cell">Unit price</th>
 <th class="st-th px-4 py-3 text-right whitespace-nowrap">Line total</th>
+<th class="st-th px-4 py-3 text-right whitespace-nowrap hidden lg:table-cell">Remaining stock</th>
 <th class="st-th px-4 py-3 whitespace-nowrap">Invoice</th>
 </tr>
 </thead>
@@ -173,6 +174,9 @@ $ihSearchText = mb_strtolower(
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#2B3437]">{{ $item->quantity }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono text-right tabular-nums text-[#586064] hidden md:table-cell">{{ $currencySymbol }} {{ number_format($item->selling_price, 2) }}</td>
 <td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums text-[#5E5E5E]">{{ $currencySymbol }} {{ number_format($lineTotal, 2) }}</td>
+<td class="st-td px-4 py-3 text-sm font-mono font-bold text-right tabular-nums hidden lg:table-cell {{ ($item->product?->stock_quantity ?? 0) <= ($item->product?->reorder_level ?? 0) ? 'text-[#9F403D]' : 'text-[#2B3437]' }}">
+{{ $item->product ? number_format($item->product->stock_quantity) : '—' }}
+</td>
 <td class="st-td px-4 py-3 text-sm">
 @if($item->sale)
 <a href="{{ route('sales.show', $item->sale) }}" class="font-bold text-[#5E5E5E] hover:underline underline-offset-2">
@@ -185,7 +189,7 @@ $ihSearchText = mb_strtolower(
 </tr>
 @empty
 <tr>
-<td colspan="8" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
+<td colspan="9" class="px-6 py-14 text-center text-sm text-[#586064] border-b border-[#ABB3B7]">
 <p class="font-semibold text-[#2B3437] mb-1">No sales history found</p>
 @if(request('search') || request('product_id') || request('customer') || request('from') || request('to'))
 <a href="{{ route('inventory.history') }}" class="text-[#5E5E5E] font-bold underline underline-offset-2">Clear filters</a>
